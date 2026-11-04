@@ -26,7 +26,7 @@
           1.0
         ],
         "component": true,
-        "name": "Unterlage",
+        "name": "Support",
         "ext": {
           "newton": {
             "mode": "static",
@@ -60,7 +60,7 @@
           1.0
         ],
         "component": true,
-        "name": "Kettenhalter",
+        "name": "Chain holder",
         "ext": {
           "newton": {
             "mode": "static",
@@ -94,7 +94,7 @@
           1.0
         ],
         "component": true,
-        "name": "Kettenglied 01",
+        "name": "Chain link 01",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -144,7 +144,7 @@
           1.0
         ],
         "component": true,
-        "name": "Kettenglied 02",
+        "name": "Chain link 02",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -194,7 +194,7 @@
           1.0
         ],
         "component": true,
-        "name": "Kettenglied 03",
+        "name": "Chain link 03",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -244,7 +244,7 @@
           1.0
         ],
         "component": true,
-        "name": "Kettenglied 04",
+        "name": "Chain link 04",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -294,7 +294,7 @@
           1.0
         ],
         "component": true,
-        "name": "Kettenglied 05",
+        "name": "Chain link 05",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -344,7 +344,7 @@
           1.0
         ],
         "component": true,
-        "name": "Kettenglied 06",
+        "name": "Chain link 06",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -394,7 +394,7 @@
           1.0
         ],
         "component": true,
-        "name": "Kettenglied 07",
+        "name": "Chain link 07",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -444,7 +444,7 @@
           1.0
         ],
         "component": true,
-        "name": "Kettenglied 08",
+        "name": "Chain link 08",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -494,7 +494,7 @@
           1.0
         ],
         "component": true,
-        "name": "Kettenglied 09",
+        "name": "Chain link 09",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -544,7 +544,7 @@
           1.0
         ],
         "component": true,
-        "name": "Kettenglied 10",
+        "name": "Chain link 10",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -594,7 +594,7 @@
           1.0
         ],
         "component": true,
-        "name": "Kettenglied 11",
+        "name": "Chain link 11",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -644,7 +644,7 @@
           1.0
         ],
         "component": true,
-        "name": "Kettenglied 12",
+        "name": "Chain link 12",
         "ext": {
           "newton": {
             "mode": "dynamic",

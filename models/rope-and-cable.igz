@@ -26,7 +26,7 @@
           1.0
         ],
         "component": true,
-        "name": "Unterlage",
+        "name": "Support",
         "ext": {
           "newton": {
             "mode": "static",
@@ -60,7 +60,7 @@
           1.0
         ],
         "component": true,
-        "name": "Seil \u00b7 Klemme",
+        "name": "Rope \u00b7 Clamp",
         "ext": {
           "newton": {
             "mode": "static",
@@ -94,7 +94,7 @@
           1.0
         ],
         "component": true,
-        "name": "Seil \u00b7 St\u00fctze",
+        "name": "Rope \u00b7 Post",
         "ext": {
           "newton": {
             "mode": "static",
@@ -128,7 +128,7 @@
           1.0
         ],
         "component": true,
-        "name": "Seil \u00b7 Gewicht",
+        "name": "Rope \u00b7 Weight",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -162,7 +162,7 @@
           1.0
         ],
         "component": true,
-        "name": "Seil",
+        "name": "Rope",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -333,7 +333,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "0bebeff93efb4fd0"
           },
           {
@@ -357,7 +357,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "e30c3f5da9074b0e"
           },
           {
@@ -381,7 +381,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "7483a77acb8448c6"
           },
           {
@@ -405,7 +405,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "762b583d77af4030"
           },
           {
@@ -429,7 +429,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "76f56d5e9f364266"
           },
           {
@@ -453,7 +453,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "a63a047727cd4b26"
           },
           {
@@ -477,7 +477,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "138e476844674d38"
           },
           {
@@ -501,7 +501,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "3e148f30529344be"
           },
           {
@@ -525,7 +525,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "38062bb9371140ae"
           },
           {
@@ -549,7 +549,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "5948a6eee16c4ae1"
           },
           {
@@ -573,7 +573,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "9ac1f9ef70e141ef"
           },
           {
@@ -597,7 +597,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "7a34e94ee5a140f9"
           },
           {
@@ -621,7 +621,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "612effc4437d472a"
           },
           {
@@ -645,7 +645,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "dcab522be9584b7f"
           },
           {
@@ -669,7 +669,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "767a652ead2b4edc"
           },
           {
@@ -693,7 +693,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "6b223b641f0649d0"
           },
           {
@@ -717,7 +717,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "c32c17d8d9fd41ec"
           },
           {
@@ -741,7 +741,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "d311a23959b74744"
           },
           {
@@ -765,7 +765,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "3df1d6e4b69a4ecd"
           },
           {
@@ -789,7 +789,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "33bf65e18e0541f7"
           },
           {
@@ -813,7 +813,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "d01d2d6e4710415f"
           },
           {
@@ -837,7 +837,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "9cf8f3a4ce084f69"
           },
           {
@@ -861,7 +861,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "98fee6661b184d69"
           },
           {
@@ -885,7 +885,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seil",
+            "name": "Rope",
             "uid": "e87837778bc44316"
           }
         ]
@@ -911,7 +911,7 @@
           1.0
         ],
         "component": true,
-        "name": "Kabel \u00b7 Klemme",
+        "name": "Cable \u00b7 Clamp",
         "ext": {
           "newton": {
             "mode": "static",
@@ -945,7 +945,7 @@
           1.0
         ],
         "component": true,
-        "name": "Kabel \u00b7 St\u00fctze",
+        "name": "Cable \u00b7 Post",
         "ext": {
           "newton": {
             "mode": "static",
@@ -979,7 +979,7 @@
           1.0
         ],
         "component": true,
-        "name": "Kabel \u00b7 Gewicht",
+        "name": "Cable \u00b7 Weight",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -1013,7 +1013,7 @@
           1.0
         ],
         "component": true,
-        "name": "Kabel",
+        "name": "Cable",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -1184,7 +1184,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "9ff8a8ab03a648e3"
           },
           {
@@ -1208,7 +1208,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "8ff8e94f925d4c8f"
           },
           {
@@ -1232,7 +1232,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "66706ff4ed6845f9"
           },
           {
@@ -1256,7 +1256,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "a6c3e9def7f74ec7"
           },
           {
@@ -1280,7 +1280,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "c67a398b8a544fea"
           },
           {
@@ -1304,7 +1304,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "08f6e5e6a679437d"
           },
           {
@@ -1328,7 +1328,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "75f7b00c9d714c99"
           },
           {
@@ -1352,7 +1352,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "fab76a4f05ae4f68"
           },
           {
@@ -1376,7 +1376,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "d4efdf9ba2c040c2"
           },
           {
@@ -1400,7 +1400,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "b6f943274b6c40bf"
           },
           {
@@ -1424,7 +1424,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "9261632429904d9a"
           },
           {
@@ -1448,7 +1448,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "283624fea0fd42b8"
           },
           {
@@ -1472,7 +1472,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "c29a6e6ff9ae4701"
           },
           {
@@ -1496,7 +1496,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "a32397559af944b8"
           },
           {
@@ -1520,7 +1520,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "4b7ce8d8d91f4013"
           },
           {
@@ -1544,7 +1544,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "0b126f5ca9d64cc9"
           },
           {
@@ -1568,7 +1568,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "316d5e87bc36433a"
           },
           {
@@ -1592,7 +1592,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "172eec52594548a6"
           },
           {
@@ -1616,7 +1616,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "cc989170bfb34969"
           },
           {
@@ -1640,7 +1640,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "a88d7e721fa0451c"
           },
           {
@@ -1664,7 +1664,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "150a99032d074641"
           },
           {
@@ -1688,7 +1688,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "652cd2eb2db2486d"
           },
           {
@@ -1712,7 +1712,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "7ea2300dca064420"
           },
           {
@@ -1736,7 +1736,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kabel",
+            "name": "Cable",
             "uid": "04e363a3677a478a"
           }
         ]

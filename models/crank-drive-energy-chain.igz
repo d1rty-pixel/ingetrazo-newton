@@ -26,7 +26,7 @@
           1.0
         ],
         "component": true,
-        "name": "Maschinenbett",
+        "name": "Machine bed",
         "ext": {
           "newton": {
             "mode": "static",
@@ -60,7 +60,7 @@
           1.0
         ],
         "component": true,
-        "name": "Kolbenstange \u00b7 Kreuzkopf",
+        "name": "Piston rod \u00b7 Crosshead",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -72,7 +72,7 @@
             "joint": {
               "type": "slide",
               "drive": "free",
-              "name": "Kolbenhub",
+              "name": "Piston stroke",
               "pivot": [
                 -0.56,
                 0,
@@ -145,7 +145,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kreuzkopf",
+            "name": "Crosshead",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -179,7 +179,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kolbenstange",
+            "name": "Piston rod",
             "uid": "7fc4d77e3dcb4e73"
           },
           {
@@ -203,7 +203,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kettenmitnehmer",
+            "name": "Chain driver",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -237,7 +237,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kettenaufnahme",
+            "name": "Chain mount",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -271,7 +271,7 @@
               1.0
             ],
             "component": true,
-            "name": "Pleuelbolzen",
+            "name": "Connecting rod pin",
             "uid": "95fd7843e31f4f0b"
           }
         ]
@@ -297,7 +297,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 01 \u00b7 Rahmen",
+        "name": "Link 01 \u00b7 Frame",
         "ext": {
           "newton": {
             "mode": "static",
@@ -331,7 +331,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "7ce4a3cca0934537",
             "children": [
               {
@@ -2385,7 +2385,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "1df5fbfbeb3948e3"
               },
               {
@@ -2409,7 +2409,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "0ae303dfbf3d4f0c"
               },
               {
@@ -2433,7 +2433,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "deb188bc23ea42a1"
               }
             ]
@@ -2459,7 +2459,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "9c051aab38ea4e76",
             "children": [
               {
@@ -4513,7 +4513,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "7724eb16ebed4c61"
               },
               {
@@ -4537,7 +4537,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "3f2c5a67f17d4995"
               },
               {
@@ -4561,7 +4561,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "9ecd9da5ce8c41b5"
               }
             ]
@@ -4587,7 +4587,7 @@
               1.0
             ],
             "component": true,
-            "name": "Unterer Quersteg",
+            "name": "Lower crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -4621,7 +4621,7 @@
               1.0
             ],
             "component": true,
-            "name": "Oberer Quersteg",
+            "name": "Upper crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -4657,7 +4657,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 02 \u00b7 Rahmen",
+        "name": "Link 02 \u00b7 Frame",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -4709,7 +4709,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "ce5523d6fcaf4e02",
             "children": [
               {
@@ -6763,7 +6763,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "37b84a99d5f94454"
               },
               {
@@ -6787,7 +6787,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "d76fa86a14ab45b3"
               },
               {
@@ -6811,7 +6811,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "f7496fa6a8924d61"
               }
             ]
@@ -6837,7 +6837,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "14964f44b38143f9",
             "children": [
               {
@@ -8891,7 +8891,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "a75e3fb519a84544"
               },
               {
@@ -8915,7 +8915,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "f73b9f76905c4ff6"
               },
               {
@@ -8939,7 +8939,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "2840d51bdac74b57"
               }
             ]
@@ -8965,7 +8965,7 @@
               1.0
             ],
             "component": true,
-            "name": "Unterer Quersteg",
+            "name": "Lower crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -8999,7 +8999,7 @@
               1.0
             ],
             "component": true,
-            "name": "Oberer Quersteg",
+            "name": "Upper crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -9035,7 +9035,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 03 \u00b7 Rahmen",
+        "name": "Link 03 \u00b7 Frame",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -9087,7 +9087,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "7b367995d5b847ca",
             "children": [
               {
@@ -11141,7 +11141,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "94a3baaeba1d4021"
               },
               {
@@ -11165,7 +11165,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "622db020c49a4591"
               },
               {
@@ -11189,7 +11189,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "f967ee89c47048e0"
               }
             ]
@@ -11215,7 +11215,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "8f4f645511594f47",
             "children": [
               {
@@ -13269,7 +13269,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "17c56aeb16a740f6"
               },
               {
@@ -13293,7 +13293,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "ea5aa02f80ac4a4f"
               },
               {
@@ -13317,7 +13317,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "a5c6b5e825cd4d00"
               }
             ]
@@ -13343,7 +13343,7 @@
               1.0
             ],
             "component": true,
-            "name": "Unterer Quersteg",
+            "name": "Lower crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -13377,7 +13377,7 @@
               1.0
             ],
             "component": true,
-            "name": "Oberer Quersteg",
+            "name": "Upper crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -13413,7 +13413,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 04 \u00b7 Rahmen",
+        "name": "Link 04 \u00b7 Frame",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -13465,7 +13465,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "df55844427664675",
             "children": [
               {
@@ -15519,7 +15519,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "f85a1aa2ccaf48c7"
               },
               {
@@ -15543,7 +15543,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "144946e9a0f0433f"
               },
               {
@@ -15567,7 +15567,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "9f1e74582916439e"
               }
             ]
@@ -15593,7 +15593,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "04f1266189ea4118",
             "children": [
               {
@@ -17647,7 +17647,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "7d848f6c9234412a"
               },
               {
@@ -17671,7 +17671,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "ce5f2618649c4fb8"
               },
               {
@@ -17695,7 +17695,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "c045322809e24c8e"
               }
             ]
@@ -17721,7 +17721,7 @@
               1.0
             ],
             "component": true,
-            "name": "Unterer Quersteg",
+            "name": "Lower crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -17755,7 +17755,7 @@
               1.0
             ],
             "component": true,
-            "name": "Oberer Quersteg",
+            "name": "Upper crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -17791,7 +17791,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 05 \u00b7 Rahmen",
+        "name": "Link 05 \u00b7 Frame",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -17843,7 +17843,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "b9f3c38b544044f8",
             "children": [
               {
@@ -19897,7 +19897,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "3ab9eecf8bd44d67"
               },
               {
@@ -19921,7 +19921,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "a82a7f67b9db4a3f"
               },
               {
@@ -19945,7 +19945,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "15e5a4b10bda4760"
               }
             ]
@@ -19971,7 +19971,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "3bcc530a566c442f",
             "children": [
               {
@@ -22025,7 +22025,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "a34445b7deb2440e"
               },
               {
@@ -22049,7 +22049,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "1fb61b93b60043ec"
               },
               {
@@ -22073,7 +22073,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "00f071c5e0544c73"
               }
             ]
@@ -22099,7 +22099,7 @@
               1.0
             ],
             "component": true,
-            "name": "Unterer Quersteg",
+            "name": "Lower crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -22133,7 +22133,7 @@
               1.0
             ],
             "component": true,
-            "name": "Oberer Quersteg",
+            "name": "Upper crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -22169,7 +22169,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 06 \u00b7 Rahmen",
+        "name": "Link 06 \u00b7 Frame",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -22221,7 +22221,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "b84382636b924032",
             "children": [
               {
@@ -24275,7 +24275,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "2d5b5d01dfe048a5"
               },
               {
@@ -24299,7 +24299,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "c5eabc6869764c73"
               },
               {
@@ -24323,7 +24323,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "dc24adf3bd244d58"
               }
             ]
@@ -24349,7 +24349,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "ddde146b239e4f08",
             "children": [
               {
@@ -26403,7 +26403,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "4fec159220284ecc"
               },
               {
@@ -26427,7 +26427,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "d176ba5e4c7a44cd"
               },
               {
@@ -26451,7 +26451,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "aa13e83e504c440c"
               }
             ]
@@ -26477,7 +26477,7 @@
               1.0
             ],
             "component": true,
-            "name": "Unterer Quersteg",
+            "name": "Lower crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -26511,7 +26511,7 @@
               1.0
             ],
             "component": true,
-            "name": "Oberer Quersteg",
+            "name": "Upper crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -26547,7 +26547,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 07 \u00b7 Rahmen",
+        "name": "Link 07 \u00b7 Frame",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -26599,7 +26599,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "4b848ec2a4484df6",
             "children": [
               {
@@ -28653,7 +28653,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "54ae4f352c584c69"
               },
               {
@@ -28677,7 +28677,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "5ba22693fa764bfd"
               },
               {
@@ -28701,7 +28701,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "148b32104fc04364"
               }
             ]
@@ -28727,7 +28727,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "76ac8377f34d4620",
             "children": [
               {
@@ -30781,7 +30781,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "eb4240acb9db4f9f"
               },
               {
@@ -30805,7 +30805,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "38c78d9487314366"
               },
               {
@@ -30829,7 +30829,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "1ccad44388ed4a44"
               }
             ]
@@ -30855,7 +30855,7 @@
               1.0
             ],
             "component": true,
-            "name": "Unterer Quersteg",
+            "name": "Lower crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -30889,7 +30889,7 @@
               1.0
             ],
             "component": true,
-            "name": "Oberer Quersteg",
+            "name": "Upper crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -30925,7 +30925,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 08 \u00b7 Rahmen",
+        "name": "Link 08 \u00b7 Frame",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -30977,7 +30977,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "0d8e79de5c344ed0",
             "children": [
               {
@@ -33031,7 +33031,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "cc7e344bd4124fb1"
               },
               {
@@ -33055,7 +33055,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "cb4a2eb4fa334c91"
               },
               {
@@ -33079,7 +33079,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "63b659ba8dac42ca"
               }
             ]
@@ -33105,7 +33105,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "025f9550c0b841b5",
             "children": [
               {
@@ -35159,7 +35159,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "3d14b93010414f59"
               },
               {
@@ -35183,7 +35183,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "237f6a3947804d8e"
               },
               {
@@ -35207,7 +35207,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "6e3ba89c02e94c07"
               }
             ]
@@ -35233,7 +35233,7 @@
               1.0
             ],
             "component": true,
-            "name": "Unterer Quersteg",
+            "name": "Lower crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -35267,7 +35267,7 @@
               1.0
             ],
             "component": true,
-            "name": "Oberer Quersteg",
+            "name": "Upper crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -35303,7 +35303,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 09 \u00b7 Rahmen",
+        "name": "Link 09 \u00b7 Frame",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -35355,7 +35355,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "9283057c224042e4",
             "children": [
               {
@@ -37409,7 +37409,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "f3c0cccd7cf5470c"
               },
               {
@@ -37433,7 +37433,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "de47803f923048f2"
               },
               {
@@ -37457,7 +37457,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "88265844b4b84f88"
               }
             ]
@@ -37483,7 +37483,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "80ced155f83d4530",
             "children": [
               {
@@ -39537,7 +39537,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "db9e6b7916fd4831"
               },
               {
@@ -39561,7 +39561,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "077bf20797504232"
               },
               {
@@ -39585,7 +39585,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "d3d38be25d4749a1"
               }
             ]
@@ -39611,7 +39611,7 @@
               1.0
             ],
             "component": true,
-            "name": "Unterer Quersteg",
+            "name": "Lower crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -39645,7 +39645,7 @@
               1.0
             ],
             "component": true,
-            "name": "Oberer Quersteg",
+            "name": "Upper crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -39681,7 +39681,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 10 \u00b7 Rahmen",
+        "name": "Link 10 \u00b7 Frame",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -39733,7 +39733,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "11f5a903e2894ca8",
             "children": [
               {
@@ -41787,7 +41787,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "a0fc19cc877a4c1d"
               },
               {
@@ -41811,7 +41811,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "494d24acd8a749eb"
               },
               {
@@ -41835,7 +41835,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "632b97f856f04172"
               }
             ]
@@ -41861,7 +41861,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "35aba23f512b49fa",
             "children": [
               {
@@ -43915,7 +43915,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "1d9901b1420446f5"
               },
               {
@@ -43939,7 +43939,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "68337889487642c1"
               },
               {
@@ -43963,7 +43963,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "e39e21a1ca9244e4"
               }
             ]
@@ -43989,7 +43989,7 @@
               1.0
             ],
             "component": true,
-            "name": "Unterer Quersteg",
+            "name": "Lower crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -44023,7 +44023,7 @@
               1.0
             ],
             "component": true,
-            "name": "Oberer Quersteg",
+            "name": "Upper crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -44059,7 +44059,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 11 \u00b7 Rahmen",
+        "name": "Link 11 \u00b7 Frame",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -44111,7 +44111,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "cb4edd21c0494922",
             "children": [
               {
@@ -46165,7 +46165,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "ac91283a3d0a402f"
               },
               {
@@ -46189,7 +46189,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "b6935d9d63074635"
               },
               {
@@ -46213,7 +46213,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "6d4baddc63e84a1e"
               }
             ]
@@ -46239,7 +46239,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "a431b5d2c6b94212",
             "children": [
               {
@@ -48293,7 +48293,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "b5a24a8b23a844a6"
               },
               {
@@ -48317,7 +48317,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "ee8058a386c34548"
               },
               {
@@ -48341,7 +48341,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "5050d158b3e94b6a"
               }
             ]
@@ -48367,7 +48367,7 @@
               1.0
             ],
             "component": true,
-            "name": "Unterer Quersteg",
+            "name": "Lower crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -48401,7 +48401,7 @@
               1.0
             ],
             "component": true,
-            "name": "Oberer Quersteg",
+            "name": "Upper crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -48437,7 +48437,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 12 \u00b7 Rahmen",
+        "name": "Link 12 \u00b7 Frame",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -48489,7 +48489,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "1777d557edc34d9a",
             "children": [
               {
@@ -50543,7 +50543,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "bc70ffd9e0994475"
               },
               {
@@ -50567,7 +50567,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "513fff52123441f8"
               },
               {
@@ -50591,7 +50591,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "8169a18ea8584410"
               }
             ]
@@ -50617,7 +50617,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "408c76deabb44ba4",
             "children": [
               {
@@ -52671,7 +52671,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "21dc04c7502049df"
               },
               {
@@ -52695,7 +52695,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "ccfbbf838e614b1d"
               },
               {
@@ -52719,7 +52719,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "ccdcc5434fbc4338"
               }
             ]
@@ -52745,7 +52745,7 @@
               1.0
             ],
             "component": true,
-            "name": "Unterer Quersteg",
+            "name": "Lower crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -52779,7 +52779,7 @@
               1.0
             ],
             "component": true,
-            "name": "Oberer Quersteg",
+            "name": "Upper crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -52815,7 +52815,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 13 \u00b7 Rahmen",
+        "name": "Link 13 \u00b7 Frame",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -52867,7 +52867,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "5a77c898d7e543bb",
             "children": [
               {
@@ -54921,7 +54921,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "71878fa590ab4671"
               },
               {
@@ -54945,7 +54945,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "cc75f007cae34c1a"
               },
               {
@@ -54969,7 +54969,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "4fffea2270dd47c7"
               }
             ]
@@ -54995,7 +54995,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "ef8f18af256d4b2e",
             "children": [
               {
@@ -57049,7 +57049,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "f0067f49668d4019"
               },
               {
@@ -57073,7 +57073,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "66b3a72e614743a7"
               },
               {
@@ -57097,7 +57097,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "05dbad8d3ece4101"
               }
             ]
@@ -57123,7 +57123,7 @@
               1.0
             ],
             "component": true,
-            "name": "Unterer Quersteg",
+            "name": "Lower crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -57157,7 +57157,7 @@
               1.0
             ],
             "component": true,
-            "name": "Oberer Quersteg",
+            "name": "Upper crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -57193,7 +57193,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 14 \u00b7 Rahmen",
+        "name": "Link 14 \u00b7 Frame",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -57245,7 +57245,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "5d342bd9ba92497c",
             "children": [
               {
@@ -59299,7 +59299,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "202ed55169bf4856"
               },
               {
@@ -59323,7 +59323,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "c384c85fe22b4b41"
               },
               {
@@ -59347,7 +59347,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "5721dbac8e20463f"
               }
             ]
@@ -59373,7 +59373,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "f3f2ad1ddf4147f5",
             "children": [
               {
@@ -61427,7 +61427,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "2c43af379ed747c6"
               },
               {
@@ -61451,7 +61451,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "6f9cb703610d4318"
               },
               {
@@ -61475,7 +61475,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "539c5996dd5348ff"
               }
             ]
@@ -61501,7 +61501,7 @@
               1.0
             ],
             "component": true,
-            "name": "Unterer Quersteg",
+            "name": "Lower crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -61535,7 +61535,7 @@
               1.0
             ],
             "component": true,
-            "name": "Oberer Quersteg",
+            "name": "Upper crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -61571,7 +61571,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 15 \u00b7 Rahmen",
+        "name": "Link 15 \u00b7 Frame",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -61623,7 +61623,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "e4d0198a1fbf4ca9",
             "children": [
               {
@@ -63677,7 +63677,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "14928d30c913479b"
               },
               {
@@ -63701,7 +63701,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "4f760387851142d3"
               },
               {
@@ -63725,7 +63725,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "804abc81c389404c"
               }
             ]
@@ -63751,7 +63751,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "15745bda6ccb44ff",
             "children": [
               {
@@ -65805,7 +65805,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "cb7d45bd544540e8"
               },
               {
@@ -65829,7 +65829,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "8b9ead019adb42eb"
               },
               {
@@ -65853,7 +65853,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "9c455201263b4d95"
               }
             ]
@@ -65879,7 +65879,7 @@
               1.0
             ],
             "component": true,
-            "name": "Unterer Quersteg",
+            "name": "Lower crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -65913,7 +65913,7 @@
               1.0
             ],
             "component": true,
-            "name": "Oberer Quersteg",
+            "name": "Upper crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -65949,7 +65949,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 16 \u00b7 Rahmen",
+        "name": "Link 16 \u00b7 Frame",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -66001,7 +66001,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "ba9f5d69c9b74d83",
             "children": [
               {
@@ -68055,7 +68055,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "14cfeed39ea14ac7"
               },
               {
@@ -68079,7 +68079,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "b924f09c23904db5"
               },
               {
@@ -68103,7 +68103,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "75699c106e9645d1"
               }
             ]
@@ -68129,7 +68129,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "cd1b2dd210614cb3",
             "children": [
               {
@@ -70183,7 +70183,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "973b59cc366f4b52"
               },
               {
@@ -70207,7 +70207,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "0a6ef4cf5df94ce9"
               },
               {
@@ -70231,7 +70231,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "6f0729e9d9664094"
               }
             ]
@@ -70257,7 +70257,7 @@
               1.0
             ],
             "component": true,
-            "name": "Unterer Quersteg",
+            "name": "Lower crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -70291,7 +70291,7 @@
               1.0
             ],
             "component": true,
-            "name": "Oberer Quersteg",
+            "name": "Upper crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -70327,7 +70327,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 17 \u00b7 Rahmen",
+        "name": "Link 17 \u00b7 Frame",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -70379,7 +70379,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "a079aa4924a84987",
             "children": [
               {
@@ -72433,7 +72433,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "5eafaf46098046f7"
               },
               {
@@ -72457,7 +72457,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "b0a5e85473e1436b"
               },
               {
@@ -72481,7 +72481,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "1841acef37134c07"
               }
             ]
@@ -72507,7 +72507,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "9a8c4cd845e840c1",
             "children": [
               {
@@ -74561,7 +74561,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "1b8cb70194ad41a6"
               },
               {
@@ -74585,7 +74585,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "66ca5bfe31344ce7"
               },
               {
@@ -74609,7 +74609,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "ef30042773074054"
               }
             ]
@@ -74635,7 +74635,7 @@
               1.0
             ],
             "component": true,
-            "name": "Unterer Quersteg",
+            "name": "Lower crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -74669,7 +74669,7 @@
               1.0
             ],
             "component": true,
-            "name": "Oberer Quersteg",
+            "name": "Upper crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -74705,7 +74705,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 18 \u00b7 Rahmen",
+        "name": "Link 18 \u00b7 Frame",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -74757,7 +74757,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "b5d16b01114c4685",
             "children": [
               {
@@ -76811,7 +76811,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "67aa6fba97fc464b"
               },
               {
@@ -76835,7 +76835,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "625149a8842148d2"
               },
               {
@@ -76859,7 +76859,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "2ca8466f6fcb4079"
               }
             ]
@@ -76885,7 +76885,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "6f11deec3629484d",
             "children": [
               {
@@ -78939,7 +78939,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "a785af3746e64bca"
               },
               {
@@ -78963,7 +78963,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "de86c7a0515743d2"
               },
               {
@@ -78987,7 +78987,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "798eebab24a843fc"
               }
             ]
@@ -79013,7 +79013,7 @@
               1.0
             ],
             "component": true,
-            "name": "Unterer Quersteg",
+            "name": "Lower crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -79047,7 +79047,7 @@
               1.0
             ],
             "component": true,
-            "name": "Oberer Quersteg",
+            "name": "Upper crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -79083,7 +79083,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 19 \u00b7 Rahmen",
+        "name": "Link 19 \u00b7 Frame",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -79135,7 +79135,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "8bcbd00168714174",
             "children": [
               {
@@ -81189,7 +81189,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "351ca4dad66c4e5f"
               },
               {
@@ -81213,7 +81213,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "ce4e9e4a6ae1493b"
               },
               {
@@ -81237,7 +81237,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "72cdfad5deab4dd1"
               }
             ]
@@ -81263,7 +81263,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "518bb63baaee4433",
             "children": [
               {
@@ -83317,7 +83317,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "6546d2277c4a49e4"
               },
               {
@@ -83341,7 +83341,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "2f1c446059904ec4"
               },
               {
@@ -83365,7 +83365,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "708a393a066e4a5f"
               }
             ]
@@ -83391,7 +83391,7 @@
               1.0
             ],
             "component": true,
-            "name": "Unterer Quersteg",
+            "name": "Lower crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -83425,7 +83425,7 @@
               1.0
             ],
             "component": true,
-            "name": "Oberer Quersteg",
+            "name": "Upper crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -83461,7 +83461,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 20 \u00b7 Rahmen",
+        "name": "Link 20 \u00b7 Frame",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -83513,7 +83513,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "b7a2cc1494924aff",
             "children": [
               {
@@ -85567,7 +85567,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "51c88ffd932d42fb"
               },
               {
@@ -85591,7 +85591,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "360c3876ada64085"
               },
               {
@@ -85615,7 +85615,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "8496db5af0464986"
               }
             ]
@@ -85641,7 +85641,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "8a5acfb84b0e46de",
             "children": [
               {
@@ -87695,7 +87695,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "09cde9fec4a340ec"
               },
               {
@@ -87719,7 +87719,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "d80ddd20d2844675"
               },
               {
@@ -87743,7 +87743,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "676c1014274f4978"
               }
             ]
@@ -87769,7 +87769,7 @@
               1.0
             ],
             "component": true,
-            "name": "Unterer Quersteg",
+            "name": "Lower crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -87803,7 +87803,7 @@
               1.0
             ],
             "component": true,
-            "name": "Oberer Quersteg",
+            "name": "Upper crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -87839,7 +87839,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 21 \u00b7 Rahmen",
+        "name": "Link 21 \u00b7 Frame",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -87891,7 +87891,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "fb751ed42b4243da",
             "children": [
               {
@@ -89945,7 +89945,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "3a795489f8084104"
               },
               {
@@ -89969,7 +89969,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "4b50504aaa84435b"
               },
               {
@@ -89993,7 +89993,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "0c0b6f422eef4974"
               }
             ]
@@ -90019,7 +90019,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "944287c9eafe4720",
             "children": [
               {
@@ -92073,7 +92073,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "cbc8102be4824935"
               },
               {
@@ -92097,7 +92097,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "56cd753cfa5c49ff"
               },
               {
@@ -92121,7 +92121,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "e6bda0a91461414a"
               }
             ]
@@ -92147,7 +92147,7 @@
               1.0
             ],
             "component": true,
-            "name": "Unterer Quersteg",
+            "name": "Lower crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -92181,7 +92181,7 @@
               1.0
             ],
             "component": true,
-            "name": "Oberer Quersteg",
+            "name": "Upper crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -92217,7 +92217,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 22 \u00b7 Rahmen",
+        "name": "Link 22 \u00b7 Frame",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -92277,7 +92277,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "71157e42897d446b",
             "children": [
               {
@@ -94331,7 +94331,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "91e514f75643422c"
               },
               {
@@ -94355,7 +94355,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "c5f3d5174e9a4b83"
               },
               {
@@ -94379,7 +94379,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "596c4fa3071f41d6"
               }
             ]
@@ -94405,7 +94405,7 @@
               1.0
             ],
             "component": true,
-            "name": "Seitenlasche mit Gelenkb\u00fcnden",
+            "name": "Side plate with hinge collars",
             "uid": "80a9254f8b8e4995",
             "children": [
               {
@@ -96459,7 +96459,7 @@
                     ]
                   }
                 ],
-                "name": "Seitenlasche",
+                "name": "Side plate",
                 "uid": "7b298b6ec35843b7"
               },
               {
@@ -96483,7 +96483,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "a0f937513ab242a1"
               },
               {
@@ -96507,7 +96507,7 @@
                   1.0
                 ],
                 "component": true,
-                "name": "Gelenkbund",
+                "name": "Hinge collar",
                 "uid": "3d816f356aec4d8f"
               }
             ]
@@ -96533,7 +96533,7 @@
               1.0
             ],
             "component": true,
-            "name": "Unterer Quersteg",
+            "name": "Lower crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -96567,7 +96567,7 @@
               1.0
             ],
             "component": true,
-            "name": "Oberer Quersteg",
+            "name": "Upper crossbar",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -96603,7 +96603,7 @@
           1.0
         ],
         "component": true,
-        "name": "Zylinder und Linearf\u00fchrung",
+        "name": "Cylinder and linear guide",
         "ext": {
           "newton": {
             "mode": "static",
@@ -96666,7 +96666,7 @@
               1.0
             ],
             "component": true,
-            "name": "Zylindergeh\u00e4use",
+            "name": "Cylinder housing",
             "uid": "7fec8d65bb674884"
           },
           {
@@ -96690,7 +96690,7 @@
               1.0
             ],
             "component": true,
-            "name": "Vorderer Flansch",
+            "name": "Front flange",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -96724,7 +96724,7 @@
               1.0
             ],
             "component": true,
-            "name": "Hinterer Flansch",
+            "name": "Rear flange",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -96758,7 +96758,7 @@
               1.0
             ],
             "component": true,
-            "name": "F\u00fchrungsschiene",
+            "name": "Guide rail",
             "uid": "a6812472305d4cd8"
           },
           {
@@ -96782,7 +96782,7 @@
               1.0
             ],
             "component": true,
-            "name": "F\u00fchrungsschiene",
+            "name": "Guide rail",
             "uid": "99d4d1ac88e74592"
           },
           {
@@ -96806,7 +96806,7 @@
               1.0
             ],
             "component": true,
-            "name": "F\u00fchrungssockel",
+            "name": "Guide pedestal",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -96840,7 +96840,7 @@
               1.0
             ],
             "component": true,
-            "name": "F\u00fchrungssockel",
+            "name": "Guide pedestal",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -96876,7 +96876,7 @@
           1.0
         ],
         "component": true,
-        "name": "Elektromotor",
+        "name": "Electric motor",
         "ext": {
           "newton": {
             "mode": "static",
@@ -96939,7 +96939,7 @@
               1.0
             ],
             "component": true,
-            "name": "Motorgeh\u00e4use",
+            "name": "Motor housing",
             "uid": "76233ef304524784"
           },
           {
@@ -96963,7 +96963,7 @@
               1.0
             ],
             "component": true,
-            "name": "L\u00fcfterhaube",
+            "name": "Fan cover",
             "uid": "ba7b4737187f4f68"
           },
           {
@@ -96987,7 +96987,7 @@
               1.0
             ],
             "component": true,
-            "name": "K\u00fchlrippe",
+            "name": "Cooling fin",
             "uid": "3e55b3ca568a4e21"
           },
           {
@@ -97011,7 +97011,7 @@
               1.0
             ],
             "component": true,
-            "name": "K\u00fchlrippe",
+            "name": "Cooling fin",
             "uid": "6d9c991010d549f4"
           },
           {
@@ -97035,7 +97035,7 @@
               1.0
             ],
             "component": true,
-            "name": "K\u00fchlrippe",
+            "name": "Cooling fin",
             "uid": "e38198eb55464dbc"
           },
           {
@@ -97059,7 +97059,7 @@
               1.0
             ],
             "component": true,
-            "name": "K\u00fchlrippe",
+            "name": "Cooling fin",
             "uid": "908c5826a6164240"
           },
           {
@@ -97083,7 +97083,7 @@
               1.0
             ],
             "component": true,
-            "name": "K\u00fchlrippe",
+            "name": "Cooling fin",
             "uid": "98d5e58d4c0c4c12"
           },
           {
@@ -97107,7 +97107,7 @@
               1.0
             ],
             "component": true,
-            "name": "Klemmenkasten",
+            "name": "Terminal box",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -97141,7 +97141,7 @@
               1.0
             ],
             "component": true,
-            "name": "Motorfu\u00df",
+            "name": "Motor foot",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -97175,7 +97175,7 @@
               1.0
             ],
             "component": true,
-            "name": "Motorsockel",
+            "name": "Motor pedestal",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -97211,7 +97211,7 @@
           1.0
         ],
         "component": true,
-        "name": "Antriebswelle",
+        "name": "Drive shaft",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -97239,7 +97239,7 @@
               "force": 25,
               "max_speed": 1.2,
               "acceleration": 0.4,
-              "name": "Motordrehzahl"
+              "name": "Motor speed"
             },
             "no_collision": [
               "217cbb43831749e0",
@@ -97295,7 +97295,7 @@
               1.0
             ],
             "component": true,
-            "name": "Welle",
+            "name": "Shaft",
             "uid": "8ee0dc460882452d"
           },
           {
@@ -97319,7 +97319,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kupplung",
+            "name": "Coupling",
             "uid": "0feaacc399644c00"
           },
           {
@@ -97343,7 +97343,7 @@
               1.0
             ],
             "component": true,
-            "name": "Passfeder",
+            "name": "Feather key",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -97379,7 +97379,7 @@
           1.0
         ],
         "component": true,
-        "name": "Speichenrad mit \u00e4u\u00dferem Kurbelzapfen",
+        "name": "Spoked wheel with outer crank pin",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -97443,7 +97443,7 @@
               1.0
             ],
             "component": true,
-            "name": "Radkranz",
+            "name": "Wheel rim",
             "uid": "f04ca68432a94979"
           },
           {
@@ -97467,7 +97467,7 @@
               1.0
             ],
             "component": true,
-            "name": "Radnabe",
+            "name": "Wheel hub",
             "uid": "c259ff6922cb48e2"
           },
           {
@@ -97491,7 +97491,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kurbelzapfen",
+            "name": "Crank pin",
             "uid": "923e138737da4a1c"
           },
           {
@@ -97515,7 +97515,7 @@
               1.0
             ],
             "component": true,
-            "name": "Bolzensicherung",
+            "name": "Pin retainer",
             "uid": "a9b9844f2e654bd0"
           },
           {
@@ -97539,7 +97539,7 @@
               1.0
             ],
             "component": true,
-            "name": "Speiche",
+            "name": "Spoke",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -97573,7 +97573,7 @@
               1.0
             ],
             "component": true,
-            "name": "Speiche",
+            "name": "Spoke",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -97607,7 +97607,7 @@
               1.0
             ],
             "component": true,
-            "name": "Speiche",
+            "name": "Spoke",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -97641,7 +97641,7 @@
               1.0
             ],
             "component": true,
-            "name": "Speiche",
+            "name": "Spoke",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -97675,7 +97675,7 @@
               1.0
             ],
             "component": true,
-            "name": "Speiche",
+            "name": "Spoke",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -97709,7 +97709,7 @@
               1.0
             ],
             "component": true,
-            "name": "Speiche",
+            "name": "Spoke",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -97743,7 +97743,7 @@
               1.0
             ],
             "component": true,
-            "name": "Speiche",
+            "name": "Spoke",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -97777,7 +97777,7 @@
               1.0
             ],
             "component": true,
-            "name": "Speiche",
+            "name": "Spoke",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -97813,7 +97813,7 @@
           1.0
         ],
         "component": true,
-        "name": "Pleuelstange",
+        "name": "Connecting rod bar",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -97834,7 +97834,7 @@
               "deceleration": 6.283185307179586,
               "deceleration_sync": true,
               "force": 20.0,
-              "name": "Pleuelstange",
+              "name": "Connecting rod bar",
               "parent": "cfff73aedbe1405b",
               "pivot": [
                 -1.3966600265340756,
@@ -97913,7 +97913,7 @@
               1.0
             ],
             "component": true,
-            "name": "Pleuelauge Kurbel",
+            "name": "Connecting rod eye crank",
             "uid": "7a395194822e4e35"
           },
           {
@@ -97937,7 +97937,7 @@
               1.0
             ],
             "component": true,
-            "name": "Pleuelauge Kolben",
+            "name": "Connecting rod eye piston",
             "uid": "982921ba829545ef"
           },
           {
@@ -97961,7 +97961,7 @@
               1.0
             ],
             "component": true,
-            "name": "Pleuel",
+            "name": "Connecting rod",
             "uid": "6d531f83a1294d02"
           }
         ]
@@ -97987,7 +97987,7 @@
           1.0
         ],
         "component": true,
-        "name": "Steckdose mit Stecker",
+        "name": "Socket with plug",
         "ext": {
           "newton": {
             "mode": "static",
@@ -98021,7 +98021,7 @@
               1.0
             ],
             "component": true,
-            "name": "Steckdosengeh\u00e4use",
+            "name": "Socket housing",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -98055,7 +98055,7 @@
               1.0
             ],
             "component": true,
-            "name": "Steckdosenrand",
+            "name": "Socket rim",
             "uid": "fc6a46031e064f88"
           },
           {
@@ -98079,7 +98079,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzstecker",
+            "name": "Power plug",
             "uid": "bb8ba28d4448472c"
           },
           {
@@ -98103,7 +98103,7 @@
               1.0
             ],
             "component": true,
-            "name": "Steckdosenhalter",
+            "name": "Socket holder",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -98139,7 +98139,7 @@
           1.0
         ],
         "component": true,
-        "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+        "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -98499,7 +98499,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "9f0aa7c62406493a"
           },
           {
@@ -98523,7 +98523,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "6557e71c592c4f47"
           },
           {
@@ -98547,7 +98547,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "465eda783cbb4ca2"
           },
           {
@@ -98571,7 +98571,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "9a1670f1f47348d2"
           },
           {
@@ -98595,7 +98595,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "993a585e4ad24c0e"
           },
           {
@@ -98619,7 +98619,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "99a801a207eb4ac5"
           },
           {
@@ -98643,7 +98643,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "a1065ec1604b476c"
           },
           {
@@ -98667,7 +98667,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "0c0395225e46410b"
           },
           {
@@ -98691,7 +98691,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "1ccd89d896904a0d"
           },
           {
@@ -98715,7 +98715,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "ee18c8438d1e43e3"
           },
           {
@@ -98739,7 +98739,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "370c82698b1c47ab"
           },
           {
@@ -98763,7 +98763,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "43c4df3d0f974b8f"
           },
           {
@@ -98787,7 +98787,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "797c67a89b9542a2"
           },
           {
@@ -98811,7 +98811,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "bbec9438b1d349ee"
           },
           {
@@ -98835,7 +98835,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "e4e61f67dfb241ec"
           },
           {
@@ -98859,7 +98859,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "d35f511104c14199"
           },
           {
@@ -98883,7 +98883,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "10bbcdd7b7c9492f"
           },
           {
@@ -98907,7 +98907,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "b19eb7936065434b"
           },
           {
@@ -98931,7 +98931,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "1c9270b669444fdf"
           },
           {
@@ -98955,7 +98955,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "2fea50d6544f444b"
           },
           {
@@ -98979,7 +98979,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "21a6986e68df4696"
           },
           {
@@ -99003,7 +99003,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "e468993f90364faf"
           },
           {
@@ -99027,7 +99027,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "9ce0c91a2e71452a"
           },
           {
@@ -99051,7 +99051,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "62db499195a5402e"
           },
           {
@@ -99075,7 +99075,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "4ada1c5b04a9406c"
           },
           {
@@ -99099,7 +99099,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "2669acf46b9d40a4"
           },
           {
@@ -99123,7 +99123,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "49db6fa937cc4141"
           },
           {
@@ -99147,7 +99147,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "f9310ab4fe464c94"
           },
           {
@@ -99171,7 +99171,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "5c209a680ac6439d"
           },
           {
@@ -99195,7 +99195,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "06105d8d621a4566"
           },
           {
@@ -99219,7 +99219,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "dc3be110dd9640d0"
           },
           {
@@ -99243,7 +99243,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "61527d35ffe74598"
           },
           {
@@ -99267,7 +99267,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "1d7d1d5215044f52"
           },
           {
@@ -99291,7 +99291,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "d73562fd42ba426f"
           },
           {
@@ -99315,7 +99315,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "66af01a69c884240"
           },
           {
@@ -99339,7 +99339,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "91a3cec9b4c34374"
           },
           {
@@ -99363,7 +99363,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "648c456fbb5e41b0"
           },
           {
@@ -99387,7 +99387,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "a2f041363f634f15"
           },
           {
@@ -99411,7 +99411,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "31680e44ccac4561"
           },
           {
@@ -99435,7 +99435,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "6f8e3a6b79784e87"
           },
           {
@@ -99459,7 +99459,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "7c12961951104e22"
           },
           {
@@ -99483,7 +99483,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "a1197a364d4e456a"
           },
           {
@@ -99507,7 +99507,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "936500ab68e7435c"
           },
           {
@@ -99531,7 +99531,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "55208020aa6d48c2"
           },
           {
@@ -99555,7 +99555,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "0741c056806d4dcc"
           },
           {
@@ -99579,7 +99579,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "92d6817135f74a71"
           },
           {
@@ -99603,7 +99603,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "adaf11a5e6274bb7"
           },
           {
@@ -99627,7 +99627,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "55a31e83991a4563"
           },
           {
@@ -99651,7 +99651,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "573283cd9da648d6"
           },
           {
@@ -99675,7 +99675,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "b17c40ac61f543bc"
           },
           {
@@ -99699,7 +99699,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "1d3c1850340b44fd"
           },
           {
@@ -99723,7 +99723,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "a0f6a9f8a9904254"
           },
           {
@@ -99747,7 +99747,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "19ac2e55cb86469d"
           },
           {
@@ -99771,7 +99771,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "a17f47a9d4f2448a"
           },
           {
@@ -99795,7 +99795,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "b905e109337d449b"
           },
           {
@@ -99819,7 +99819,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "399da8dc5442466e"
           },
           {
@@ -99843,7 +99843,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "5c2175c06c804e5e"
           },
           {
@@ -99867,7 +99867,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "7ccade53af8a4ae7"
           },
           {
@@ -99891,7 +99891,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "feab13e07c97445a"
           },
           {
@@ -99915,7 +99915,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "d2d5682aba7d4d97"
           }
         ]
@@ -99941,7 +99941,7 @@
           1.0
         ],
         "component": true,
-        "name": "Bett \u00b7 Schrauben und Details",
+        "name": "Bed \u00b7 Screws and details",
         "ext": {
           "newton": {
             "mode": "ignore",
@@ -99975,7 +99975,7 @@
               1.0
             ],
             "component": true,
-            "name": "Befestigungsschraube",
+            "name": "Mounting screw",
             "uid": "0c1dffd6bff24bc4"
           },
           {
@@ -99999,7 +99999,7 @@
               1.0
             ],
             "component": true,
-            "name": "Befestigungsschraube",
+            "name": "Mounting screw",
             "uid": "1ec50a2fbe70473e"
           },
           {
@@ -100023,7 +100023,7 @@
               1.0
             ],
             "component": true,
-            "name": "Befestigungsschraube",
+            "name": "Mounting screw",
             "uid": "d83e3ae751c748f7"
           },
           {
@@ -100047,7 +100047,7 @@
               1.0
             ],
             "component": true,
-            "name": "Befestigungsschraube",
+            "name": "Mounting screw",
             "uid": "7048f737907f4f46"
           },
           {
@@ -100071,7 +100071,7 @@
               1.0
             ],
             "component": true,
-            "name": "Zierstreifen",
+            "name": "Trim strip",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -100105,7 +100105,7 @@
               1.0
             ],
             "component": true,
-            "name": "Anlagenschild",
+            "name": "Nameplate",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -100139,7 +100139,7 @@
               1.0
             ],
             "component": true,
-            "name": "Festpunkt \u00b7 Grundplatte",
+            "name": "Anchor \u00b7 Base plate",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -100173,7 +100173,7 @@
               1.0
             ],
             "component": true,
-            "name": "Festpunkt \u00b7 Lagerwange",
+            "name": "Anchor \u00b7 Bearing cheek",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -100207,7 +100207,7 @@
               1.0
             ],
             "component": true,
-            "name": "Festpunkt \u00b7 Lagerbolzen",
+            "name": "Anchor \u00b7 Bearing pin",
             "uid": "b6b9f1398041469e"
           },
           {
@@ -100231,7 +100231,7 @@
               1.0
             ],
             "component": true,
-            "name": "Festpunkt \u00b7 Lagerwange",
+            "name": "Anchor \u00b7 Bearing cheek",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -100265,7 +100265,7 @@
               1.0
             ],
             "component": true,
-            "name": "Festpunkt \u00b7 Lagerbolzen",
+            "name": "Anchor \u00b7 Bearing pin",
             "uid": "b1bb3ac60fd443b0"
           }
         ]

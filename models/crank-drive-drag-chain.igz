@@ -26,7 +26,7 @@
           1.0
         ],
         "component": true,
-        "name": "Maschinenbett",
+        "name": "Machine bed",
         "ext": {
           "newton": {
             "mode": "static",
@@ -60,7 +60,7 @@
           1.0
         ],
         "component": true,
-        "name": "Kolbenstange \u00b7 Kreuzkopf",
+        "name": "Piston rod \u00b7 Crosshead",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -72,7 +72,7 @@
             "joint": {
               "type": "slide",
               "drive": "free",
-              "name": "Kolbenhub",
+              "name": "Piston stroke",
               "pivot": [
                 -0.56,
                 0,
@@ -211,7 +211,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kreuzkopf",
+            "name": "Crosshead",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -245,7 +245,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kolbenstange",
+            "name": "Piston rod",
             "uid": "8bbd70e84961429a"
           },
           {
@@ -269,7 +269,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kettenmitnehmer",
+            "name": "Chain driver",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -303,7 +303,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kettenaufnahme",
+            "name": "Chain mount",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -337,7 +337,7 @@
               1.0
             ],
             "component": true,
-            "name": "Pleuelbolzen",
+            "name": "Connecting rod pin",
             "uid": "f1176dea623a4d0f"
           }
         ]
@@ -363,7 +363,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 01 \u00b7 Boden",
+        "name": "Link 01 \u00b7 Base",
         "ext": {
           "newton": {
             "mode": "static",
@@ -406,7 +406,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 01 \u00b7 links",
+        "name": "Link 01 \u00b7 left",
         "ext": {
           "newton": {
             "mode": "static",
@@ -450,7 +450,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 01 \u00b7 rechts",
+        "name": "Link 01 \u00b7 right",
         "ext": {
           "newton": {
             "mode": "static",
@@ -494,7 +494,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 01 \u00b7 Steg",
+        "name": "Link 01 \u00b7 Web",
         "ext": {
           "newton": {
             "mode": "static",
@@ -538,7 +538,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 02 \u00b7 Boden",
+        "name": "Link 02 \u00b7 Base",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -603,7 +603,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 02 \u00b7 links",
+        "name": "Link 02 \u00b7 left",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -651,7 +651,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 02 \u00b7 rechts",
+        "name": "Link 02 \u00b7 right",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -699,7 +699,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 02 \u00b7 Steg",
+        "name": "Link 02 \u00b7 Web",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -747,7 +747,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 03 \u00b7 Boden",
+        "name": "Link 03 \u00b7 Base",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -812,7 +812,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 03 \u00b7 links",
+        "name": "Link 03 \u00b7 left",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -860,7 +860,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 03 \u00b7 rechts",
+        "name": "Link 03 \u00b7 right",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -908,7 +908,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 03 \u00b7 Steg",
+        "name": "Link 03 \u00b7 Web",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -956,7 +956,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 04 \u00b7 Boden",
+        "name": "Link 04 \u00b7 Base",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -1021,7 +1021,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 04 \u00b7 links",
+        "name": "Link 04 \u00b7 left",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -1069,7 +1069,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 04 \u00b7 rechts",
+        "name": "Link 04 \u00b7 right",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -1117,7 +1117,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 04 \u00b7 Steg",
+        "name": "Link 04 \u00b7 Web",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -1165,7 +1165,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 05 \u00b7 Boden",
+        "name": "Link 05 \u00b7 Base",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -1230,7 +1230,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 05 \u00b7 links",
+        "name": "Link 05 \u00b7 left",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -1278,7 +1278,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 05 \u00b7 rechts",
+        "name": "Link 05 \u00b7 right",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -1326,7 +1326,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 05 \u00b7 Steg",
+        "name": "Link 05 \u00b7 Web",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -1374,7 +1374,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 06 \u00b7 Boden",
+        "name": "Link 06 \u00b7 Base",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -1439,7 +1439,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 06 \u00b7 links",
+        "name": "Link 06 \u00b7 left",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -1487,7 +1487,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 06 \u00b7 rechts",
+        "name": "Link 06 \u00b7 right",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -1535,7 +1535,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 06 \u00b7 Steg",
+        "name": "Link 06 \u00b7 Web",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -1583,7 +1583,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 07 \u00b7 Boden",
+        "name": "Link 07 \u00b7 Base",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -1648,7 +1648,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 07 \u00b7 links",
+        "name": "Link 07 \u00b7 left",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -1696,7 +1696,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 07 \u00b7 rechts",
+        "name": "Link 07 \u00b7 right",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -1744,7 +1744,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 07 \u00b7 Steg",
+        "name": "Link 07 \u00b7 Web",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -1792,7 +1792,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 08 \u00b7 Boden",
+        "name": "Link 08 \u00b7 Base",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -1857,7 +1857,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 08 \u00b7 links",
+        "name": "Link 08 \u00b7 left",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -1905,7 +1905,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 08 \u00b7 rechts",
+        "name": "Link 08 \u00b7 right",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -1953,7 +1953,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 08 \u00b7 Steg",
+        "name": "Link 08 \u00b7 Web",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -2001,7 +2001,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 09 \u00b7 Boden",
+        "name": "Link 09 \u00b7 Base",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -2066,7 +2066,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 09 \u00b7 links",
+        "name": "Link 09 \u00b7 left",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -2114,7 +2114,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 09 \u00b7 rechts",
+        "name": "Link 09 \u00b7 right",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -2162,7 +2162,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 09 \u00b7 Steg",
+        "name": "Link 09 \u00b7 Web",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -2210,7 +2210,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 10 \u00b7 Boden",
+        "name": "Link 10 \u00b7 Base",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -2275,7 +2275,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 10 \u00b7 links",
+        "name": "Link 10 \u00b7 left",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -2323,7 +2323,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 10 \u00b7 rechts",
+        "name": "Link 10 \u00b7 right",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -2371,7 +2371,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 10 \u00b7 Steg",
+        "name": "Link 10 \u00b7 Web",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -2419,7 +2419,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 11 \u00b7 Boden",
+        "name": "Link 11 \u00b7 Base",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -2484,7 +2484,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 11 \u00b7 links",
+        "name": "Link 11 \u00b7 left",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -2532,7 +2532,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 11 \u00b7 rechts",
+        "name": "Link 11 \u00b7 right",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -2580,7 +2580,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 11 \u00b7 Steg",
+        "name": "Link 11 \u00b7 Web",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -2628,7 +2628,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 12 \u00b7 Boden",
+        "name": "Link 12 \u00b7 Base",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -2693,7 +2693,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 12 \u00b7 links",
+        "name": "Link 12 \u00b7 left",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -2741,7 +2741,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 12 \u00b7 rechts",
+        "name": "Link 12 \u00b7 right",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -2789,7 +2789,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 12 \u00b7 Steg",
+        "name": "Link 12 \u00b7 Web",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -2837,7 +2837,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 13 \u00b7 Boden",
+        "name": "Link 13 \u00b7 Base",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -2902,7 +2902,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 13 \u00b7 links",
+        "name": "Link 13 \u00b7 left",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -2950,7 +2950,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 13 \u00b7 rechts",
+        "name": "Link 13 \u00b7 right",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -2998,7 +2998,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 13 \u00b7 Steg",
+        "name": "Link 13 \u00b7 Web",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -3046,7 +3046,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 14 \u00b7 Boden",
+        "name": "Link 14 \u00b7 Base",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -3111,7 +3111,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 14 \u00b7 links",
+        "name": "Link 14 \u00b7 left",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -3159,7 +3159,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 14 \u00b7 rechts",
+        "name": "Link 14 \u00b7 right",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -3207,7 +3207,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 14 \u00b7 Steg",
+        "name": "Link 14 \u00b7 Web",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -3255,7 +3255,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 15 \u00b7 Boden",
+        "name": "Link 15 \u00b7 Base",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -3320,7 +3320,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 15 \u00b7 links",
+        "name": "Link 15 \u00b7 left",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -3368,7 +3368,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 15 \u00b7 rechts",
+        "name": "Link 15 \u00b7 right",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -3416,7 +3416,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 15 \u00b7 Steg",
+        "name": "Link 15 \u00b7 Web",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -3464,7 +3464,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 16 \u00b7 Boden",
+        "name": "Link 16 \u00b7 Base",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -3529,7 +3529,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 16 \u00b7 links",
+        "name": "Link 16 \u00b7 left",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -3577,7 +3577,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 16 \u00b7 rechts",
+        "name": "Link 16 \u00b7 right",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -3625,7 +3625,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 16 \u00b7 Steg",
+        "name": "Link 16 \u00b7 Web",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -3673,7 +3673,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 17 \u00b7 Boden",
+        "name": "Link 17 \u00b7 Base",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -3738,7 +3738,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 17 \u00b7 links",
+        "name": "Link 17 \u00b7 left",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -3786,7 +3786,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 17 \u00b7 rechts",
+        "name": "Link 17 \u00b7 right",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -3834,7 +3834,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 17 \u00b7 Steg",
+        "name": "Link 17 \u00b7 Web",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -3882,7 +3882,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 18 \u00b7 Boden",
+        "name": "Link 18 \u00b7 Base",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -3947,7 +3947,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 18 \u00b7 links",
+        "name": "Link 18 \u00b7 left",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -3995,7 +3995,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 18 \u00b7 rechts",
+        "name": "Link 18 \u00b7 right",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -4043,7 +4043,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 18 \u00b7 Steg",
+        "name": "Link 18 \u00b7 Web",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -4091,7 +4091,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 19 \u00b7 Boden",
+        "name": "Link 19 \u00b7 Base",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -4156,7 +4156,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 19 \u00b7 links",
+        "name": "Link 19 \u00b7 left",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -4204,7 +4204,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 19 \u00b7 rechts",
+        "name": "Link 19 \u00b7 right",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -4252,7 +4252,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 19 \u00b7 Steg",
+        "name": "Link 19 \u00b7 Web",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -4300,7 +4300,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 20 \u00b7 Boden",
+        "name": "Link 20 \u00b7 Base",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -4365,7 +4365,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 20 \u00b7 links",
+        "name": "Link 20 \u00b7 left",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -4413,7 +4413,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 20 \u00b7 rechts",
+        "name": "Link 20 \u00b7 right",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -4461,7 +4461,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 20 \u00b7 Steg",
+        "name": "Link 20 \u00b7 Web",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -4509,7 +4509,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 21 \u00b7 Boden",
+        "name": "Link 21 \u00b7 Base",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -4574,7 +4574,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 21 \u00b7 links",
+        "name": "Link 21 \u00b7 left",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -4622,7 +4622,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 21 \u00b7 rechts",
+        "name": "Link 21 \u00b7 right",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -4670,7 +4670,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 21 \u00b7 Steg",
+        "name": "Link 21 \u00b7 Web",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -4718,7 +4718,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 22 \u00b7 Boden",
+        "name": "Link 22 \u00b7 Base",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -4787,7 +4787,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 22 \u00b7 links",
+        "name": "Link 22 \u00b7 left",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -4831,7 +4831,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 22 \u00b7 rechts",
+        "name": "Link 22 \u00b7 right",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -4875,7 +4875,7 @@
           1.0
         ],
         "component": true,
-        "name": "Glied 22 \u00b7 Steg",
+        "name": "Link 22 \u00b7 Web",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -4919,7 +4919,7 @@
           1.0
         ],
         "component": true,
-        "name": "Zylinder und Linearf\u00fchrung",
+        "name": "Cylinder and linear guide",
         "ext": {
           "newton": {
             "mode": "static",
@@ -5048,7 +5048,7 @@
               1.0
             ],
             "component": true,
-            "name": "Zylindergeh\u00e4use",
+            "name": "Cylinder housing",
             "uid": "d60733cb78254a73"
           },
           {
@@ -5072,7 +5072,7 @@
               1.0
             ],
             "component": true,
-            "name": "Vorderer Flansch",
+            "name": "Front flange",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -5106,7 +5106,7 @@
               1.0
             ],
             "component": true,
-            "name": "Hinterer Flansch",
+            "name": "Rear flange",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -5140,7 +5140,7 @@
               1.0
             ],
             "component": true,
-            "name": "F\u00fchrungsschiene",
+            "name": "Guide rail",
             "uid": "882368389f81429a"
           },
           {
@@ -5164,7 +5164,7 @@
               1.0
             ],
             "component": true,
-            "name": "F\u00fchrungsschiene",
+            "name": "Guide rail",
             "uid": "ad37fa75cbca4fe0"
           },
           {
@@ -5188,7 +5188,7 @@
               1.0
             ],
             "component": true,
-            "name": "F\u00fchrungssockel",
+            "name": "Guide pedestal",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -5222,7 +5222,7 @@
               1.0
             ],
             "component": true,
-            "name": "F\u00fchrungssockel",
+            "name": "Guide pedestal",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -5258,7 +5258,7 @@
           1.0
         ],
         "component": true,
-        "name": "Elektromotor",
+        "name": "Electric motor",
         "ext": {
           "newton": {
             "mode": "static",
@@ -5387,7 +5387,7 @@
               1.0
             ],
             "component": true,
-            "name": "Motorgeh\u00e4use",
+            "name": "Motor housing",
             "uid": "9c1fb6a290d04b4b"
           },
           {
@@ -5411,7 +5411,7 @@
               1.0
             ],
             "component": true,
-            "name": "L\u00fcfterhaube",
+            "name": "Fan cover",
             "uid": "aadb73d0b1e2429e"
           },
           {
@@ -5435,7 +5435,7 @@
               1.0
             ],
             "component": true,
-            "name": "K\u00fchlrippe",
+            "name": "Cooling fin",
             "uid": "b890367891ba4ecb"
           },
           {
@@ -5459,7 +5459,7 @@
               1.0
             ],
             "component": true,
-            "name": "K\u00fchlrippe",
+            "name": "Cooling fin",
             "uid": "d34228115e9c4a6c"
           },
           {
@@ -5483,7 +5483,7 @@
               1.0
             ],
             "component": true,
-            "name": "K\u00fchlrippe",
+            "name": "Cooling fin",
             "uid": "515a6f6a0ba64ab5"
           },
           {
@@ -5507,7 +5507,7 @@
               1.0
             ],
             "component": true,
-            "name": "K\u00fchlrippe",
+            "name": "Cooling fin",
             "uid": "806abbbd1ffe4b9a"
           },
           {
@@ -5531,7 +5531,7 @@
               1.0
             ],
             "component": true,
-            "name": "K\u00fchlrippe",
+            "name": "Cooling fin",
             "uid": "667397212ab74ba1"
           },
           {
@@ -5555,7 +5555,7 @@
               1.0
             ],
             "component": true,
-            "name": "Klemmenkasten",
+            "name": "Terminal box",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -5589,7 +5589,7 @@
               1.0
             ],
             "component": true,
-            "name": "Motorfu\u00df",
+            "name": "Motor foot",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -5623,7 +5623,7 @@
               1.0
             ],
             "component": true,
-            "name": "Motorsockel",
+            "name": "Motor pedestal",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -5659,7 +5659,7 @@
           1.0
         ],
         "component": true,
-        "name": "Antriebswelle",
+        "name": "Drive shaft",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -5687,7 +5687,7 @@
               "force": 25,
               "max_speed": 1.2,
               "acceleration": 0.4,
-              "name": "Motordrehzahl"
+              "name": "Motor speed"
             },
             "no_collision": [
               "2d2d4aec355349a7",
@@ -5809,7 +5809,7 @@
               1.0
             ],
             "component": true,
-            "name": "Welle",
+            "name": "Shaft",
             "uid": "3ef9445f2ce44950"
           },
           {
@@ -5833,7 +5833,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kupplung",
+            "name": "Coupling",
             "uid": "44252a27a3984660"
           },
           {
@@ -5857,7 +5857,7 @@
               1.0
             ],
             "component": true,
-            "name": "Passfeder",
+            "name": "Feather key",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -5893,7 +5893,7 @@
           1.0
         ],
         "component": true,
-        "name": "Speichenrad mit \u00e4u\u00dferem Kurbelzapfen",
+        "name": "Spoked wheel with outer crank pin",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -6023,7 +6023,7 @@
               1.0
             ],
             "component": true,
-            "name": "Radkranz",
+            "name": "Wheel rim",
             "uid": "a2b4a5cfa4b445fd"
           },
           {
@@ -6047,7 +6047,7 @@
               1.0
             ],
             "component": true,
-            "name": "Radnabe",
+            "name": "Wheel hub",
             "uid": "c49e841b12ac44f1"
           },
           {
@@ -6071,7 +6071,7 @@
               1.0
             ],
             "component": true,
-            "name": "Kurbelzapfen",
+            "name": "Crank pin",
             "uid": "97eda84cb4d742ac"
           },
           {
@@ -6095,7 +6095,7 @@
               1.0
             ],
             "component": true,
-            "name": "Speiche",
+            "name": "Spoke",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -6129,7 +6129,7 @@
               1.0
             ],
             "component": true,
-            "name": "Speiche",
+            "name": "Spoke",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -6163,7 +6163,7 @@
               1.0
             ],
             "component": true,
-            "name": "Speiche",
+            "name": "Spoke",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -6197,7 +6197,7 @@
               1.0
             ],
             "component": true,
-            "name": "Speiche",
+            "name": "Spoke",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -6231,7 +6231,7 @@
               1.0
             ],
             "component": true,
-            "name": "Speiche",
+            "name": "Spoke",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -6265,7 +6265,7 @@
               1.0
             ],
             "component": true,
-            "name": "Speiche",
+            "name": "Spoke",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -6299,7 +6299,7 @@
               1.0
             ],
             "component": true,
-            "name": "Speiche",
+            "name": "Spoke",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -6333,7 +6333,7 @@
               1.0
             ],
             "component": true,
-            "name": "Speiche",
+            "name": "Spoke",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -6369,7 +6369,7 @@
           1.0
         ],
         "component": true,
-        "name": "Pleuelstange",
+        "name": "Connecting rod bar",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -6522,7 +6522,7 @@
               1.0
             ],
             "component": true,
-            "name": "Pleuelauge Kurbel",
+            "name": "Connecting rod eye crank",
             "uid": "d889b311dd0840fb"
           },
           {
@@ -6546,7 +6546,7 @@
               1.0
             ],
             "component": true,
-            "name": "Pleuelauge Kolben",
+            "name": "Connecting rod eye piston",
             "uid": "687f7c833a174bc1"
           },
           {
@@ -6570,7 +6570,7 @@
               1.0
             ],
             "component": true,
-            "name": "Pleuel",
+            "name": "Connecting rod",
             "uid": "4dbd9c9a71ea4d5e"
           }
         ]
@@ -6596,7 +6596,7 @@
           1.0
         ],
         "component": true,
-        "name": "Steckdose mit Stecker",
+        "name": "Socket with plug",
         "ext": {
           "newton": {
             "mode": "static",
@@ -6630,7 +6630,7 @@
               1.0
             ],
             "component": true,
-            "name": "Steckdosengeh\u00e4use",
+            "name": "Socket housing",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -6664,7 +6664,7 @@
               1.0
             ],
             "component": true,
-            "name": "Steckdosenrand",
+            "name": "Socket rim",
             "uid": "b6f5a704cc5b49cd"
           },
           {
@@ -6688,7 +6688,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzstecker",
+            "name": "Power plug",
             "uid": "5743fb477fe64821"
           },
           {
@@ -6712,7 +6712,7 @@
               1.0
             ],
             "component": true,
-            "name": "Steckdosenhalter",
+            "name": "Socket holder",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -6748,7 +6748,7 @@
           1.0
         ],
         "component": true,
-        "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+        "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -7108,7 +7108,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "75b75330fd8348a2"
           },
           {
@@ -7132,7 +7132,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "df5a47619ab24e6c"
           },
           {
@@ -7156,7 +7156,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "f552ac0d17a644b6"
           },
           {
@@ -7180,7 +7180,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "84b58332f48448dc"
           },
           {
@@ -7204,7 +7204,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "b62d5805988247ac"
           },
           {
@@ -7228,7 +7228,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "378a7c160d3e4d32"
           },
           {
@@ -7252,7 +7252,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "180342f910844a9d"
           },
           {
@@ -7276,7 +7276,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "8b1c4a353b93458f"
           },
           {
@@ -7300,7 +7300,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "6b0901794d824b73"
           },
           {
@@ -7324,7 +7324,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "dc9f5d5d35d74a89"
           },
           {
@@ -7348,7 +7348,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "9a8f78f2a86d457a"
           },
           {
@@ -7372,7 +7372,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "7065ae480ee64b95"
           },
           {
@@ -7396,7 +7396,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "c4d7fbc5e9954e77"
           },
           {
@@ -7420,7 +7420,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "999875f636094f76"
           },
           {
@@ -7444,7 +7444,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "6eaab049b6f6407f"
           },
           {
@@ -7468,7 +7468,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "0c2ba08d2f184ebc"
           },
           {
@@ -7492,7 +7492,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "ad3d0c50d01f4874"
           },
           {
@@ -7516,7 +7516,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "8e2b462e51dc4eca"
           },
           {
@@ -7540,7 +7540,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "c2c02aab88dc4a71"
           },
           {
@@ -7564,7 +7564,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "81c7857d64fe4804"
           },
           {
@@ -7588,7 +7588,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "9678185646cf481e"
           },
           {
@@ -7612,7 +7612,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "bfab9fc4ff354ca4"
           },
           {
@@ -7636,7 +7636,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "bea054d3c0ec4bf9"
           },
           {
@@ -7660,7 +7660,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "5a8c1d2b8912419e"
           },
           {
@@ -7684,7 +7684,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "9cf42f2211784cb3"
           },
           {
@@ -7708,7 +7708,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "f3674353cbbe4576"
           },
           {
@@ -7732,7 +7732,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "f4798e424aa74da5"
           },
           {
@@ -7756,7 +7756,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "97f76345bd344966"
           },
           {
@@ -7780,7 +7780,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "0c18855ee1514f52"
           },
           {
@@ -7804,7 +7804,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "61b4090f51cd4aed"
           },
           {
@@ -7828,7 +7828,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "c5e214ad9c654c4b"
           },
           {
@@ -7852,7 +7852,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "600e6dfafd7d456a"
           },
           {
@@ -7876,7 +7876,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "e5e6f05f4c0a4a1e"
           },
           {
@@ -7900,7 +7900,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "4d31f09d9f594902"
           },
           {
@@ -7924,7 +7924,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "7f2379170f6e44de"
           },
           {
@@ -7948,7 +7948,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "b8fdd50c14274d72"
           },
           {
@@ -7972,7 +7972,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "6d44e6f8146646fc"
           },
           {
@@ -7996,7 +7996,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "e57bee39745a41b4"
           },
           {
@@ -8020,7 +8020,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "c299e192f35247f8"
           },
           {
@@ -8044,7 +8044,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "a2c42b387b474c61"
           },
           {
@@ -8068,7 +8068,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "7b5e1e4a19a44aa5"
           },
           {
@@ -8092,7 +8092,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "2aaf4ca825e442d5"
           },
           {
@@ -8116,7 +8116,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "e58b771c675d488d"
           },
           {
@@ -8140,7 +8140,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "313c54a90fba4b81"
           },
           {
@@ -8164,7 +8164,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "83f5490a55174465"
           },
           {
@@ -8188,7 +8188,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "184d4f7f625d4551"
           },
           {
@@ -8212,7 +8212,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "d4ad426b18bc4304"
           },
           {
@@ -8236,7 +8236,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "dee094613b314bc5"
           },
           {
@@ -8260,7 +8260,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "c064b911920740a7"
           },
           {
@@ -8284,7 +8284,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "865e8518081248f4"
           },
           {
@@ -8308,7 +8308,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "582c351c2d7845a7"
           },
           {
@@ -8332,7 +8332,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "6cdfcc4e3577476d"
           },
           {
@@ -8356,7 +8356,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "a6d3628be18e491d"
           },
           {
@@ -8380,7 +8380,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "54dfb09166fd47ff"
           },
           {
@@ -8404,7 +8404,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "62aa0c2718014218"
           },
           {
@@ -8428,7 +8428,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "4c05d0c4fb1143a9"
           },
           {
@@ -8452,7 +8452,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "2428f31d83764bb5"
           },
           {
@@ -8476,7 +8476,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "b2c8907bef1c4740"
           },
           {
@@ -8500,7 +8500,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "f6867eb287704c95"
           },
           {
@@ -8524,7 +8524,7 @@
               1.0
             ],
             "component": true,
-            "name": "Netzkabel \u00b7 Steckdose \u2192 Schleppkette \u2192 Motor",
+            "name": "Power cable \u00b7 Socket \u2192 Drag chain \u2192 Motor",
             "uid": "0cba4825467f44c1"
           }
         ]
@@ -8550,7 +8550,7 @@
           1.0
         ],
         "component": true,
-        "name": "Bett \u00b7 Schrauben und Details",
+        "name": "Bed \u00b7 Screws and details",
         "ext": {
           "newton": {
             "mode": "ignore",
@@ -8584,7 +8584,7 @@
               1.0
             ],
             "component": true,
-            "name": "Befestigungsschraube",
+            "name": "Mounting screw",
             "uid": "19662c8af7474e6b"
           },
           {
@@ -8608,7 +8608,7 @@
               1.0
             ],
             "component": true,
-            "name": "Befestigungsschraube",
+            "name": "Mounting screw",
             "uid": "5f30ee16e2e94678"
           },
           {
@@ -8632,7 +8632,7 @@
               1.0
             ],
             "component": true,
-            "name": "Befestigungsschraube",
+            "name": "Mounting screw",
             "uid": "91ecbf0e3342449d"
           },
           {
@@ -8656,7 +8656,7 @@
               1.0
             ],
             "component": true,
-            "name": "Befestigungsschraube",
+            "name": "Mounting screw",
             "uid": "ffb35bd988124bb0"
           },
           {
@@ -8680,7 +8680,7 @@
               1.0
             ],
             "component": true,
-            "name": "Zierstreifen",
+            "name": "Trim strip",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -8714,7 +8714,7 @@
               1.0
             ],
             "component": true,
-            "name": "Anlagenschild",
+            "name": "Nameplate",
             "ext": {
               "newton": {
                 "mode": "dynamic",

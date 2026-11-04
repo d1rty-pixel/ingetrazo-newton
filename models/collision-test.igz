@@ -26,7 +26,7 @@
           1.0
         ],
         "component": true,
-        "name": "Unterlage",
+        "name": "Support",
         "ext": {
           "newton": {
             "mode": "static",
@@ -59,7 +59,7 @@
           1.0
         ],
         "component": true,
-        "name": "A \u00b7 Kollision an",
+        "name": "A \u00b7 Collision on",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -92,7 +92,7 @@
           1.0
         ],
         "component": true,
-        "name": "A \u00b7 Auffangplatte",
+        "name": "A \u00b7 Catch plate",
         "ext": {
           "newton": {
             "mode": "static",
@@ -125,7 +125,7 @@
           1.0
         ],
         "component": true,
-        "name": "B \u00b7 Kollision aus",
+        "name": "B \u00b7 Collision off",
         "ext": {
           "newton": {
             "mode": "dynamic",
@@ -161,7 +161,7 @@
           1.0
         ],
         "component": true,
-        "name": "B \u00b7 Durchlassplatte",
+        "name": "B \u00b7 Pass-through plate",
         "ext": {
           "newton": {
             "mode": "static",
@@ -197,7 +197,7 @@
           1.0
         ],
         "component": true,
-        "name": "C \u00b7 \u00d6ffnung und konvexe H\u00fclle",
+        "name": "C \u00b7 Opening and convex hull",
         "ext": {
           "newton": {
             "mode": "static",
@@ -230,7 +230,7 @@
               1.0
             ],
             "component": true,
-            "name": "Linker Pfosten",
+            "name": "Left post",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -263,7 +263,7 @@
               1.0
             ],
             "component": true,
-            "name": "Rechter Pfosten",
+            "name": "Right post",
             "ext": {
               "newton": {
                 "mode": "dynamic",
@@ -296,7 +296,7 @@
               1.0
             ],
             "component": true,
-            "name": "Querbalken",
+            "name": "Crossbeam",
             "ext": {
               "newton": {
                 "mode": "dynamic",
