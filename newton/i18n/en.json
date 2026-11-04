@@ -28,6 +28,7 @@
   "Axis": "Axis",
   "Axis coupling": "Axis coupling",
   "Axis placed.": "Axis placed.",
+  "Axis removed.": "Axis removed.",
   "Balanced": "Balanced",
   "Ball joint": "Ball joint",
   "Behaviour": "Behaviour",
@@ -65,6 +66,9 @@
   "Configure collision display shortcut…": "Configure collision display shortcut…",
   "Connect bodies": "Connect bodies",
   "Connect bodies…": "Connect bodies…",
+  "Connection created.": "Connection created.",
+  "Connection point moved.": "Connection point moved.",
+  "Connection removed.": "Connection removed.",
   "Connect…": "Connect…",
   "Control name": "Control name",
   "Controls": "Controls",
@@ -161,7 +165,6 @@
   "Link selection without changing values": "Link selection without changing values",
   "Linked bodies synced.": "Linked bodies synced.",
   "Local changes": "Local changes",
-  "Make at least one body movable.": "Make at least one body movable.",
   "Make the selection movable": "Make the selection movable",
   "Mass (kg)": "Mass (kg)",
   "Material": "Material",
@@ -323,5 +326,6 @@
   "World": "World",
   "{bodies} follow this control. Their additional load and limits also affect the leading axis; select a follower to change how far or in which direction it moves.": "{bodies} follow this control. Their additional load and limits also affect the leading axis; select a follower to change how far or in which direction it moves.",
   "{count} bodies selected": "{count} bodies selected",
+  "{message} The body is now movable.": "{message} The body is now movable.",
   "{speed:.2f}× real time": "{speed:.2f}× real time"
 }

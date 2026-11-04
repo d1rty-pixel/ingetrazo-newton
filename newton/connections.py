@@ -24,17 +24,22 @@ def connection_command(scene,source,value):
         if not editable(scene,target):raise ValueError("The body is hidden or locked.")
         if settings(source).get("flexible") or settings(target).get("flexible"):
             raise ValueError("Use the flexible material end attachments for ropes and cables.")
-        if settings(source)["mode"]=="ignore" or settings(target)["mode"]=="ignore":raise ValueError("Both bodies must participate in the simulation.")
-        if KEY not in (source.ext or {}):patch["mode"] = "dynamic"
-        elif settings(source)["mode"]=="static" and (KEY not in (target.ext or {}) or settings(target)["mode"]=="static"):
-            raise ValueError("Make at least one body movable.")
+        if KEY in (target.ext or {}) and settings(target)["mode"]=="ignore":raise ValueError("Both bodies must participate in the simulation.")
+        # A connection to a fixed target only works if this body moves; a fixed body may still anchor a movable target.
+        mode = settings(source)["mode"] if KEY in (source.ext or {}) else None
+        if mode in (None,"ignore") or (mode=="static" and (KEY not in (target.ext or {}) or settings(target)["mode"]=="static")):
+            patch["mode"] = "dynamic"
     return Configure([source],patch,partial=True)
 
 
-def apply_connection(panel,source,value):
+def apply_connection(panel,source,value,message=None):
     if panel.session.workspace:return
-    panel.app.viewport.history.execute(connection_command(panel.app.scene,source,value))
+    command = connection_command(panel.app.scene,source,value)
+    panel.app.viewport.history.execute(command)
     panel.app.viewport.notify_scene_changed()
+    if message:
+        made_movable = KEY in (source.ext or {}) and "mode" in command.values
+        panel.status_message(tr("{message} The body is now movable.",message=tr(message)) if made_movable else tr(message))
 
 
 class ConnectionTool(Tool):
@@ -75,7 +80,7 @@ class ConnectionTool(Tool):
         if self.kind=="hinge":
             if axis is None or axis.lengthSquared()<1e-10:return
             value["axis"] = list(axis.normalized().toTuple())
-        apply_connection(self.panel,self.source,value)
+        apply_connection(self.panel,self.source,value,"Connection created.")
         self.done = True;QTimer.singleShot(0,lambda:self.panel.app.window._activate_tool("select"))
 
     def claims_key(self,key,modifiers):return self.anchor is not None and key in (Qt.Key_X,Qt.Key_Y,Qt.Key_Z) and not modifiers & (Qt.ControlModifier|Qt.AltModifier)
@@ -155,7 +160,7 @@ class MoveConnection(Tool):
         if self.done:return
         if commit and self.moved and self.panel.app.scene is self.scene:
             self.value["point"] = list(self.panel.connection_preview[1].toTuple())
-            try:apply_connection(self.panel,self.group,self.value)
+            try:apply_connection(self.panel,self.group,self.value,"Connection point moved.")
             except ValueError as exc:self.panel.status_message(str(exc))
         self.done = True;self.panel.connection_preview = None;self.panel.app.viewport.update()
         QTimer.singleShot(0,lambda:self.panel.app.window._activate_tool("select"))

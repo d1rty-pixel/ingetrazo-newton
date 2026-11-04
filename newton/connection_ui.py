@@ -59,4 +59,4 @@ class ConnectionEditor(QWidget):
             except (ValueError,TypeError) as exc:self.panel.status_message(str(exc));self.refresh(self.group)
 
     def detach(self):
-        if self.group:apply_connection(self.panel,self.group,None)
+        if self.group:apply_connection(self.panel,self.group,None,"Connection removed.")

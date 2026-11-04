@@ -4,6 +4,14 @@ Bugs and observations that are known but not yet fixed. Each entry states what i
 
 Status values: **open** (confirmed, not fixed), **observation** (reported, cause unknown), **fixed** (kept until the fix is released).
 
+## Simulation test times out when more panel tests run before it
+
+- **Status:** observation
+- **Reported:** 2026-11-04, Linux, offscreen test run
+- **Symptom:** `tests/test_interface.py::test_shared_opening_control_maps_mm_to_both_jaws_and_resets` fails in `wait(... session.ready)` when four more tests using the `panel` fixture run before it, even trivial ones that only call `panel.refresh()`. It passes alone and with the current test set. At the timeout the workspace exists, the worker's stderr is empty and at most three `worker.py` processes are alive.
+- **Unverified:** what accumulates (windows, sessions or timers not released by the fixture) and whether the worker never answers or answers too late.
+- **Next step:** log the worker protocol for that test in a failing order; check that the `panel` fixture tears down the session, collision view and window.
+
 ## Floating toolbar icons jump while a simulation runs
 
 - **Status:** observation

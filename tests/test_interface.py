@@ -61,6 +61,33 @@ def test_connect_tool_places_a_pin_and_sidebar_edits_it_live(panel,qtapp,monkeyp
     vp.history.undo();assert a.ext[KEY]["point_attachment"]["point"][0]==0
 
 
+def test_connection_makes_the_body_movable_only_when_it_could_not_work_otherwise(panel):
+    from newton.model import box,AddDemo
+    from newton.connections import apply_connection
+    vp = panel.app.viewport
+    for source_mode,target_mode,expected in [("static","static","dynamic"),("ignore","static","dynamic"),
+                                             ("static","dynamic","static"),("dynamic","static","dynamic")]:
+        a,b = box("Link",(.5,0,2),(1,.1,.1),mode=source_mode),box("Anchor",(0,0,2),(.1,.1,.1),mode=target_mode)
+        vp.history.execute(AddDemo([a,b]));vp.scene.select([a]);panel.refresh()
+        before = len(vp.history.undo_stack)
+        apply_connection(panel,a,dict(target=b.uid,point=[0,0,2],type="ball"),"Connection created.")
+        assert a.ext[KEY]["mode"]==expected and a.ext[KEY]["point_attachment"]["type"]=="ball"
+        message = panel.app.window.statusBar().currentMessage()
+        assert message.startswith("Connection created.") and ("movable" in message)==(expected!=source_mode)
+        assert len(vp.history.undo_stack)==before+1
+        vp.history.undo()
+        assert a.ext[KEY]["mode"]==source_mode and not a.ext[KEY].get("point_attachment")
+
+
+def test_connection_to_an_excluded_body_is_refused(panel):
+    from newton.model import box,AddDemo
+    from newton.connections import connection_command
+    a,b = box("Link",(.5,0,2),(1,.1,.1)),box("Anchor",(0,0,2),(.1,.1,.1),mode="ignore")
+    panel.app.viewport.history.execute(AddDemo([a,b]))
+    with pytest.raises(ValueError,match="participate"):
+        connection_command(panel.app.scene,a,dict(target=b.uid,point=[0,0,2],type="ball"))
+
+
 def test_connection_marker_drags_with_one_undo_and_eraser_preserves_geometry(panel,qtapp):
     from PySide6.QtCore import QPointF
     from PySide6.QtGui import QMouseEvent

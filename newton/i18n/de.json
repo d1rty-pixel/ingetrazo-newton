@@ -28,6 +28,7 @@
   "Axis": "Achse",
   "Axis coupling": "Achskopplung",
   "Axis placed.": "Achse platziert.",
+  "Axis removed.": "Achse entfernt.",
   "Balanced": "Ausgewogen",
   "Ball joint": "Kugelgelenk",
   "Behaviour": "Verhalten",
@@ -65,6 +66,9 @@
   "Configure collision display shortcut…": "Tastenkürzel für Kollisionsanzeige…",
   "Connect bodies": "Körper verbinden",
   "Connect bodies…": "Körper verbinden…",
+  "Connection created.": "Verbindung erstellt.",
+  "Connection point moved.": "Verbindungspunkt verschoben.",
+  "Connection removed.": "Verbindung entfernt.",
   "Connect…": "Verbinden…",
   "Control name": "Reglername",
   "Controls": "Steuerpult",
@@ -161,7 +165,6 @@
   "Link selection without changing values": "Auswahl zuordnen, Werte behalten",
   "Linked bodies synced.": "Zugeordnete Körper synchronisiert.",
   "Local changes": "Lokal geändert",
-  "Make at least one body movable.": "Mindestens ein Körper muss beweglich sein.",
   "Make the selection movable": "Auswahl beweglich machen",
   "Mass (kg)": "Masse (kg)",
   "Material": "Werkstoff",
@@ -323,5 +326,6 @@
   "World": "Welt",
   "{bodies} follow this control. Their additional load and limits also affect the leading axis; select a follower to change how far or in which direction it moves.": "{bodies} folgen diesem Regler. Ihre zusätzliche Last und ihre Anschläge wirken auch auf die führende Achse. Wähle einen folgenden Körper aus, um seinen Weg oder seine Bewegungsrichtung zu ändern.",
   "{count} bodies selected": "{count} Körper ausgewählt",
+  "{message} The body is now movable.": "{message} Der Körper ist jetzt beweglich.",
   "{speed:.2f}× real time": "{speed:.2f}× Echtzeit"
 }

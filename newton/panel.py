@@ -685,6 +685,7 @@ class NewtonPanel(QWidget):
             self.app.viewport.history.execute(command)
             self.app.viewport.notify_scene_changed()
             self.refresh()
+            self.status_message(tr("Axis removed."))
 
     def edit_joint(self,kind="hinge",uid=None):
         if self.session.workspace:
