@@ -1686,3 +1686,16 @@ def test_connection_point_drags_with_its_handle_like_an_axis(panel,qtapp):
     xs,ys,front = vp.world_to_pixels([[1,.2,2.5]])
     QTest.mouseClick(vp,Qt.LeftButton,Qt.NoModifier,QPoint(round(xs[0]),round(ys[0])));qtapp.processEvents()
     assert scene.selection=={marker_of(scene,a,CONNECTION)} and len(history.undo_stack)==steps+1
+
+
+def test_small_connection_glyphs_keep_a_readable_size_on_screen(panel,qtapp):
+    from newton.connections import screen_size,RADIUS,MIN_RADIUS_PX
+    vp = panel.app.viewport
+    panel.app.window.show();vp.resize(800,600);qtapp.processEvents()
+    vp.camera.fit_to(QVector3D(-5,-5,0),QVector3D(5,5,4))
+    value = dict(point=[0,0,1],type="ball")
+    size = screen_size(vp,value,.001)
+    xs,ys,_ = vp.world_to_pixels([[0,0,1],[size*RADIUS,0,1],[0,size*RADIUS,1],[0,0,1+size*RADIUS]])
+    import math
+    assert max(math.hypot(xs[i]-xs[0],ys[i]-ys[0]) for i in (1,2,3))==pytest.approx(MIN_RADIUS_PX,rel=.05)
+    assert screen_size(vp,value,2.)==2.,"large glyphs keep the body's size"

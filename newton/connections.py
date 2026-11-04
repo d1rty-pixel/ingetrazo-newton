@@ -182,10 +182,24 @@ def size_of(panel,group):
     return sizes[group.uid]
 
 
+# Smallest on-screen glyph radius: the glyph of a small body would otherwise vanish behind its handle.
+MIN_RADIUS_PX = 18.
+
+
+def screen_size(vp,value,size):
+    """The body's glyph size, enlarged so the glyph keeps MIN_RADIUS_PX on screen."""
+    point = QVector3D(*value["point"])
+    ends = [point+QVector3D(*d)*size*RADIUS for d in ((1,0,0),(0,1,0),(0,0,1))]
+    xs,ys,front = vp.world_to_pixels([list(p.toTuple()) for p in [point]+ends])
+    if not all(front):return size
+    radius = max(math.hypot(float(xs[i])-float(xs[0]),float(ys[i])-float(ys[0])) for i in (1,2,3))
+    return size*max(1.,MIN_RADIUS_PX/radius) if radius>1e-6 else size
+
+
 def handle_at(panel,vp,group,x,y):
     value = settings(group).get("point_attachment")
     if not value or not axes_visible(panel.app.scene,picking=True):return None
-    for key,p in sorted(handles(value,size_of(panel,group)).items(),key=lambda item:item[0]!="direction"):
+    for key,p in sorted(handles(value,screen_size(vp,value,size_of(panel,group))).items(),key=lambda item:item[0]!="direction"):
         xs,ys,front = vp.world_to_pixels([list(p.toTuple())])
         if front[0] and math.hypot(x-float(xs[0]),y-float(ys[0]))<=10:return key
     return None
@@ -215,7 +229,7 @@ def draw(panel,vp,painter):
         if not value:continue
         locked = bool(getattr(marker,"locked",False))
         colour = QColor(*(RED if marker.uid==getattr(panel,"hover_connection",None) else LOCKED if locked else VIOLET))
-        size = size_of(panel,body);m = glyph_frame(value,size)
+        size = screen_size(vp,value,size_of(panel,body));m = glyph_frame(value,size)
         pen = QPen(colour,2);pen.setCapStyle(Qt.RoundCap);painter.setPen(pen);painter.setBrush(Qt.NoBrush)
         for line in glyph(value.get("type","ball")):
             xs,ys,front = vp.world_to_pixels([list(m.map(QVector3D(*p)).toTuple()) for p in line])
@@ -251,7 +265,7 @@ class ConnectionEditTool(Tool):
         self.scene = panel.app.scene
         self.anchor = QVector3D(*value["point"])
         self.normal = panel.app.viewport.camera.forward().normalized()
-        self.plane_point = handles(value,size_of(panel,group))[handle]
+        self.plane_point = handles(value,screen_size(panel.app.viewport,value,size_of(panel,group)))[handle]
 
     def drag_plane(self,viewport):return self.plane_point,self.normal
 
