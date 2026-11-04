@@ -251,8 +251,6 @@ class NewtonPanel(QWidget):
         from .axis_edit import install as install_axis_edit
         install_axis_edit(self)
         self.show_colliders.setChecked(str(QSettings().value("newton/show_colliders_by_default",False)).lower() in ("true","1"))
-        from .connections import install as install_connections
-        install_connections(self)
         self.refresh()
 
     def show_sidebar(self):
@@ -417,7 +415,7 @@ class NewtonPanel(QWidget):
         self.app.window.statusBar().showMessage(tr(text),8000)
 
     def selected(self):
-        """Selected bodies; a selected axis object stands for its body."""
+        """Selected bodies; a selected axis or connection object stands for its body."""
         from .axis_objects import owner_id
         chosen = [g for g in self.app.scene.groups if g in self.app.scene.selection]
         owners = {owner_id(g) for g in chosen}
@@ -560,8 +558,6 @@ class NewtonPanel(QWidget):
         sync_loaded(self,self.app.viewport)
         from .axis_edit import install as install_axis_edit
         install_axis_edit(self)
-        from .connections import install as install_connections
-        install_connections(self)
         signature = (id(self.app.scene),tuple(g.uid for g in groups),
             tuple((g.uid,g.name,repr((g.ext or {}).get(KEY))) for g in self.app.scene.groups))
         if signature==self.selection_signature:

@@ -103,14 +103,12 @@ class NewtonEraser(EraserTool):
         super().__init__()
         self.panel = panel
         self.axis_marked = set()
-        self.connection_marked = set()
         self.axis_only = None
         self.stroke_scene = None
 
     def _reset(self):
         super()._reset()
         self.axis_marked = set()
-        self.connection_marked = set()
         self.axis_only = None
         self.stroke_scene = None
         self.panel.hover_axis = None
@@ -118,7 +116,6 @@ class NewtonEraser(EraserTool):
 
     def on_click(self,ctx):
         self.axis_marked = set()
-        self.connection_marked = set()
         self.axis_only = None
         self.stroke_scene = ctx.viewport.scene
         super().on_click(ctx)
@@ -127,9 +124,9 @@ class NewtonEraser(EraserTool):
         from .connections import pick as pick_connection
         connection = pick_connection(self.panel,viewport,x,y)
         if connection is not None:
+            # A stroke that starts on a connection object never takes the body around it.
             if self.axis_only is None:self.axis_only = True
-            if not self._hide:self.connection_marked.add(connection.uid)
-            viewport.set_hover(None);return
+            self.marked.add(connection);viewport.set_hover(None);return
         uid = pick_axis(self.panel,viewport,x,y)
         if self.axis_only is None:
             self.axis_only = uid is not None
@@ -143,9 +140,9 @@ class NewtonEraser(EraserTool):
         super()._mark(viewport,x,y)
 
     def on_hover(self,ctx):
-        from .connections import pick as pick_connection
+        from .connections import pick as pick_connection,set_hover
         connection = pick_connection(self.panel,ctx.viewport,ctx.screen.x(),ctx.screen.y())
-        self.panel.hover_connection = connection.uid if connection else None
+        set_hover(self.panel,ctx.viewport,connection)
         self.panel.hover_axis = pick_axis(self.panel,ctx.viewport,ctx.screen.x(),ctx.screen.y())
         if not self._stroke and (self.panel.hover_axis or connection):
             ctx.viewport.set_hover(None)
@@ -157,7 +154,6 @@ class NewtonEraser(EraserTool):
         if not self._stroke:
             return
         uids = set(self.axis_marked)
-        connection_uids = set(self.connection_marked)
         commands = []
         execute = viewport.history.execute
         try:
@@ -169,9 +165,6 @@ class NewtonEraser(EraserTool):
             groups = [g for g in viewport.scene.groups if g.uid in uids and settings(g).get("joint")]
             if groups:
                 commands.append(remove_axes_command(groups,viewport.scene))
-            from .model import Configure
-            connected = [g for g in viewport.scene.groups if g.uid in connection_uids and settings(g).get("point_attachment")]
-            if connected:commands.append(Configure(connected,dict(point_attachment=None),partial=True))
         self.axis_marked = set()
         self.panel.hover_axis = None
         if commands:

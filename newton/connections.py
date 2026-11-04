@@ -1,6 +1,6 @@
 """Undoable closed-loop attachments placed and edited in the model."""
 import math
-from PySide6.QtCore import Qt,QTimer,QObject,QEvent
+from PySide6.QtCore import Qt,QTimer
 from PySide6.QtGui import QVector3D,QColor,QPen
 from tools.base import Tool
 from .model import KEY,settings,Configure,axes_visible
@@ -103,101 +103,59 @@ def begin(panel):
     panel.app.viewport.set_active_tool(ConnectionTool(panel,groups[0],panel.connection_editor.kind.currentData()))
 
 
-def point_in_view(panel,group,value,vp=None):
+def point_in_view(panel,group,value):
+    """The connection point carried along by its simulated body."""
     point = QVector3D(*value["point"])
-    if panel.session.workspace:
-        spec = panel.session.specs.get(group.uid);mover = panel.session.movers.get(group.uid)
-        if spec and mover:
-            origin = spec["joint"]["pivot"] if spec.get("joint") else spec["center"]
-            return mover.xform.map(point-QVector3D(*origin))
-    if getattr(panel,"connection_preview",None) and panel.connection_preview[0]==group.uid:return panel.connection_preview[1]
-    vp = vp or panel.app.viewport
-    if group.uid in getattr(vp,"_newton_preview_bodies",set()) and getattr(vp,"_preview_groups",None):
-        return vp._groups_preview_transform().map(point)
+    spec = panel.session.specs.get(group.uid);mover = panel.session.movers.get(group.uid)
+    if spec and mover:
+        origin = spec["joint"]["pivot"] if spec.get("joint") else spec["center"]
+        return mover.xform.map(point-QVector3D(*origin))
     return point
 
 
-# Screen pixels around a marker that count as a hit; the marker is an overlay, so it has no geometry to click.
+# Screen pixels around a connection object that count as a hit: the point mostly lies inside a body, whose faces would win the host's pick.
 HIT_PX = 16.
 
 
 def pick(panel,vp,x,y):
-    if panel.session.workspace or not axes_visible(panel.app.scene,picking=True):return None
+    """The connection object under the cursor, or None."""
+    scene = panel.app.scene
+    if panel.session.workspace or vp is not panel.app.viewport or not axes_visible(scene,picking=True):return None
+    from .axis_objects import CONNECTION,markers,placement
     best,answer = HIT_PX,None
-    for group in panel.app.scene.groups:
-        value = settings(group).get("point_attachment")
-        if not value or not editable(panel.app.scene,group):continue
-        p = point_in_view(panel,group,value,vp);xs,ys,front = vp.world_to_pixels([list(p.toTuple())])
-        if front[0]:
-            distance = math.hypot(x-float(xs[0]),y-float(ys[0]))
-            if distance<best:best,answer = distance,group
+    for marker in markers(scene,CONNECTION):
+        if not editable(scene,marker):continue
+        xs,ys,front = vp.world_to_pixels([placement(marker)[0]])
+        distance = math.hypot(x-float(xs[0]),y-float(ys[0]))
+        if front[0] and distance<best:best,answer = distance,marker
     return answer
 
 
+def ring(painter,x,y,colour):
+    r = 7
+    painter.setPen(QPen(colour,2));painter.setBrush(QColor(25,29,35,220))
+    painter.drawEllipse(x-r,y-r,r*2,r*2);painter.drawLine(x-r-3,y,x+r+3,y);painter.drawLine(x,y-r-3,x,y+r+3)
+
+
 def draw(panel,vp,painter):
-    if not axes_visible(panel.app.scene):return
     scene = panel.app.scene
+    if not axes_visible(scene):return
+    if not panel.session.workspace:
+        hover = next((g for g in scene.groups if g.uid==getattr(panel,"hover_connection",None)),None)
+        if hover is not None:
+            from .axis_objects import placement
+            xs,ys,front = vp.world_to_pixels([placement(hover)[0]])
+            if front[0]:ring(painter,int(xs[0]),int(ys[0]),QColor(235,65,45))
+        return
+    # The simulated scene has no connection objects, so the point is drawn here.
     for group in scene.groups:
         value = settings(group).get("point_attachment")
         if not value or group.hidden or any(l.name==group.layer and not l.visible for l in scene.layers):continue
-        point = point_in_view(panel,group,value,vp);xs,ys,front = vp.world_to_pixels([list(point.toTuple())])
-        if not front[0]:continue
-        selected = group in scene.selection or any(g.uid==group.uid for g in getattr(panel,"_sidebar_groups",[]))
-        x,y = int(xs[0]),int(ys[0]);r = 9 if selected else 7
-        colour = QColor(235,65,45) if getattr(panel,"hover_connection",None)==group.uid else QColor(215,91,204)
-        painter.setPen(QPen(colour,3 if selected else 2));painter.setBrush(QColor(25,29,35,220))
-        painter.drawEllipse(x-r,y-r,r*2,r*2);painter.drawLine(x-r-3,y,x+r+3,y);painter.drawLine(x,y-r-3,x,y+r+3)
+        point = point_in_view(panel,group,value);xs,ys,front = vp.world_to_pixels([list(point.toTuple())])
+        if front[0]:ring(painter,int(xs[0]),int(ys[0]),QColor(215,91,204))
 
 
-class MoveConnection(Tool):
-    name = tr("Move connection point");uses_snap = True
-    def __init__(self,panel,group):
-        self.panel,self.group = panel,group;self.scene = panel.app.scene
-        self.value = dict(settings(group)["point_attachment"]);self.point = QVector3D(*self.value["point"]);self.done = False;self.moved = False
-        self.normal = panel.app.viewport.camera.forward().normalized()
-    def on_activate(self,vp):vp.flash_status(tr("Drag the connection point. Esc cancels."),10000)
-    def drag_plane(self,vp):return self.point,self.normal
-    def on_hover(self,ctx):
-        self.panel.connection_preview = (self.group.uid,QVector3D(ctx.world));self.moved = True;ctx.viewport.update()
-    def on_click(self,ctx):pass
-    def finish(self,commit):
-        if self.done:return
-        if commit and self.moved and self.panel.app.scene is self.scene:
-            self.value["point"] = list(self.panel.connection_preview[1].toTuple())
-            try:apply_connection(self.panel,self.group,self.value,"Connection point moved.")
-            except ValueError as exc:self.panel.status_message(str(exc))
-        self.done = True;self.panel.connection_preview = None;self.panel.app.viewport.update()
-        QTimer.singleShot(0,lambda:self.panel.app.window._activate_tool("select"))
-    def on_release(self,vp):self.finish(True)
-    def on_cancel(self,vp):self.finish(False)
-    def on_deactivate(self,vp):self.done = True;self.panel.connection_preview = None;vp.update()
-
-
-class ConnectionFilter(QObject):
-    def __init__(self,panel):super().__init__(panel);self.panel = panel
-    def eventFilter(self,vp,event):
-        p = self.panel
-        if event.type()==QEvent.MouseMove and event.buttons()==Qt.NoButton:
-            self.hover(vp,event)
-            return False
-        if event.type()!=QEvent.MouseButtonPress or event.button()!=Qt.LeftButton or event.modifiers()!=Qt.NoModifier:return False
-        if p.session.workspace or vp is not p.app.viewport or vp.nav_mode is not None or vp.active_tool is not p.app.window._tools["select"]:return False
-        group = pick(p,vp,event.position().x(),event.position().y())
-        if group is None:return False
-        if group not in p.selected():p.app.scene.select([group]);vp.notify_scene_changed();p.show_sidebar()
-        else:vp.set_active_tool(MoveConnection(p,group))
-        return True
-
-    def hover(self,vp,event):
-        p = self.panel
-        usable = not p.session.workspace and vp is p.app.viewport and vp.nav_mode is None and vp.active_tool is p.app.window._tools["select"]
-        group = pick(p,vp,event.position().x(),event.position().y()) if usable else None
-        uid = group.uid if group is not None else None
-        if uid!=getattr(p,"hover_connection",None):
-            p.hover_connection = uid;vp.update()
-
-
-def install(panel):
-    for vp in panel.app.window.all_viewports():
-        if not getattr(vp,"_newton_connection_filter",None):
-            vp._newton_connection_filter = ConnectionFilter(panel);vp.installEventFilter(vp._newton_connection_filter)
+def set_hover(panel,vp,marker):
+    uid = marker.uid if marker is not None else None
+    if uid!=getattr(panel,"hover_connection",None):
+        panel.hover_connection = uid;vp.update()

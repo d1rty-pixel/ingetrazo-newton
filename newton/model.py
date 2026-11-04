@@ -106,8 +106,9 @@ def prepare(source,require_movable=True):
     scene.mesh = transformed_mesh(source.loose_mesh, QMatrix4x4())
     specs, movers = [], {}
     for group in source.groups:
-        if (group.ext or {}).get(KEY,{}).get("axis_of"):
-            continue  # Axis objects only mirror joint data.
+        cfg = (group.ext or {}).get(KEY,{})
+        if cfg.get("axis_of") or cfg.get("connection_of"):
+            continue  # Axis and connection objects only mirror body data.
         mesh = world_mesh(group)
         if not mesh.vertices:
             continue

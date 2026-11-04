@@ -4,6 +4,7 @@ from PySide6.QtCore import Qt,QTimer,QObject,QEvent
 from PySide6.QtGui import QVector3D
 from tools.base import Tool
 from .eraser import pick_axis,axis_frame
+from .connections import pick as pick_connection,set_hover as set_connection_hover
 from .model import settings,axes_visible
 from .i18n import tr
 
@@ -97,18 +98,26 @@ def install(panel):
 
     def on_click(ctx):
         if not panel.session.workspace and ctx.viewport is panel.app.viewport and ctx.modifiers==Qt.NoModifier:
+            connection = pick_connection(panel,ctx.viewport,ctx.screen.x(),ctx.screen.y())
+            if connection is not None:
+                panel.app.scene.select([connection]);ctx.viewport.notify_scene_changed();panel.show_sidebar()
+                return
             uid = pick_axis(panel,ctx.viewport,ctx.screen.x(),ctx.screen.y())
             group = next((g for g in panel.app.scene.groups if g.uid==uid),None)
             if group:
                 # Selecting the axis object lets the host's Move/Rotate act on the axis.
-                from .axis_objects import markers,owner_id
-                marker = next((g for g in markers(panel.app.scene) if owner_id(g)==uid),group)
+                from .axis_objects import AXIS,markers,owner_id
+                marker = next((g for g in markers(panel.app.scene,AXIS) if owner_id(g)==uid),group)
                 panel.app.scene.select([marker]);ctx.viewport.notify_scene_changed();panel.show_sidebar()
                 return
         click(ctx)
 
     def on_hover(ctx):
         hover(ctx)
+        connection = pick_connection(panel,ctx.viewport,ctx.screen.x(),ctx.screen.y())
+        set_connection_hover(panel,ctx.viewport,connection)
+        if connection is not None:
+            ctx.viewport.set_hover(None)
         if not panel.session.workspace and ctx.viewport is panel.app.viewport:
             for j in panel.axis_rows:
                 if any(g.uid==j["uid"] for g in panel.selected()) and handle_at(panel,ctx.viewport,j,ctx.screen.x(),ctx.screen.y()):

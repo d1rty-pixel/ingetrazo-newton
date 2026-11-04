@@ -1,12 +1,12 @@
-"""Every axis is also a real scene object, so the host's Move/Rotate/Scale act on it.
+"""Every axis and every connection point is also a real scene object, so the host's Move/Rotate/Scale act on it.
 
-The joint data in the body stays authoritative for the simulation. A plain
-wire group on the axes layer mirrors it: its frame (``group.axes``, carried by
-every host transform) is the pivot and the axis direction. After each history
-command one sync step, inside the same undo entry, reconciles both sides: a
-moved axis object writes the joint, otherwise the object follows the joint.
+The data in the body (``joint`` or ``point_attachment``) stays authoritative
+for the simulation. A plain wire group on the axes layer mirrors it: its frame
+(``group.axes``, carried by every host transform) is the pivot or connection
+point and the axis direction. After each history command one sync step, inside
+the same undo entry, reconciles both sides: a moved object writes the data,
+otherwise the object follows the data.
 """
-import copy
 from PySide6.QtGui import QMatrix4x4,QVector3D
 from core.group import Group,group_frame,carry_axes
 from core.history import Command,CompoundCommand,DeleteGroupCommand
@@ -14,13 +14,32 @@ from core.mesh import Mesh
 from .model import KEY,AXES_LAYER,Configure,settings,remove_axes_command,ensure_axis_layer,project_zero,with_zero
 from .i18n import tr
 
+AXIS,CONNECTION = "axis_of","connection_of"
+
+
+def owner_key(group):
+    cfg = (group.ext or {}).get(KEY) or {}
+    return next((k for k in (AXIS,CONNECTION) if cfg.get(k)),None)
+
 
 def owner_id(group):
-    return ((group.ext or {}).get(KEY) or {}).get("axis_of")
+    key = owner_key(group)
+    return group.ext[KEY][key] if key else None
 
 
-def markers(scene):
-    return [g for g in scene.groups if owner_id(g)]
+def markers(scene,key=None):
+    return [g for g in scene.groups if owner_key(g) and key in (None,owner_key(g))]
+
+
+def data(body,key):
+    return settings(body).get("joint" if key==AXIS else "point_attachment")
+
+
+def wanted(key,value):
+    """Pivot, axis and 0° direction the object must show; None where any value fits."""
+    if key==AXIS:
+        return value["pivot"],value["axis"],project_zero(value["axis"],value.get("zero"))
+    return value["point"],value["axis"] if value.get("type")=="hinge" else None,None
 
 
 def axis_matrix(pivot,axis,zero=None):
@@ -34,8 +53,13 @@ def axis_matrix(pivot,axis,zero=None):
     return QMatrix4x4(u.x(),v.x(),d.x(),p.x(),u.y(),v.y(),d.y(),p.y(),u.z(),v.z(),d.z(),p.z(),0,0,0,1)
 
 
+def target_matrix(key,value):
+    pivot,axis,zero = wanted(key,value)
+    return axis_matrix(pivot,axis or (0,0,1),zero)
+
+
 def placement(marker):
-    """Pivot, axis and 0° direction of an axis object."""
+    """Pivot, axis and 0° direction of an axis or connection object."""
     m = group_frame(marker) or QMatrix4x4()
     return tuple(list(t.toTuple()) for t in (m.map(QVector3D()),m.mapVector(QVector3D(0,0,1)).normalized(),
                                                m.mapVector(QVector3D(1,0,0)).normalized()))
@@ -46,17 +70,42 @@ def close(a,b):
     return all(abs(x-y)<=1e-5*max(1,abs(x),abs(y)) for x,y in zip(a,b))
 
 
-def build(body,joint,size):
-    """A rod from the pivot along the axis with a small cross at the pivot."""
+def build(body,key,value,size):
+    """An axis is a rod with a small cross at the pivot; a connection a small octahedron, a pin connection adds its pin."""
     mesh = Mesh()
-    m = axis_matrix(joint["pivot"],joint["axis"],joint.get("zero"))
-    for a,b in (((0,0,0),(0,0,2)),((-.3,0,0),(.3,0,0)),((0,-.3,0),(0,.3,0))):
+    m = target_matrix(key,value)
+    if key==AXIS:
+        lines = [((0,0,0),(0,0,2)),((-.3,0,0),(.3,0,0)),((0,-.3,0),(0,.3,0))]
+    else:
+        tips = [(.3,0,0),(-.3,0,0),(0,.3,0),(0,-.3,0),(0,0,.3),(0,0,-.3)]
+        lines = [(a,b) for i,a in enumerate(tips) for b in tips[i+1:] if a!=tuple(-x for x in b)]
+        if value.get("type")=="hinge":
+            lines.append(((0,0,-1),(0,0,1)))
+    for a,b in lines:
         mesh.add_edge(m.map(QVector3D(*a)*size),m.map(QVector3D(*b)*size))
-    group = Group(mesh,tr("Axis")+" · "+body.name)
+    group = Group(mesh,tr("Axis" if key==AXIS else "Connection")+" · "+body.name)
     group.layer = AXES_LAYER
     group.axes = m
-    group.ext = {KEY:{"mode":"ignore","axis_of":body.uid}}
+    group.ext = {KEY:{"mode":"ignore",key:body.uid}}
     return group
+
+
+def written(body,key,value,pivot,axis,zero):
+    """The command that writes a moved object back into the body."""
+    if key==AXIS:
+        has_zero = project_zero(value["axis"],value.get("zero")) is not None
+        moved = dict(value,pivot=pivot,axis=axis,zero=zero if has_zero else None)
+        return Configure([body],dict(joint=with_zero(body,moved)),partial=True)
+    moved = dict(value,point=pivot)
+    if value.get("type")=="hinge":
+        moved["axis"] = axis
+    return Configure([body],dict(point_attachment=moved),partial=True)
+
+
+def removal(body,key,scene):
+    if key==AXIS:
+        return remove_axes_command([body],scene)
+    return Configure([body],dict(point_attachment=None),partial=True)
 
 
 class AddMarker(Command):
@@ -101,48 +150,46 @@ def deletes_groups(cmd):
 
 
 def capture(scene):
-    """Placement and owner of each axis object before a command."""
-    return {id(g):(placement(g),owner_id(g)) for g in markers(scene)}
+    """Placement and owner of each axis and connection object before a command."""
+    return {id(g):(placement(g),(owner_key(g),owner_id(g))) for g in markers(scene)}
 
 
 def plan(scene,before=None,cmd=None,size=lambda g:.2):
-    """Commands that bring axis objects and joints into agreement, or []."""
+    """Commands that bring the objects and the body data into agreement, or []."""
     before = before or {}
     bodies = {g.uid:g for g in scene.groups if not owner_id(g)}
     commands,kept = [],{}
-    # The axis object that already existed wins over a pasted copy.
+    # The object that already existed wins over a pasted copy.
     for g in sorted(markers(scene),key=lambda g:id(g) not in before):
-        body = bodies.get(owner_id(g))
-        if body is None or not settings(body).get("joint") or body.uid in kept:
+        key,body = owner_key(g),bodies.get(owner_id(g))
+        if body is None or not data(body,key) or (key,body.uid) in kept:
             commands.append(DeleteGroupCommand(g))
         else:
-            kept[body.uid] = g
+            kept[key,body.uid] = g
     remaining = {id(g) for g in scene.groups}
-    deleted = {owner for key,(_,owner) in before.items() if key not in remaining}
+    deleted = {owner for k,(_,owner) in before.items() if k not in remaining}
     for body in bodies.values():
-        joint = settings(body).get("joint")
-        if not joint:
-            continue
-        marker = kept.get(body.uid)
-        if marker is None:
-            # Deleting the axis object deletes the axis; anything else that made it vanish does not.
-            if body.uid in deleted and cmd is not None and deletes_groups(cmd):
-                remove = remove_axes_command([body],scene)
-                if remove:commands.append(remove)
+        for key in (AXIS,CONNECTION):
+            value = data(body,key)
+            if not value:
+                continue
+            marker = kept.get((key,body.uid))
+            if marker is None:
+                # Deleting the object deletes the axis or connection; anything else that made it vanish does not.
+                if (key,body.uid) in deleted and cmd is not None and deletes_groups(cmd):
+                    remove = removal(body,key,scene)
+                    if remove:commands.append(remove)
+                else:
+                    commands.append(AddMarker(build(body,key,value,size(body))))
+                continue
+            pivot,axis,zero = placement(marker)
+            want_pivot,want_axis,want_zero = wanted(key,value)
+            if close(pivot,want_pivot) and (want_axis is None or close(axis,want_axis)) and (want_zero is None or close(zero,want_zero)):
+                continue
+            if id(marker) in before and before[id(marker)][0]!=(pivot,axis,zero):
+                commands.append(written(body,key,value,pivot,axis,zero))
             else:
-                commands.append(AddMarker(build(body,joint,size(body))))
-            continue
-        pivot,axis,zero = placement(marker)
-        # Without a stored 0° direction any perpendicular frame axis matches.
-        wanted = project_zero(joint["axis"],joint.get("zero"))
-        if close(pivot,joint["pivot"]) and close(axis,joint["axis"]) and (wanted is None or close(zero,wanted)):
-            continue
-        if id(marker) in before and before[id(marker)][0]!=(pivot,axis,zero):
-            moved = dict(joint,pivot=pivot,axis=axis,zero=zero if wanted is not None else None)
-            commands.append(Configure([body],dict(joint=with_zero(body,moved)),partial=True))
-        else:
-            target = axis_matrix(joint["pivot"],joint["axis"],joint.get("zero"))
-            commands.append(MoveMarker(marker,target*axis_matrix(pivot,axis,zero).inverted()[0]))
+                commands.append(MoveMarker(marker,target_matrix(key,value)*axis_matrix(pivot,axis,zero).inverted()[0]))
     return commands
 
 
@@ -183,7 +230,7 @@ def gizmo_size(group):
 
 
 def sync_loaded(panel,viewport):
-    """Documents saved before axis objects existed get them without an undo step."""
+    """Documents saved before these objects existed get them without an undo step."""
     history = viewport.history
     scene = history.scene
     if panel.session.workspace is not None or getattr(scene,"edit_group",None) is not None:

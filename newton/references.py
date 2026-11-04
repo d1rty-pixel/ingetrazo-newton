@@ -179,14 +179,14 @@ def install(viewport):
     if not getattr(viewport,"_newton_preview_hook",False):
         original_preview = viewport.begin_groups_preview
         def preview(groups=(),external=False):
-            from .axis_objects import markers,owner_id
+            from .axis_objects import CONNECTION,markers,owner_id,owner_key
             expanded = groups if external else descendants(viewport.scene,groups)
             if not external:
                 uids = {g.uid for g in expanded}
                 expanded = list(expanded)+[m for m in markers(viewport.scene) if owner_id(m) in uids and m not in expanded]
             viewport._newton_preview_bodies = set() if external else {g.uid for g in expanded if not owner_id(g)}
             # A dragged axis object previews its body's axis glyph, not the body.
-            viewport._newton_preview_axes = set() if external else {owner_id(g) or g.uid for g in expanded}
+            viewport._newton_preview_axes = set() if external else {owner_id(g) or g.uid for g in expanded if owner_key(g)!=CONNECTION}
             return original_preview(expanded,external=external)
         viewport.begin_groups_preview = preview
         original_end = viewport.end_groups_preview

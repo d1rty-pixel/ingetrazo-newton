@@ -79,28 +79,6 @@ def test_connection_makes_the_body_movable_only_when_it_could_not_work_otherwise
         assert a.ext[KEY]["mode"]==source_mode and not a.ext[KEY].get("point_attachment")
 
 
-def test_connection_marker_has_a_generous_hit_area_and_hover_highlight(panel,qtapp):
-    from PySide6.QtCore import QPointF
-    from PySide6.QtGui import QMouseEvent
-    from newton.model import box,AddDemo
-    from newton.connections import apply_connection,point_in_view,install,HIT_PX
-    a,b = box("Link",(.5,0,2),(1,.1,.1)),box("Anchor",(0,0,2),(.1,.1,.1),mode="static")
-    other = box("Other",(3,3,0),(.1,.1,.1),mode="static")
-    vp = panel.app.viewport;vp.history.execute(AddDemo([a,b,other]))
-    apply_connection(panel,a,dict(target=b.uid,point=[0,0,2],type="ball"))
-    vp.resize(800,600);vp.scene.select([other]);panel.refresh();install(panel)
-    xs,ys,_ = vp.world_to_pixels([list(point_in_view(panel,a,a.ext[KEY]["point_attachment"],vp).toTuple())])
-    near = QPointF(float(xs[0])+HIT_PX-2,float(ys[0]))
-    def send(kind,pos,button=Qt.NoButton):
-        QApplication.sendEvent(vp,QMouseEvent(kind,pos,QPointF(vp.mapToGlobal(pos.toPoint())),button,button,Qt.NoModifier))
-    send(QEvent.MouseMove,near)
-    assert panel.hover_connection==a.uid
-    send(QEvent.MouseMove,QPointF(near.x()+40,near.y()))
-    assert panel.hover_connection is None
-    send(QEvent.MouseButtonPress,near,Qt.LeftButton)
-    assert a in vp.scene.selection and other not in vp.scene.selection
-
-
 def test_connection_to_an_excluded_body_is_refused(panel):
     from newton.model import box,AddDemo
     from newton.connections import connection_command
@@ -110,31 +88,73 @@ def test_connection_to_an_excluded_body_is_refused(panel):
         connection_command(panel.app.scene,a,dict(target=b.uid,point=[0,0,2],type="ball"))
 
 
-def test_connection_marker_drags_with_one_undo_and_eraser_preserves_geometry(panel,qtapp):
-    from PySide6.QtCore import QPointF
-    from PySide6.QtGui import QMouseEvent
+def test_connection_objects_mirror_connections_and_host_transforms_move_the_point(panel,qtapp):
+    from core.history import MoveGroupCommand,RotateGroupCommand,DeleteGroupCommand
+    from newton.model import box,AddDemo,AXES_LAYER,prepare
+    from newton.connections import apply_connection
+    from newton.axis_objects import CONNECTION,markers,owner_id,placement
+    a,b = box("Link",(.5,0,2),(1,.1,.1)),box("Anchor",(0,0,2),(.1,.1,.1),mode="static")
+    vp,scene = panel.app.viewport,panel.app.scene;history = vp.history
+    history.execute(AddDemo([a,b]));panel.refresh()
+    steps = len(history.undo_stack)
+    apply_connection(panel,a,dict(target=b.uid,point=[0,0,2],type="ball"))
+    assert len(history.undo_stack)==steps+1,"the connection and its object are one undo step"
+    [marker] = markers(scene,CONNECTION)
+    point = lambda:a.ext[KEY]["point_attachment"]["point"]
+    assert owner_id(marker)==a.uid and marker.layer==AXES_LAYER and not marker.mesh.faces
+    assert placement(marker)[0]==pytest.approx([0,0,2],abs=1e-5)
+    assert all(s["uid"]!=marker.uid for s in prepare(scene)[1]),"connection objects never take part in the simulation"
+    scene.select([marker])
+    assert panel.selected()==[a],"a selected connection object stands for its body"
+    history.execute(MoveGroupCommand(marker,QVector3D(.1,0,0)))
+    assert len(history.undo_stack)==steps+2 and point()==pytest.approx([.1,0,2],abs=1e-5)
+    history.undo()
+    assert point()==pytest.approx([0,0,2]) and placement(marker)[0]==pytest.approx([0,0,2],abs=1e-5)
+    # Moving the body carries the connection point and its object along.
+    history.execute(MoveGroupCommand(a,QVector3D(0,1,0)))
+    assert point()==pytest.approx([0,1,2],abs=1e-5) and placement(marker)[0]==pytest.approx([0,1,2],abs=1e-5)
+    history.undo()
+    # A pin connection carries its pin axis in the object frame.
+    apply_connection(panel,a,dict(target=b.uid,point=[0,0,2],type="hinge",axis=[1,0,0]))
+    [marker] = markers(scene,CONNECTION)
+    assert placement(marker)[1]==pytest.approx([1,0,0],abs=1e-5)
+    history.execute(RotateGroupCommand(marker,QVector3D(0,0,2),QVector3D(0,0,1),90))
+    assert a.ext[KEY]["point_attachment"]["axis"]==pytest.approx([0,1,0],abs=1e-5)
+    # Deleting the connection object deletes the connection, in one undo step.
+    steps = len(history.undo_stack)
+    history.execute(DeleteGroupCommand(marker))
+    assert a.ext[KEY]["point_attachment"] is None and marker not in scene.groups and len(history.undo_stack)==steps+1
+    history.undo()
+    assert a.ext[KEY]["point_attachment"]["type"]=="hinge" and marker in scene.groups
+    # Removing the connection removes its object.
+    apply_connection(panel,a,None)
+    assert not markers(scene,CONNECTION)
+
+
+def test_connection_object_wins_the_pick_over_the_body_around_it(panel,qtapp):
     from newton.model import box,AddDemo
-    from newton.connections import apply_connection,MoveConnection
+    from newton.connections import apply_connection,HIT_PX
+    from newton.axis_objects import CONNECTION,markers
+    from PySide6.QtCore import QPointF
     a,b = box("Link",(.5,0,2),(1,.1,.1)),box("Anchor",(0,0,2),(.1,.1,.1),mode="static")
     vp = panel.app.viewport;vp.resize(1000,700);vp.camera.set_aspect(1000,700)
-    vp.history.execute(AddDemo([a,b]));vp.scene.select([a]);vp.camera.fit_to(*vp.scene.bounds());panel.refresh()
-    apply_connection(panel,a,dict(target=b.uid,point=[0,0,2],type="ball"));panel.app.window._activate_tool("select")
-    before = len(vp.history.undo_stack);geometry = a.mesh
-    xs,ys,_ = vp.world_to_pixels([[0,0,2]]);point = QPointF(float(xs[0]),float(ys[0]))
-    event = QMouseEvent(QEvent.MouseButtonPress,point,point,Qt.LeftButton,Qt.LeftButton,Qt.NoModifier)
-    QApplication.sendEvent(vp,event);assert type(vp.active_tool).__name__=="MoveConnection"
-    vp.active_tool.on_hover(SimpleNamespace(viewport=vp,world=QVector3D(.1,0,2)))
-    vp.active_tool.on_release(vp);qtapp.processEvents()
-    assert len(vp.history.undo_stack)==before+1
-    assert a.ext[KEY]["point_attachment"]["point"][0] == pytest.approx(.1)
-    vp.history.undo();vp.notify_scene_changed()
+    vp.history.execute(AddDemo([a,b]));vp.camera.fit_to(*vp.scene.bounds());panel.refresh()
+    apply_connection(panel,a,dict(target=b.uid,point=[0,0,2],type="ball"))
+    [marker] = markers(vp.scene,CONNECTION);geometry = a.mesh
+    xs,ys,_ = vp.world_to_pixels([[0,0,2]])
+    near = QPointF(float(xs[0])+HIT_PX-2,float(ys[0]))
+    panel.app.window._activate_tool("select");select = vp.active_tool
+    ctx = SimpleNamespace(viewport=vp,screen=near,world=QVector3D(0,0,2),modifiers=Qt.NoModifier)
+    select.on_hover(ctx)
+    assert panel.hover_connection==marker.uid
+    select.on_hover(SimpleNamespace(viewport=vp,screen=QPointF(near.x()+40,near.y()),world=QVector3D(),modifiers=Qt.NoModifier))
+    assert panel.hover_connection is None
+    select.on_click(ctx)
+    assert vp.scene.selection=={marker},"clicking the point selects the connection object, not the body"
     panel.app.window._activate_tool("eraser");eraser = vp.active_tool
-    ctx = SimpleNamespace(viewport=vp,screen=point,modifiers=Qt.NoModifier)
     eraser.on_click(ctx);eraser.on_release(vp)
-    assert a in vp.scene.groups and a.mesh is geometry
+    assert a in vp.scene.groups and a.mesh is geometry and marker not in vp.scene.groups
     assert a.ext[KEY]["point_attachment"] is None
-    vp.history.undo();assert a.ext[KEY]["point_attachment"]["target"]==b.uid
-
 
 def test_performance_is_visible_in_controls_and_pause_is_not_measured(panel,qtapp):
     seed_demo(panel,"Servo-Tür");panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
