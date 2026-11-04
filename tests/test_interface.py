@@ -1572,3 +1572,12 @@ def test_control_panel_opens_at_the_view_corner_and_fits_its_cards(panel):
         limited=True,target=0,max_speed=1) for i in range(40)],False)
     assert empty<controls.height()<=controls.height_limit
     assert controls.scroll.verticalScrollBar().maximum()>0 or not controls.isVisible()
+
+
+def test_folded_sidebar_sections_stack_instead_of_sharing_the_spare_height(panel):
+    layout = panel.sections[0].parentWidget().layout()
+    for fold in panel.sections:
+        fold.set_open(False)
+        item = layout.itemAt(layout.indexOf(fold))
+        assert not item.expandingDirections() & Qt.Vertical, fold.header.text()
+    assert layout.spacing()>=12

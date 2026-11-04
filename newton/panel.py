@@ -8,7 +8,7 @@ from PySide6.QtCore import QSettings, Qt, QTimer
 from PySide6.QtGui import QColor, QPen, QVector3D
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QPushButton, QComboBox, QDoubleSpinBox, QCheckBox, QLineEdit,
-    QFileDialog, QScrollArea)
+    QFileDialog, QScrollArea, QSizePolicy)
 from views.fold_section import FoldSection
 from .model import KEY, settings, Configure, prepare, joint_rows, reference_id,remove_axes_command,ensure_axis_layer,unlink_followers,with_zero,fit_limits
 from .session import Session
@@ -35,7 +35,10 @@ def spin(low,high,value):
 
 def section(title,key,open=True):
     # The host's own fold header (Render, AI tabs); its open state survives restarts.
-    return FoldSection(title.replace("&","&&"),"newton/open_"+key,default_open=open)
+    fold = FoldSection(title.replace("&","&&"),"newton/open_"+key,default_open=open)
+    # Its inner layout reports vertical growth even when folded, which spread the folded sections over the sidebar.
+    fold.setSizePolicy(QSizePolicy.Preferred,QSizePolicy.Maximum)
+    return fold
 
 
 def settings_section(title,key,description):
@@ -88,6 +91,7 @@ class NewtonPanel(QWidget):
         content = QWidget()
         scroll.setWidget(content)
         layout = QVBoxLayout(content)
+        layout.setSpacing(12)
         self.profile_box = section(tr("Profile"),"profile")
         profile_outer = QVBoxLayout(self.profile_box.body)
         profile_layout = QHBoxLayout();profile_outer.addLayout(profile_layout)
