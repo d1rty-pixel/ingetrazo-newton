@@ -63,7 +63,7 @@ Useful scripts: `scripts/preview.py` (open a demo in a test window), `scripts/be
 
 ## Icons, pictograms and layout
 
-- Every drawing is one SVG file in `newton/icons/`, named after the icon (`movable.svg` is `"movable"`). One concept has one drawing: the toolbar action "Movable" and the dropdown value "Movable" both use `movable`. Do not draw icons inline in Python.
+- Every drawing is one SVG file in `newton/icons/`, named after the icon (`movable.svg` is `"movable"`). One concept has one drawing: the toolbar action "Movable" and the dropdown value "Movable" both use `movable`. The reverse is allowed: related actions may share a drawing when the meaning stays clear in context (`unlink` detaches a reference body and removes a connection; `connect` starts a connection and selects a connection object). Do not draw a new icon only to avoid reuse. Do not draw icons inline in Python.
 - File format: the common header (`icons.HEADER`, a 24 × 24 grid), then `<g id="ink">` with the shape and `<g id="accent">` with the defining detail. At runtime the ink becomes the palette's text colour, the accent the host accent (`views.theme.accent_color()`), and a separate all-grey pixmap serves the disabled state. Files without these groups (`status_error`, `status_warning`) keep their fixed signal colours.
 - Drawing rules, so the set stays uniform:
   - A body is a rounded square (`rx="1"`), 10 × 10 on its own, 7 × 7 when two bodies share the picture. A point mass in a physical pictogram (gravity, bounce, attraction) is a circle.
