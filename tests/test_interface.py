@@ -5,8 +5,8 @@ import time
 from pathlib import Path
 
 import pytest
-from PySide6.QtWidgets import QDoubleSpinBox
-from PySide6.QtCore import QEvent, Qt
+from PySide6.QtWidgets import QCheckBox, QDoubleSpinBox
+from PySide6.QtCore import QEvent, QSettings, Qt
 from PySide6.QtGui import QKeyEvent, QVector3D
 from PySide6.QtWidgets import QApplication
 from types import SimpleNamespace
@@ -226,7 +226,6 @@ def panel(qtapp, monkeypatch,request):
     ("Linearschlitten","Schlittenposition",400,.4,"mm")])
 def test_named_controls_drive_real_session_and_reset_without_saving_runtime_target(
         panel,qtapp,kind,name,display_target,native_target,suffix):
-    assert panel.advanced.isHidden()
     seed_demo(panel,kind)
     source = panel.app.scene
     row = next(j for j in joint_rows(source) if j["name"] == name)
@@ -632,7 +631,7 @@ def test_profile_manager_can_save_rename_replace_delete_custom_profile(panel,mon
 
 @pytest.mark.parametrize("panel,selection,profiles_title",[("de","Allgemein","Newton-Profile"),("fr","Generic","Newton profiles")],indirect=["panel"])
 def test_extension_ui_uses_host_language_and_english_fallback(panel,selection,profiles_title):
-    assert panel.editor.title()==selection
+    assert panel.editor.header.text()==selection
     panel.show_profiles()
     assert panel.profile_manager.windowTitle()==profiles_title
 
@@ -1035,17 +1034,30 @@ def test_sidebar_angle_slider_keeps_precise_multi_turn_input_and_passive_state(p
 def test_sidebar_keeps_selected_configuration_visible_but_disabled_in_simulation(panel,qtapp):
     group = select_demo_axis(panel)
     assert panel.heading.text().endswith(group.name)
-    assert panel.editor.title()=="Generic"
+    assert panel.editor.header.text()=="Generic"
     assert panel.editor.parentWidget().layout().itemAt(0).widget() is panel.editor
-    panel.advanced_toggle.setChecked(True)
+    panel.body_section.set_open(True)
     panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
     assert all(not w.isHidden() for w in panel.selection_widgets)
-    assert not panel.editor.isEnabled() and not panel.joint_box.isEnabled()
-    assert not panel.advanced.isEnabled() and not panel.advanced_toggle.isEnabled()
+    assert all(not fold.body.isEnabled() and fold.header.isEnabled() for fold in panel.sections)
     assert panel.heading.text().endswith(group.name)
+    panel.body_section.set_open(False);panel.body_section.set_open(True)
     panel.session.reset()
-    assert panel.editor.isEnabled() and panel.advanced_toggle.isEnabled()
-    assert panel.advanced_toggle.isChecked() and not panel.advanced.isHidden()
+    assert panel.editor.body.isEnabled() and panel.joint_box.body.isEnabled()
+    assert not panel.body_section.body.isHidden()
+
+
+def test_sidebar_sections_fold_and_remember_their_state(panel):
+    from views.fold_section import FoldSection
+    folds = panel.findChildren(FoldSection)
+    assert set(folds)==set(panel.sections)
+    assert not any(isinstance(w,QCheckBox) and w.text()=="More settings" for w in panel.findChildren(QCheckBox))
+    panel.coupling_section.set_open(True)
+    assert not panel.coupling_section.body.isHidden()
+    assert QSettings().value("newton/open_coupling")=="1"
+    panel.coupling_section.set_open(False)
+    assert panel.coupling_section.body.isHidden()
+    assert QSettings().value("newton/open_coupling")=="0"
 
 
 def test_deceleration_sync_custom_value_undo_and_native_save(panel,tmp_path):

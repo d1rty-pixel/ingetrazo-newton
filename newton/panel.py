@@ -8,7 +8,8 @@ from PySide6.QtCore import QSettings, Qt, QTimer
 from PySide6.QtGui import QColor, QPen, QVector3D
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QPushButton, QComboBox, QDoubleSpinBox, QCheckBox, QLineEdit,
-    QFileDialog, QGroupBox, QScrollArea)
+    QFileDialog, QScrollArea)
+from views.fold_section import FoldSection
 from .model import KEY, settings, Configure, prepare, joint_rows, reference_id,remove_axes_command,ensure_axis_layer,unlink_followers,with_zero,fit_limits
 from .session import Session
 from .controls import Controls
@@ -32,9 +33,14 @@ def spin(low,high,value):
     return scroll_safe(w)
 
 
-def settings_section(title,description):
-    group = QGroupBox(title.replace("&","&&"))
-    form = QFormLayout(group)
+def section(title,key,open=True):
+    # The host's own fold header (Render, AI tabs); its open state survives restarts.
+    return FoldSection(title.replace("&","&&"),"newton/open_"+key,default_open=open)
+
+
+def settings_section(title,key,description):
+    group = section(title,key,open=False)
+    form = QFormLayout(group.body)
     form.setRowWrapPolicy(QFormLayout.WrapLongRows)
     explanation = QLabel(description)
     explanation.setWordWrap(True)
@@ -82,8 +88,8 @@ class NewtonPanel(QWidget):
         content = QWidget()
         scroll.setWidget(content)
         layout = QVBoxLayout(content)
-        self.profile_box = QGroupBox(tr("Profile"))
-        profile_outer = QVBoxLayout(self.profile_box)
+        self.profile_box = section(tr("Profile"),"profile")
+        profile_outer = QVBoxLayout(self.profile_box.body)
         profile_layout = QHBoxLayout();profile_outer.addLayout(profile_layout)
         self.profile_combo = compact(QComboBox())
         self.profile_combo.activated.connect(self.apply_profile_index)
@@ -96,8 +102,8 @@ class NewtonPanel(QWidget):
         self.profile_sync = QPushButton(tr('Sync'));self.profile_sync.clicked.connect(self.sync_profile);link_row.addWidget(self.profile_sync)
         self.profile_unlink = QPushButton(tr('Unlink'));self.profile_unlink.clicked.connect(lambda:self.patch(dict(profile_link=None)));link_row.addWidget(self.profile_unlink)
         layout.addWidget(self.profile_box)
-        self.editor = QGroupBox(tr("Generic"))
-        form = QFormLayout(self.editor)
+        self.editor = section(tr("Generic"),"generic")
+        form = QFormLayout(self.editor.body)
         self.selection_label = QLabel(tr("Select a body and place an axis."),self)
         self.selection_label.setWordWrap(True)
         self.selection_label.setTextFormat(Qt.PlainText)
@@ -123,8 +129,8 @@ class NewtonPanel(QWidget):
         layout.removeWidget(self.editor)
         layout.insertWidget(0,self.editor)
 
-        self.joint_box = QGroupBox(tr("Motion"))
-        self.joint_form = form = QFormLayout(self.joint_box)
+        self.joint_box = section(tr("Motion"),"motion")
+        self.joint_form = form = QFormLayout(self.joint_box.body)
         self.joint_box.setToolTip(tr(help.MOTION))
         form.setRowWrapPolicy(QFormLayout.WrapLongRows)
         self.kind_label = QLabel(tr("No axis"))
@@ -166,25 +172,20 @@ class NewtonPanel(QWidget):
         self.limited.toggled.connect(self.update_units)
         layout.addWidget(self.joint_box)
 
-        self.advanced_toggle = QCheckBox(tr("More settings"))
-        layout.addWidget(self.advanced_toggle)
-        self.advanced = QWidget()
-        advanced_layout = QVBoxLayout(self.advanced)
-        advanced_layout.setContentsMargins(0,0,0,0)
-        self.coupling_section,form,self.coupling_help = settings_section(tr("Axis coupling"),"")
+        self.coupling_section,form,self.coupling_help = settings_section(tr("Axis coupling"),"coupling","")
         from .coupling_ui import CouplingEditor
         self.coupling_editor = CouplingEditor(self)
         form.addRow(self.coupling_editor)
-        advanced_layout.addWidget(self.coupling_section)
-        self.connection_section,form,_ = settings_section(tr("Mechanical connection"),tr(help.CONNECTION))
+        layout.addWidget(self.coupling_section)
+        self.connection_section,form,_ = settings_section(tr("Mechanical connection"),"connection",tr(help.CONNECTION))
         from .connection_ui import ConnectionEditor
         self.connection_editor = ConnectionEditor(self);form.addRow(self.connection_editor)
-        advanced_layout.addWidget(self.connection_section)
-        self.flexible_section,form,_ = settings_section(tr("Flexible material"),tr(help.FLEXIBLE))
+        layout.addWidget(self.connection_section)
+        self.flexible_section,form,_ = settings_section(tr("Flexible material"),"flexible",tr(help.FLEXIBLE))
         from .flexible_ui import FlexibleEditor
         self.flexible_editor = FlexibleEditor(self);form.addRow(self.flexible_editor)
-        advanced_layout.addWidget(self.flexible_section)
-        self.body_section,form,_ = settings_section(tr("Body & contact"),tr(help.BODY))
+        layout.addWidget(self.flexible_section)
+        self.body_section,form,_ = settings_section(tr("Body & contact"),"body",tr(help.BODY))
         self.shape = QComboBox()
         for label,value in [(tr("Box"),"box"),(tr("Sphere"),"sphere"),(tr("Convex hull"),"hull"),(tr("Child components"),"compound")]:
             self.shape.addItem(label,value)
@@ -198,12 +199,12 @@ class NewtonPanel(QWidget):
         self.show_colliders.setParent(self)
         self.show_colliders.hide()
         self.show_colliders.toggled.connect(self.collision_view.toggle)
-        advanced_layout.addWidget(self.body_section)
-        self.collision_section,form,_ = settings_section(tr("Collision exceptions"),tr(help.COLLISIONS))
+        layout.addWidget(self.body_section)
+        self.collision_section,form,_ = settings_section(tr("Collision exceptions"),"collisions",tr(help.COLLISIONS))
         from .collision_ui import CollisionPairs
         self.collision_pairs = CollisionPairs(self)
         form.addRow(self.collision_pairs)
-        advanced_layout.addWidget(self.collision_section)
+        layout.addWidget(self.collision_section)
         # Compatibility fields hold committed preferences, never sidebar rows.
         pref = QSettings()
         self.gravity = spin(-100,100,float(pref.value("newton/gravity_z",-9.81)))
@@ -214,13 +215,12 @@ class NewtonPanel(QWidget):
         for field in (self.gravity,self.floor,self.python):
             field.setParent(self);field.hide()
         from .environment_ui import EnvironmentOverrides
-        self.environment_section,form,_ = settings_section(tr("Simulation overrides"),tr(help.OVERRIDES))
+        self.environment_section,form,_ = settings_section(tr("Simulation overrides"),"overrides",tr(help.OVERRIDES))
         self.environment = EnvironmentOverrides(self)
         form.addRow(self.environment)
-        advanced_layout.addWidget(self.environment_section)
-        self.advanced.hide()
-        self.advanced_toggle.toggled.connect(self.advanced.setVisible)
-        layout.addWidget(self.advanced)
+        layout.addWidget(self.environment_section)
+        self.sections = (self.editor,self.profile_box,self.joint_box,self.coupling_section,self.connection_section,
+            self.flexible_section,self.body_section,self.collision_section,self.environment_section)
         layout.addStretch()
         self.selection_widgets = (intro,scroll)
         self.controls = Controls(self)
@@ -520,8 +520,9 @@ class NewtonPanel(QWidget):
         if getattr(self,"was_active",False) and not active:
             self.controls.message(tr("Original model restored."))
         self.was_active = active
-        for w in (self.editor,self.joint_box,self.advanced,self.profile_box,self.advanced_toggle):
-            w.setEnabled(not active)
+        # Only the bodies: sections stay foldable while the simulation runs.
+        for fold in self.sections:
+            fold.body.setEnabled(not active)
         groups = self.selected()
         if active:
             groups = getattr(self,"_sidebar_groups",[])
@@ -532,7 +533,7 @@ class NewtonPanel(QWidget):
             self.end_slider_edit()
         if not active:
             self.detail_uid = groups[0].uid if len(groups)==1 else None
-        self.profile_box.setEnabled(not active and len(groups)==1)
+        self.profile_box.body.setEnabled(not active and len(groups)==1)
         if not active:self.refresh_profile_link()
         if self.profile_manager is not None:
             self.profile_manager.update_buttons()
@@ -601,7 +602,7 @@ class NewtonPanel(QWidget):
         parent = next((g for g in self.app.scene.groups if g.uid==reference_id(group)),None)
         self.reference_label.setText(parent.name+(tr(" · rigid attachment") if not cfg.get("joint") and not cfg.get("flexible") else "") if parent else tr("None"))
         self.shape.setCurrentIndex(self.shape.findData(cfg["shape"]))
-        self.body_section.layout().setRowVisible(self.shape,not bool(cfg.get("flexible")))
+        self.body_section.body.layout().setRowVisible(self.shape,not bool(cfg.get("flexible")))
         for widget,key in ((self.mass,"mass"),(self.friction,"friction"),(self.bounce,"restitution")):
             widget.setValue(cfg[key])
         if cfg.get("joint"):

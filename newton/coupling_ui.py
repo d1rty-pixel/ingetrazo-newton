@@ -1,4 +1,4 @@
-"""A compact axis picker; coupling details stay under More settings."""
+"""A compact axis picker; coupling details stay in the folded Axis coupling section."""
 from PySide6.QtWidgets import QWidget,QFormLayout,QComboBox,QDoubleSpinBox
 from PySide6.QtGui import QVector3D
 from .model import settings,joint_rows

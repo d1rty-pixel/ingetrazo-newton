@@ -12,7 +12,7 @@ Dieses Handbuch beschreibt die Bedienung von Newton 0.14.0. Installation und Üb
 
 ## Sidebar
 
-Alle Parameter stehen bei der gewählten Gruppe in der Sidebar:
+Alle Parameter stehen bei der gewählten Gruppe in der Sidebar. Sie ist wie die übrigen IngeTrazo-Seitenleisten in einklappbare Bereiche gegliedert: Ein Klick auf die Überschrift klappt einen Bereich auf oder zu, und dieser Zustand bleibt über einen Neustart erhalten. **Allgemein**, **Profil** und **Bewegung** sind anfangs offen, die übrigen Bereiche eingeklappt.
 
 | Einstellung | Bedeutung |
 |---|---|
@@ -30,13 +30,13 @@ Alle Parameter stehen bei der gewählten Gruppe in der Sidebar:
 | Bremsverzögerung | Eigene Grenze für Abbremsen und Richtungswechsel; der Kettenschalter synchronisiert sie mit der Beschleunigung |
 | Maximale Kraft | Begrenzung in Nm beziehungsweise N |
 
-Die Modelllage beim Einrichten entspricht 0° beziehungsweise 0 mm. Ein verwendeter Grenzbereich muss diese Anfangslage enthalten. Körperwerte und lokale Overrides stehen unter **Weitere Körper- und Umgebungseinstellungen**; globale Simulation und Runtime-Auswahl stehen in den Extension-Preferences.
+Die Modelllage beim Einrichten entspricht 0° beziehungsweise 0 mm. Ein verwendeter Grenzbereich muss diese Anfangslage enthalten. Körperwerte und lokale Overrides stehen in den Bereichen **Körper & Kontakt** und **Simulation Overrides**; globale Simulation und Runtime-Auswahl stehen in den Extension-Preferences.
 
 Beschleunigung und Bremsverzögerung sind zunächst gekoppelt. Mit aktiviertem Kettenschalter folgt die Bremsverzögerung jeder Änderung der Beschleunigung. Nach dem Lösen lässt sie sich getrennt einstellen; erneutes Koppeln übernimmt sofort den Beschleunigungswert. Die Grenzen gelten in °/s² beziehungsweise mm/s² für den Sollverlauf. Beim Richtungswechsel bremst der Antrieb zuerst auf null und beschleunigt anschließend in die andere Richtung. Beide Werte und die Kopplung werden mit Profilen und Modellen gespeichert; ältere Einstellungen übernehmen automatisch die bisherige symmetrische Beschleunigung.
 
 Bei Mehrfachauswahl lassen sich Körperwerte und lose/fest gemeinsam ändern. Achsen und Bezugskörper werden für eine einzelne gewählte Gruppe eingerichtet. Ohne ausgewählten Körper bleibt die Newton-Sidebar leer. Die Übersicht befindet sich im vorhandenen **Browser**: Die Typ-Spalte zeigt Newton, Achsenart und Reglername. Die bestehenden Körpernamen bleiben erhalten; es entstehen keine zusätzlichen Geometrieobjekte für Regler.
 
-Der Bereich **Generic** steht oben in der Sidebar. Der ausgewählte Gruppen-/Komponentenname erscheint in der Überschrift hinter **Newton properties**. Beim Start bleibt die zuvor angezeigte Konfiguration sichtbar und wird deaktiviert; die Sidebar lässt sich weiterhin durchscrollen. Start/Pause und Reset liegen in Toolbar und Steuerpult. Hinweise zum Platzieren und Bearbeiten erscheinen einige Sekunden in der Statuszeile von IngeTrazo, Meldungen der laufenden Simulation im Steuerpult. Ohne Auswahl bleibt die Sidebar wie bisher leer.
+Der Bereich **Generic** steht oben in der Sidebar. Der ausgewählte Gruppen-/Komponentenname erscheint in der Überschrift hinter **Newton properties**. Beim Start bleibt die zuvor angezeigte Konfiguration sichtbar und wird deaktiviert, die Bereiche lassen sich weiter auf- und zuklappen; die Sidebar lässt sich weiterhin durchscrollen. Start/Pause und Reset liegen in Toolbar und Steuerpult. Hinweise zum Platzieren und Bearbeiten erscheinen einige Sekunden in der Statuszeile von IngeTrazo, Meldungen der laufenden Simulation im Steuerpult. Ohne Auswahl bleibt die Sidebar wie bisher leer.
 
 Winkelanschläge, Positions-/Zielwerte und die begrenzten Körper- und Umgebungswerte Reibung, Rückprall und Schwerkraft besitzen breite Schieberegler mit kompaktem Zahlenfeld. Bei einem begrenzten Positionsantrieb entspricht der Reglerbereich genau Minimum und Maximum, bei einem Geschwindigkeitsantrieb ±Maximalgeschwindigkeit. Das gilt auch für Linearachsen in Millimetern. Die Bereiche passen sich bei Änderungen der Grenzen sofort an. Genaue Eingaben bleiben möglich; Winkel über eine volle Umdrehung werden unterstützt. Ein Ziehvorgang ändert das Modell live und bleibt ein gemeinsamer Undo-Schritt. Beim Scrollen über diese Regler werden Werte nicht versehentlich geändert.
 
@@ -73,13 +73,13 @@ Direkt verbundene Körper kollidieren nicht miteinander, damit sich Lager nicht 
 
 ## Verbindungen zwischen Körpern
 
-Das Toolbar-Icon **Körper verbinden** erstellt eine zusätzliche Verbindung zwischen zwei Körpern. Einen Körper auswählen, bei Bedarf unter **Weitere Einstellungen → Mechanische Verbindung** den Typ wählen, den Gegenkörper anklicken und den gemeinsamen Verbindungspunkt platzieren. Ein **Kugelgelenk** lässt räumliche Drehungen frei. Für ein **Bolzengelenk** anschließend die Richtung anklicken oder X/Y/Z drücken. Eine **starre Verbindung** hält die relative Lage fest. So lassen sich geschlossene Mechanismen aufbauen, ohne die Bezugskörper-Hierarchie umzubauen.
+Das Toolbar-Icon **Körper verbinden** erstellt eine zusätzliche Verbindung zwischen zwei Körpern. Einen Körper auswählen, bei Bedarf im Bereich **Mechanische Verbindung** den Typ wählen, den Gegenkörper anklicken und den gemeinsamen Verbindungspunkt platzieren. Ein **Kugelgelenk** lässt räumliche Drehungen frei. Für ein **Bolzengelenk** anschließend die Richtung anklicken oder X/Y/Z drücken. Eine **starre Verbindung** hält die relative Lage fest. So lassen sich geschlossene Mechanismen aufbauen, ohne die Bezugskörper-Hierarchie umzubauen.
 
 Die violette Verbindungsmarkierung lässt sich mit dem Auswahlwerkzeug anklicken und anschließend ziehen. Vorschau und Esc-Abbruch ändern das Original nicht; Loslassen ergibt einen Undo-Schritt. Der Radiergummi entfernt die Verbindung und erhält beide Körper. Alternativ stehen Sidebar und Kontextmenü bereit. Punktkoordinaten sind direkt in Millimetern editierbar; Bolzen besitzen eine editierbare Achse. Die Markierungen gehören zur Sichtbarkeit von **Newton_Axes**. Seile/Kabel verwenden weiterhin ihre eigenen Endbefestigungen. Verbindungstyp, Befestigungspunkt und Bolzenachse werden in der `.igz` gespeichert.
 
 ## Gemeinsam bewegte Achsen
 
-Unter **Weitere Einstellungen → Achskopplung → Achse folgen** kann eine Achse einem Positionsantrieb desselben Typs folgen. **Gleichläufig/Gegenläufig** bezieht sich auf die räumliche Richtung der beiden Achsen. Eine Übersetzung von 1 bedeutet gleichen Weg beziehungsweise Winkel. Standardmäßig ist jede Achse unabhängig.
+Im Bereich **Achskopplung → Achse folgen** kann eine Achse einem Positionsantrieb desselben Typs folgen. **Gleichläufig/Gegenläufig** bezieht sich auf die räumliche Richtung der beiden Achsen. Eine Übersetzung von 1 bedeutet gleichen Weg beziehungsweise Winkel. Standardmäßig ist jede Achse unabhängig.
 
 Die Kopplung wird im MuJoCo-Solver erzwungen. Im Steuerpult erscheint nur der führende Regler; die folgende Achse lässt sich nicht ziehen. Die zulässigen Wege, Geschwindigkeiten und Beschleunigungen werden auf den gemeinsamen Bereich begrenzt. Der führende Antrieb liefert die gemeinsame Kraft beziehungsweise das gemeinsame Drehmoment; das Kraftlimit der folgenden Achse wird nicht als zweiter Antrieb verwendet. Ein führender Antrieb kann mehrere direkte Folgeachsen besitzen. Kopplungsketten, Kreise und gemischte Dreh-/Linear-Kopplungen sind noch nicht enthalten.
 
@@ -95,7 +95,7 @@ Unter **Eigene Simulationseinstellungen** kann ein Körper die globale Schwerkra
 
 ## Seile, Kabel und Gelenkketten
 
-**Weitere Einstellungen → Flexibler Werkstoff** ergänzt **Starr**, **Seil** und **Kabel**. Für ein eigenes Seil/Kabel eine offene Linie oder einen zusammenhängenden offenen Linienzug zeichnen, gruppieren und den Werkstoff wählen. Eine einzelne Gerade wird automatisch in 20 Abschnitte unterteilt. Verzweigungen, geschlossene Schleifen und flächige Gruppen werden mit einer verständlichen Meldung abgelehnt. Bearbeitungen am ursprünglichen Linienzug werden beim nächsten Simulationsstart eingelesen; Gruppenbewegungen und Undo bleiben erhalten.
+Der Bereich **Flexibler Werkstoff** ergänzt **Starr**, **Seil** und **Kabel**. Für ein eigenes Seil/Kabel eine offene Linie oder einen zusammenhängenden offenen Linienzug zeichnen, gruppieren und den Werkstoff wählen. Eine einzelne Gerade wird automatisch in 20 Abschnitte unterteilt. Verzweigungen, geschlossene Schleifen und flächige Gruppen werden mit einer verständlichen Meldung abgelehnt. Bearbeitungen am ursprünglichen Linienzug werden beim nächsten Simulationsstart eingelesen; Gruppenbewegungen und Undo bleiben erhalten.
 
 MuJoCos mitgeliefertes Plugin `mujoco.elasticity.cable` berechnet Biegung und Torsion einer nicht dehnbaren Folge räumlicher Kugelgelenke. Das Seil startet mit kleinem Biege-/Torsionsmodul, das Kabel mit höheren Werten; beide bleiben einstellbar. Radius und Gesamtmasse bestimmen zusätzlich das Verhalten. Der Anfang kann eingespannt, gelenkig befestigt oder frei sein. Ein starrer Bezugskörper bewegt die Anfangsbefestigung mit; das Ende lässt sich an einem weiteren starren Körper befestigen. Frei bewegliche Abschnitte lassen sich während der Simulation greifen. Reset stellt das Originalmodell wieder her. Die Flexibilität wird in der `.igz` gespeichert.
 
@@ -109,7 +109,7 @@ Kollisionsformen sind standardmäßig ausgeblendet. **Window → Preferences →
 
 Der Button **Tastenkürzel für Kollisionsanzeige…** in den Newton-Preferences öffnet IngeTrazos native Tastenkürzel-Seite direkt beim passenden Befehl. Dort lassen sich ein Kürzel vergeben und Konflikte prüfen; zunächst ist keines vorbelegt. Ausgewählte Körper werden in der Kollisionsansicht hervorgehoben. Die Anzeige verändert keine Kontakte. Im Bearbeitungsmodus wird die Form nach Geometrie- oder Parameteränderungen neu berechnet; Szene und Undo-History bleiben unverändert.
 
-Unter **Weitere Einstellungen → Kollisionsausnahmen**: einen Körper auswählen, **Körper ausnehmen…** drücken und den zweiten Körper im Modell anklicken. Dieses Paar darf sich anschließend durchdringen. Die Liste zeigt die gespeicherten Ausnahmen; **Ausnahme entfernen** aktiviert wieder das normale Kontaktverhalten. Beide Befehle sind rückgängig machbar und werden in der `.igz` gespeichert. Direkte Bezugskörper-Verbindungen bleiben zusätzlich automatisch von gegenseitiger Kollision ausgenommen.
+Im Bereich **Kollisionsausnahmen**: einen Körper auswählen, **Körper ausnehmen…** drücken und den zweiten Körper im Modell anklicken. Dieses Paar darf sich anschließend durchdringen. Die Liste zeigt die gespeicherten Ausnahmen; **Ausnahme entfernen** aktiviert wieder das normale Kontaktverhalten. Beide Befehle sind rückgängig machbar und werden in der `.igz` gespeichert. Direkte Bezugskörper-Verbindungen bleiben zusätzlich automatisch von gegenseitiger Kollision ausgenommen.
 
 ## Simulation und Steuerpult
 
