@@ -4,7 +4,7 @@ from PySide6.QtCore import Qt,QPoint
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QLabel, QScrollArea,
     QWidget, QGroupBox, QHBoxLayout, QDoubleSpinBox,QPushButton)
 from .i18n import tr
-from .toolbar import icon,status_mark
+from .icons import icon,pixmap
 
 
 def display_units(joint):
@@ -139,7 +139,7 @@ class Controls(QDialog):
         self.hint.setText(tr(text))
         self.hint_mark.setVisible(level in ("error","warning"))
         if level in ("error","warning"):
-            self.hint_mark.setPixmap(status_mark(level))
+            self.hint_mark.setPixmap(pixmap("status_error" if level=="error" else "status_warning",18))
             self.hint_mark.setAccessibleName(tr("Error") if level=="error" else tr("Warning"))
         self.hint_row.show()
         self.fit_height()

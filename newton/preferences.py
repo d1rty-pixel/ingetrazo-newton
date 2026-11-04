@@ -53,12 +53,12 @@ class SettingsPage:
         self.box.addWidget(heading)
 
     def setting(self,art,label,control,description):
-        from .toolbar import pictogram
+        from .icons import attach
         row = QWidget();grid = QGridLayout(row);grid.setContentsMargins(0,2,0,2)
         grid.setHorizontalSpacing(12);grid.setVerticalSpacing(3);grid.setColumnStretch(2,1)
         if self.pictograms:
             image = QLabel();image.setFixedWidth(44);image.setAlignment(Qt.AlignTop|Qt.AlignHCenter)
-            if art:image.setPixmap(pictogram(art))
+            if art:attach(image,art,40)
             grid.addWidget(image,0,0,2,1)
         if label:
             name = QLabel(label);name.setMinimumWidth(150);name.setBuddy(control)

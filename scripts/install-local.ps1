@@ -24,9 +24,11 @@ if (Test-Path -LiteralPath $target) {
     $backup = Join-Path $projectRoot ('.backups\newton-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
     New-Item -ItemType Directory -Path $backup -Force | Out-Null
     Get-ChildItem -LiteralPath $target -File | Copy-Item -Destination $backup
-    $previousTranslations = Join-Path $target 'i18n'
-    if (Test-Path -LiteralPath $previousTranslations) {
-        Copy-Item -LiteralPath $previousTranslations -Destination $backup -Recurse
+    foreach ($folder in 'i18n','icons') {
+        $previous = Join-Path $target $folder
+        if (Test-Path -LiteralPath $previous) {
+            Copy-Item -LiteralPath $previous -Destination $backup -Recurse
+        }
     }
     Write-Output "Sicherung: $backup"
 }
@@ -34,6 +36,7 @@ New-Item -ItemType Directory -Path $target -Force | Out-Null
 Get-ChildItem -LiteralPath (Join-Path $projectRoot 'newton') -Filter '*.py' |
     Copy-Item -Destination $target
 Copy-Item -LiteralPath (Join-Path $projectRoot 'newton\i18n') -Destination $target -Recurse -Force
+Copy-Item -LiteralPath (Join-Path $projectRoot 'newton\icons') -Destination $target -Recurse -Force
 $runtimeConfig = @{python=$Python} | ConvertTo-Json
 [System.IO.File]::WriteAllText((Join-Path $target 'runtime.json'), $runtimeConfig, [System.Text.UTF8Encoding]::new($false))
 Write-Output "Installiert: $target"

@@ -17,7 +17,8 @@ from .joints import PlacementTool
 from .interaction import ReferencePickTool
 from .references import install,validate_reference
 from .worker import joint_settings,resolve_couplings
-from .toolbar import build,icon,decorate,redecorate,physical_label,compact
+from .icons import attach,icon
+from .toolbar import build,decorate,redecorate,physical_label,compact
 from .range_control import scroll_safe
 from .i18n import tr
 from . import profiles
@@ -126,7 +127,7 @@ class NewtonPanel(QWidget):
         decorate(self.mode,"mode")
         form.addRow(tr("Behaviour"),self.mode)
         from .reference_table import ReferenceTable
-        pick = QPushButton(icon("link"),tr("Assign"))
+        pick = attach(QPushButton(tr("Assign")),"link")
         pick.clicked.connect(self.pick_reference)
         form.addRow(tr("Reference body"),pick)
         self.reference_table = ReferenceTable(lambda _:self.detach_reference(),tr("None"))
@@ -155,7 +156,7 @@ class NewtonPanel(QWidget):
         self.target = spin(-1e6,1e6,0)
         self.max_speed,self.acceleration = spin(.01,1e6,180),spin(.01,1e6,360)
         self.deceleration = spin(.01,1e6,360)
-        self.deceleration_sync = QPushButton(icon("link"),"")
+        self.deceleration_sync = attach(QPushButton(),"sync")
         self.deceleration_sync.setAccessibleName(tr("Synchronize acceleration and deceleration"))
         self.deceleration_sync.setCheckable(True)
         self.deceleration_sync.setChecked(True)
@@ -383,7 +384,7 @@ class NewtonPanel(QWidget):
         for control in self.ranges.values():
             control.refresh_style()
         for key,action in self.actions.items():
-            action.setIcon(icon("pause" if key=="play" and self.session.running else key))
+            action.setIcon(icon("pause" if key=="play" and self.session.running else action.property("newton_icon")))
         self.controls.refresh_icons()
         redecorate()
 

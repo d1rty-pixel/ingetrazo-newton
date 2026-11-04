@@ -22,7 +22,7 @@ class FlexibleEditor(QWidget):
         self.radius = number(.001,10,.015);self.radius.setSuffix(" m")
         self.bend,self.twist,self.damping = number(0,1e10,2e4),number(0,1e10,1e4),number(0,100,.002)
         for title,widget,art in (("Radius",self.radius,"radius"),("Bending modulus",self.bend,"bending"),
-                                 ("Torsion modulus",self.twist,"torsion"),("Joint damping",self.damping,"angular_damping")):
+                                 ("Torsion modulus",self.twist,"torsion"),("Joint damping",self.damping,"joint_damping")):
             detail.addRow(physical_label(tr(title),art),widget)
         self.bend.setSuffix(" Pa");self.twist.setSuffix(" Pa")
         self.start = QComboBox()

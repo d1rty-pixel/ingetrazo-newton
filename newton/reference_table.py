@@ -4,7 +4,7 @@ from PySide6.QtGui import QIcon,QPixmap
 from PySide6.QtWidgets import QWidget,QGridLayout,QVBoxLayout,QLabel,QToolButton,QPushButton,QMenu,QSizePolicy
 from views.component_thumbs import thumbnail
 from .i18n import tr
-from .toolbar import icon
+from .icons import attach
 
 SIZE = 32
 
@@ -86,8 +86,7 @@ class ReferenceTable(QWidget):
             lines.addWidget(Name(name))
             if role:
                 lines.addWidget(Name(role,weak=True))
-            button = QToolButton()
-            button.setIcon(icon("unlink"))
+            button = attach(QToolButton(),"unlink")
             button.setToolTip(tr("Remove"))
             button.setAccessibleName(tr("Remove")+" "+name)
             button.setAutoRaise(True)

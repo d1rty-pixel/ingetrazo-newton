@@ -42,7 +42,7 @@ uv venv --python 3.12 .venv
 uv pip install --python .venv/bin/python mujoco==3.3.7
 target=~/.var/app/com.ingetrazo.IngeTrazo/data/ingetrazo/plugins/newton
 mkdir -p "$target"
-cp newton/*.py "$target"/ && cp -r newton/i18n "$target"/
+cp newton/*.py "$target"/ && cp -r newton/i18n newton/icons "$target"/
 printf '{"python": "%s"}\n' "$PWD/.venv/bin/python" > "$target/runtime.json"
 ```
 

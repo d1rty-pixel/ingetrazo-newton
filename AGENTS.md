@@ -7,7 +7,7 @@ Guidance for coding agents and contributors working on Newton, a physics extensi
 - `newton/` is the extension package that IngeTrazo loads (`setup(app)` in `newton/__init__.py`). It targets IngeTrazo 0.6.0 / Extension API 2 and must not modify IngeTrazo core files. Where API 2 lacks a hook, Newton uses a local adapter (for example `preferences.py` wraps the host preferences dialog).
 - `newton/worker.py` is a standalone process: standard library, `mujoco` and `numpy` only, no Qt and no IngeTrazo imports. It speaks JSON lines prefixed with `IGPHYSICS:` over stdin/stdout. `session.py` (simulation) and `collision_view.py` (collision preview) start it with `python -E -u worker.py` using the interpreter from `runtime.json` or the Runtime preference.
 - Model data lives in `group.ext["newton"]` and is saved in the `.igz`. Settings use the `newton/` QSettings prefix. Axis overlays, axis objects and connection objects (wire groups with `ext["newton"]["axis_of"]` or `["connection_of"]`, see `axis_objects.py`) use the reserved layer `Newton Axes`. The joint and `point_attachment` data stay authoritative; a history hook syncs the objects in the same undo step. There are no aliases for older names.
-- Module overview: `model.py` (geometry, body specs), `panel.py` (sidebar, browser), `toolbar.py` (icons, actions), `joints.py`/`axis_edit.py`/`axis_guides.py`/`axis_objects.py` (axes), `references.py` (reference bodies, undo adapters), `connections.py`, `flexible.py`, `coupling_ui.py`, `controls.py` (control panel), `profiles*.py`, `preferences.py`, `eraser.py`, `i18n.py`.
+- Module overview: `model.py` (geometry, body specs), `panel.py` (sidebar, browser), `icons.py` (icon library), `toolbar.py` (actions, dropdown pictograms), `joints.py`/`axis_edit.py`/`axis_guides.py`/`axis_objects.py` (axes), `references.py` (reference bodies, undo adapters), `connections.py`, `flexible.py`, `coupling_ui.py`, `controls.py` (control panel), `profiles*.py`, `preferences.py`, `eraser.py`, `i18n.py`.
 
 ## Development setup
 
@@ -59,15 +59,21 @@ Useful scripts: `scripts/preview.py` (open a demo in a test window), `scripts/be
 ## Installing into IngeTrazo for manual testing
 
 - Windows: `scripts/install-local.ps1` (see README).
-- Linux Flatpak: copy `newton/*.py` and `newton/i18n/` to `~/.var/app/com.ingetrazo.IngeTrazo/data/ingetrazo/plugins/newton/` and write `runtime.json` with the `.venv` interpreter. The installation is a copy; recopy after changes and restart IngeTrazo.
+- Linux Flatpak: copy `newton/*.py`, `newton/i18n/` and `newton/icons/` to `~/.var/app/com.ingetrazo.IngeTrazo/data/ingetrazo/plugins/newton/` and write `runtime.json` with the `.venv` interpreter. The installation is a copy; recopy after changes and restart IngeTrazo.
 
 ## Icons, pictograms and layout
 
-- All drawings are inline SVG in `newton/toolbar.py`, in IngeTrazo's style: the shape in the palette's text colour, the defining detail in the host accent colour (`views.theme.accent_color()`), and a separate all-grey pixmap for the disabled state.
-  - `PATHS`: toolbar and button icons, `icon(name)`.
-  - `CHOICES`: one pictogram per fixed dropdown value, attached with `decorate(combo, kind)`; they show how the bodies involved interact.
-  - `PICTOGRAMS`: physical quantities, used by `pictogram()` (preferences), `physical_label()` (form labels) and `physical_check()` (checkboxes). Only settings that change a physical quantity get one.
-  - `redecorate()` repaints everything after a palette change (called from `panel.refresh_icons`).
+- Every drawing is one SVG file in `newton/icons/`, named after the icon (`movable.svg` is `"movable"`). One concept has one drawing: the toolbar action "Movable" and the dropdown value "Movable" both use `movable`. Do not draw icons inline in Python.
+- File format: the common header (`icons.HEADER`, a 24 × 24 grid), then `<g id="ink">` with the shape and `<g id="accent">` with the defining detail. At runtime the ink becomes the palette's text colour, the accent the host accent (`views.theme.accent_color()`), and a separate all-grey pixmap serves the disabled state. Files without these groups (`status_error`, `status_warning`) keep their fixed signal colours.
+- Drawing rules, so the set stays uniform:
+  - A body is a rounded square (`rx="1"`), 10 × 10 on its own, 7 × 7 when two bodies share the picture. A point mass in a physical pictogram (gravity, bounce, attraction) is a circle.
+  - Ground is a line from x 3 to x 21; anchored ground carries the hatching of `fixed`.
+  - Arrowheads are 3 units long (`l3 3-3 3`); damping is two parallel bars, the second one shorter.
+  - The accent marks what the action, choice or setting changes. "None" choices (`no_axis`, `rigid`) have no accent; `play`, `pause` and `reset` are drawn in the accent only.
+  - Leave stroke widths to the renderer, except deliberate thick bars (`stroke-width="4"`).
+- `newton/icons.py`: `icon(name)` (QIcon), `pixmap(name, size)`, `attach(widget, name)` for buttons and labels that must follow palette changes (`repaint()`, called via `toolbar.redecorate()` from `panel.refresh_icons`).
+- `newton/toolbar.py`: `CHOICES` maps fixed dropdown values to icon names and `decorate(combo, kind)` applies them; `physical_label()` and `physical_check()` put a physical pictogram on form labels and checkboxes. Only settings that change a physical quantity get one.
+- `scripts/icons.py` exports icons by name as coloured SVG/PNG and writes `dist/icons/overview.png` (every icon small and enlarged, light and dark); check it after every drawing change. `tests/test_icons.py` fails on a referenced icon without a file, on a file nobody uses, and on a file that breaks the format.
 - Preferences pages are built with `SettingsPage` (`newton/preferences.py`): headed categories separated by a line, each setting with its own explanation (also its tooltip). New settings need a text in `help_texts.py` and its German version.
 - Sidebar sections are the host's collapsibles (`views.fold_section.FoldSection`), created with `section()`/`settings_section()` in `panel.py`; the open state is stored under `newton/open_<key>`. Add new sections to `panel.sections` so they are disabled (but still foldable) during a simulation.
 - The sidebar is resizable. Keep its content narrow enough (about 240 px content, 280 px sidebar): use `toolbar.compact()` for dropdowns, `views.fold_section.narrow()` for fields side by side, `WrapLongRows` for nested forms, avoid fixed widths, and do not put word-wrapped labels inside a `QFormLayout` (they get too little height and are overlapped); place them between forms instead, as `settings_section()` does. Never cap a section's height (`QSizePolicy.Maximum`): wrapped rows need their height-for-width. `test_sidebar_rows_keep_their_height_at_every_width` checks this.
