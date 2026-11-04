@@ -32,7 +32,7 @@ class FlexibleEditor(QWidget):
         detail.addRow(tr("Start"),self.start)
         self.end_uid = None
         self.end = ChooseButton(tr("Choose…"),self.end_candidates,self.attach_end,tr("No suitable body"),lambda g:offer(panel,g))
-        self.end_table = ReferenceTable(lambda _:self.attach_end(None),tr("Free"))
+        self.end_table = ReferenceTable(lambda _:self.attach_end(None),tr("Free"),panel)
         detail.addRow(tr("End attachment"),self.end);detail.addRow(self.end_table)
         form.addRow(self.fields)
         self.kind.currentIndexChanged.connect(self.write)

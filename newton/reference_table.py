@@ -1,10 +1,11 @@
 """Referenced bodies as table rows: a small picture, the name and a button that removes the reference."""
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon,QPixmap
-from PySide6.QtWidgets import QWidget,QGridLayout,QVBoxLayout,QLabel,QToolButton,QPushButton,QMenu,QSizePolicy
+from PySide6.QtWidgets import QWidget,QHBoxLayout,QVBoxLayout,QLabel,QToolButton,QPushButton,QMenu,QSizePolicy
 from views.component_thumbs import thumbnail
 from .i18n import tr
 from .icons import attach
+from .glow import offer
 
 SIZE = 32
 
@@ -35,20 +36,59 @@ class Name(QLabel):
         self.setText(self.fontMetrics().elidedText(self.full,Qt.ElideRight,max(0,self.width())))
 
 
-class ReferenceTable(QWidget):
-    """Rows of ``(key, group or None, name, role)``; ``remove(key)`` runs when a row's button is pressed."""
+class Row(QWidget):
+    """One referenced body: hovering outlines it in the viewport, a click selects it."""
 
-    def __init__(self,remove,empty=""):
+    def __init__(self,group,panel):
         super().__init__()
-        self.remove = remove
-        self.grid = QGridLayout(self)
-        self.grid.setContentsMargins(0,0,0,0)
-        self.grid.setColumnStretch(1,1)
+        self.group,self.panel = group,panel
+        if self.active():
+            self.setCursor(Qt.PointingHandCursor)
+
+    def active(self):
+        return self.group is not None and self.panel is not None
+
+    def enterEvent(self,event):
+        if self.active():offer(self.panel,self.group)
+        super().enterEvent(event)
+
+    def leaveEvent(self,event):
+        if self.active():offer(self.panel,None)
+        super().leaveEvent(event)
+
+    def mousePressEvent(self,event):
+        if not (self.active() and event.button()==Qt.LeftButton):
+            return super().mousePressEvent(event)
+        # The selection rebuilds this table, so no leave event would clear the outline.
+        offer(self.panel,None)
+        self.panel.select_object(self.group)
+
+
+class ReferenceTable(QWidget):
+    """Rows of ``(key, group or None, name, role)``; ``remove(key)`` runs when a row's button is pressed.
+
+    With ``panel``, a row outlines its body while hovered and selects it when clicked."""
+
+    def __init__(self,remove,empty="",panel=None):
+        super().__init__()
+        self.remove,self.panel = remove,panel
+        self.lines = QVBoxLayout(self)
+        self.lines.setContentsMargins(0,0,0,0)
         self.placeholder = QLabel(empty)
         self.placeholder.setTextFormat(Qt.PlainText)
         self.signature = None
         self.rows = []
         self.set_rows([])
+
+    def forget(self):
+        """Clear a row's outline; rows that vanish or hide get no leave event."""
+        candidate = getattr(self.panel,"glow_candidate",None)
+        if candidate is not None and any(isinstance(r,Row) and r.group is candidate for r in self.children()):
+            offer(self.panel,None)
+
+    def hideEvent(self,event):
+        self.forget()
+        super().hideEvent(event)
 
     def set_rows(self,rows):
         ratio = self.devicePixelRatioF()
@@ -58,8 +98,9 @@ class ReferenceTable(QWidget):
         if signature==self.signature:
             return
         self.signature = signature
-        while self.grid.count():
-            widget = self.grid.takeAt(0).widget()
+        self.forget()
+        while self.lines.count():
+            widget = self.lines.takeAt(0).widget()
             if widget is not None and widget is not self.placeholder:
                 widget.deleteLater()
         self.rows = [name for _,_,name,_ in rows]
@@ -69,9 +110,12 @@ class ReferenceTable(QWidget):
         if hide or self.parentWidget() is not None:
             self.setHidden(hide)
         if not rows:
-            self.grid.addWidget(self.placeholder,0,0,1,3)
+            self.lines.addWidget(self.placeholder)
             return
-        for index,((key,group,name,role),pm) in enumerate(zip(rows,raw)):
+        for (key,group,name,role),pm in zip(rows,raw):
+            row = Row(group,self.panel)
+            line = QHBoxLayout(row)
+            line.setContentsMargins(0,0,0,0)
             image = QLabel()
             image.setFixedSize(SIZE,SIZE)
             image.setAlignment(Qt.AlignCenter)
@@ -91,9 +135,10 @@ class ReferenceTable(QWidget):
             button.setAccessibleName(tr("Remove")+" "+name)
             button.setAutoRaise(True)
             button.clicked.connect(lambda _=False,k=key:self.remove(k))
-            self.grid.addWidget(image,index,0)
-            self.grid.addWidget(text,index,1)
-            self.grid.addWidget(button,index,2)
+            line.addWidget(image)
+            line.addWidget(text,1)
+            line.addWidget(button)
+            self.lines.addWidget(row)
 
     def names(self):
         return list(self.rows)

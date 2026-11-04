@@ -130,7 +130,7 @@ class NewtonPanel(QWidget):
         pick = attach(QPushButton(tr("Assign")),"link")
         pick.clicked.connect(self.pick_reference)
         form.addRow(tr("Reference body"),pick)
-        self.reference_table = ReferenceTable(lambda _:self.detach_reference(),tr("None"))
+        self.reference_table = ReferenceTable(lambda _:self.detach_reference(),tr("None"),self)
         form.addRow(self.reference_table)
         self.reference_buttons = (pick,self.reference_table)
         layout.addWidget(self.editor)

@@ -497,6 +497,31 @@ def remove_button(table,row=0):
     return table.findChildren(QToolButton)[row]
 
 
+def test_reference_table_rows_outline_their_body_on_hover_and_select_it_on_click(panel,qtapp):
+    from PySide6.QtCore import Qt,QEvent,QPointF
+    from PySide6.QtGui import QEnterEvent
+    from PySide6.QtTest import QTest
+    from PySide6.QtWidgets import QApplication
+    from newton.model import reference_id
+    door = select_demo_axis(panel)
+    # The host loads the extension under its own module name.
+    Row = sys.modules[type(panel.reference_table).__module__].Row
+    parent = next(g for g in panel.app.scene.groups if g.uid==reference_id(door))
+    row = next(c for c in panel.reference_table.children() if isinstance(c,Row))
+    QApplication.sendEvent(row,QEnterEvent(QPointF(1,1),QPointF(1,1),QPointF(1,1)))
+    assert panel.glow_candidate is parent
+    QApplication.sendEvent(row,QEvent(QEvent.Leave))
+    assert panel.glow_candidate is None
+    QApplication.sendEvent(row,QEnterEvent(QPointF(1,1),QPointF(1,1),QPointF(1,1)))
+    QTest.mouseClick(row,Qt.LeftButton)
+    assert parent in panel.app.scene.selection
+    assert door not in panel.app.scene.selection and panel.glow_candidate is None
+    # The remove button keeps the selection.
+    panel.app.scene.select([door]);panel.app.viewport.notify_scene_changed();panel.refresh()
+    QTest.mouseClick(remove_button(panel.reference_table),Qt.LeftButton)
+    assert not reference_id(door) and door in panel.app.scene.selection and parent not in panel.app.scene.selection
+
+
 def test_reference_tables_show_a_picture_and_change_or_remove_the_link(panel,qtapp,monkeypatch):
     from PySide6.QtWidgets import QLabel
     from newton.model import box,AddDemo,reference_id

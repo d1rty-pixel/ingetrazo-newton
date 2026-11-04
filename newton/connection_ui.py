@@ -19,7 +19,7 @@ class ConnectionEditor(QWidget):
         for key,title in KINDS.items():self.kind.addItem(tr(title),key)
         decorate(self.kind,"connection")
         form.addRow(tr("Type"),self.kind)
-        self.target = ReferenceTable(lambda _:self.detach());form.addRow(self.target)
+        self.target = ReferenceTable(lambda _:self.detach(),panel=panel);form.addRow(self.target)
         self.add = QPushButton(tr("Connect…"));form.addRow(self.add)
         self.fields = QWidget();detail = self.detail = QFormLayout(self.fields);detail.setContentsMargins(0,0,0,0)
         detail.setRowWrapPolicy(QFormLayout.WrapLongRows)

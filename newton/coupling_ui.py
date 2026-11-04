@@ -21,7 +21,7 @@ class CouplingEditor(QWidget):
         form.setRowWrapPolicy(QFormLayout.WrapLongRows)
         self.group,self.joint,self.axes,self.leader = None,None,{},None
         self.master = ChooseButton(tr("Choose…"),self.candidates,self.follow,tr("No suitable axis"),lambda g:offer(panel,g))
-        self.table = ReferenceTable(lambda _:self.follow(None),tr("Independent"))
+        self.table = ReferenceTable(lambda _:self.follow(None),tr("Independent"),panel)
         self.direction = QComboBox()
         self.direction.addItem(tr("Same direction"),1)
         self.direction.addItem(tr("Opposite direction"),-1)

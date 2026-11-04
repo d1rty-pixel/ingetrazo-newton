@@ -30,7 +30,7 @@ class CollisionPairs(QWidget):
         super().__init__()
         self.panel = panel
         layout = QVBoxLayout(self);layout.setContentsMargins(0,0,0,0)
-        self.table = ReferenceTable(self.restore)
+        self.table = ReferenceTable(self.restore,panel=panel)
         self.add = QPushButton(tr("Exempt body…"))
         self.add.clicked.connect(self.pick)
         layout.addWidget(self.table);layout.addWidget(self.add)
