@@ -106,6 +106,8 @@ def prepare(source,require_movable=True):
     scene.mesh = transformed_mesh(source.loose_mesh, QMatrix4x4())
     specs, movers = [], {}
     for group in source.groups:
+        if (group.ext or {}).get(KEY,{}).get("axis_of"):
+            continue  # Axis objects only mirror joint data.
         mesh = world_mesh(group)
         if not mesh.vertices:
             continue
@@ -252,3 +254,48 @@ def demo(kind):
             pivot=[0,0,1.5], axis=[0,1,0], speed=3, force=20)}}
         return [g]
     raise ValueError("Unbekannte Demo")
+
+
+def project_zero(axis,zero):
+    """The 0° direction made perpendicular to the axis, or None if it has none."""
+    if zero is None:
+        return None
+    d = QVector3D(*axis).normalized()
+    z = QVector3D(*zero)
+    z = z-d*QVector3D.dotProduct(z,d)
+    return list(z.normalized().toTuple()) if z.length()>1e-6 else None
+
+
+def hinge_start(group,joint):
+    """Angle of the modelled pose: from the 0° direction to the body's centre, about the axis."""
+    zero = project_zero(joint["axis"],joint.get("zero"))
+    if zero is None:
+        return 0.
+    from core.group import placement_points
+    points = placement_points(group)
+    if not len(points):
+        return 0.
+    center = QVector3D(*((points.min(axis=0)+points.max(axis=0))/2).tolist())
+    arm = QVector3D(*project_zero(joint["axis"],list((center-QVector3D(*joint["pivot"])).toTuple())) or zero)
+    d,u = QVector3D(*joint["axis"]).normalized(),QVector3D(*zero)
+    return math.atan2(QVector3D.dotProduct(QVector3D.crossProduct(u,arm),d),QVector3D.dotProduct(u,arm))
+
+
+def fit_limits(joint):
+    """A new 0° direction keeps the limits around the modelled pose, as before it existed."""
+    start = joint.get("start",0)
+    if not joint.get("limited") or joint["lower"]<=start<=joint["upper"]:
+        return joint
+    shifted = dict(joint,lower=joint["lower"]+start,upper=joint["upper"]+start)
+    if joint.get("drive")=="position":
+        shifted["target"] = joint.get("target",0)+start
+    return shifted
+
+
+def with_zero(group,joint):
+    """Joint data with a consistent 0° direction and start angle (hinges only)."""
+    joint = dict(joint)
+    zero = project_zero(joint["axis"],joint.get("zero")) if joint.get("type","hinge")=="hinge" else None
+    joint["zero"] = zero
+    joint["start"] = hinge_start(group,joint) if zero else 0.
+    return joint

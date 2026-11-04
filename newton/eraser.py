@@ -3,7 +3,7 @@ import math
 from PySide6.QtGui import QVector3D,QFontMetrics
 from tools.eraser import EraserTool
 from core.history import CompoundCommand
-from .model import settings,remove_axes_command,axes_visible
+from .model import settings,remove_axes_command,axes_visible,project_zero
 
 
 def axis_frame(panel,viewport,j):
@@ -11,20 +11,24 @@ def axis_frame(panel,viewport,j):
     if preview and preview["uid"]==j["uid"]:j = preview
     a = QVector3D(*j["pivot"])
     direction = QVector3D(*j["axis"]).normalized()
+    zero = QVector3D(*j["zero"]) if j.get("zero") else None
+    def carry(m,origin=QVector3D()):
+        nonlocal a,direction,zero
+        a,direction = m.map(a-origin),m.mapVector(direction).normalized()
+        if zero is not None:zero = m.mapVector(zero)
     if panel.session.workspace:
         parent = j.get("parent")
         mover = panel.session.movers.get(parent)
         spec = panel.session.specs.get(parent)
         if mover is not None and spec:
-            origin = spec["joint"]["pivot"] if spec.get("joint") else spec["center"]
-            a = mover.xform.map(a-QVector3D(*origin))
-            direction = mover.xform.mapVector(direction).normalized()
-    if j["uid"] in getattr(viewport,"_newton_preview_bodies",set()) and getattr(viewport,"_preview_groups",None):
-        m = viewport._groups_preview_transform()
-        a,direction = m.map(a),m.mapVector(direction).normalized()
+            carry(mover.xform,QVector3D(*(spec["joint"]["pivot"] if spec.get("joint") else spec["center"])))
+    if j["uid"] in getattr(viewport,"_newton_preview_axes",set()) and getattr(viewport,"_preview_groups",None):
+        carry(viewport._groups_preview_transform())
     radius = panel.gizmo_sizes.get(j["uid"],.2)
+    # Angles are drawn from the user's 0° direction; without one any perpendicular serves.
+    zero = project_zero(list(direction.toTuple()),list(zero.toTuple()) if zero is not None else None)
     ref = QVector3D(0,0,1) if abs(direction.z())<.9 else QVector3D(0,1,0)
-    u = QVector3D.crossProduct(direction,ref).normalized()
+    u = QVector3D(*zero) if zero else QVector3D.crossProduct(direction,ref).normalized()
     v = QVector3D.crossProduct(direction,u).normalized()
     return a,direction,u,v,radius
 

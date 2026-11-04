@@ -44,3 +44,10 @@ Status values: **open** (confirmed, not fixed), **observation** (reported, cause
 - **Status:** observation
 - **Where:** `newton/worker.py` (`PREFIX = "IGPHYSICS:"`), `newton/session.py`
 - **Note:** Version 0.14.0 renamed everything to Newton, but the line prefix of the worker protocol kept `IGPHYSICS:`. It is internal and harmless; unknown whether it was kept on purpose.
+
+## Axis objects: known gaps
+
+- **Status:** open
+- **Reported:** 2026-11-04, with the introduction of axis objects (`newton/axis_objects.py`)
+- **Symptom:** An axis object stays visible when its body is hidden (the axis glyph hides). Its name (`Axis · <body>`) does not follow a body rename. While a group is open for editing, no sync runs; it catches up with the next command after leaving the group. Grouping an axis object together with other objects (Make Group) removes it from the top level; Newton then creates a new one and keeps the axis.
+- **Checked:** unit tests cover move, rotate, undo/redo, body move, copy/paste, delete and loading documents without axis objects. Not checked in a live IngeTrazo session yet.

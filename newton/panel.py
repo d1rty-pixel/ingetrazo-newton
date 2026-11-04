@@ -9,7 +9,7 @@ from PySide6.QtGui import QColor, QPen, QVector3D
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QPushButton, QComboBox, QDoubleSpinBox, QCheckBox, QLineEdit,
     QFileDialog, QGroupBox, QScrollArea)
-from .model import KEY, settings, Configure, prepare, joint_rows, reference_id,remove_axes_command,ensure_axis_layer,unlink_followers
+from .model import KEY, settings, Configure, prepare, joint_rows, reference_id,remove_axes_command,ensure_axis_layer,unlink_followers,with_zero,fit_limits
 from .session import Session
 from .controls import Controls
 from .joints import PlacementTool
@@ -42,6 +42,13 @@ def settings_section(title,description):
     form.addRow(explanation)
     return group,form,explanation
 
+
+
+def gizmo_size(group):
+    from core.group import placement_points
+    points = placement_points(group)
+    extent = float((points.max(axis=0)-points.min(axis=0)).max()) if len(points) else 1
+    return max(.002,min(1.,extent*.2))
 
 class NewtonPanel(QWidget):
     def __init__(self,app):
@@ -328,7 +335,7 @@ class NewtonPanel(QWidget):
                 self.patch(dict(p["body"],joint=None,reference=parent),[group])
             else:
                 j = joint_settings(dict(p["joint"],name=(old or {}).get("name",group.name),parent=parent,
-                      pivot=(old or {}).get("pivot",[0,0,0]),axis=(old or {}).get("axis",[0,0,1]),
+                      pivot=(old or {}).get("pivot",[0,0,0]),axis=(old or {}).get("axis",[0,0,1]),zero=(old or {}).get("zero"),
                       coupling=(old or {}).get("coupling"),display=(old or {}).get("display")))
                 if old:
                     self.commit_joint(self.app.scene,group,j,body_values=p["body"])
@@ -410,7 +417,11 @@ class NewtonPanel(QWidget):
         self.app.window.statusBar().showMessage(tr(text),8000)
 
     def selected(self):
-        return [g for g in self.app.scene.groups if g in self.app.scene.selection]
+        """Selected bodies; a selected axis object stands for its body."""
+        from .axis_objects import owner_id
+        chosen = [g for g in self.app.scene.groups if g in self.app.scene.selection]
+        owners = {owner_id(g) for g in chosen}
+        return [g for g in self.app.scene.groups if not owner_id(g) and (g in chosen or g.uid in owners)]
 
     def current_joint(self):
         groups = self.selected()
@@ -541,8 +552,11 @@ class NewtonPanel(QWidget):
             self.controls.refresh(self.control_rows,True)
             return
         self.collision_view.request()
+        from .axis_objects import install as install_axis_objects,sync_loaded
         for vp in self.app.window.all_viewports():
             install(vp)
+            install_axis_objects(self,vp)
+        sync_loaded(self,self.app.viewport)
         from .axis_edit import install as install_axis_edit
         install_axis_edit(self)
         from .connections import install as install_connections
@@ -558,13 +572,7 @@ class NewtonPanel(QWidget):
         if self.axis_rows:
             ensure_axis_layer(self.app.scene)
         self.reference_names = {g.uid:g.name for g in self.app.scene.groups}
-        from core.group import placement_points
-        self.gizmo_sizes = {}
-        for g in self.app.scene.groups:
-            if settings(g).get("joint"):
-                points = placement_points(g)
-                extent = float((points.max(axis=0)-points.min(axis=0)).max()) if len(points) else 1
-                self.gizmo_sizes[g.uid] = max(.002,min(1.,extent*.2))
+        self.gizmo_sizes = {g.uid:gizmo_size(g) for g in self.app.scene.groups if settings(g).get("joint")}
         self.controls.refresh(self.control_rows,False)
         browser = getattr(self.app.window,"project_browser",None)
         if browser is not None:
@@ -700,6 +708,7 @@ class NewtonPanel(QWidget):
         if self.session.workspace or self.app.scene is not scene or group not in scene.groups:
             raise ValueError(tr("Document changed. Place the axis again."))
         validate_reference(scene,group,values.get("parent"))
+        values = with_zero(group,values)
         joints = {row["uid"]:row for row in joint_rows(scene)}
         joints[group.uid] = joint_settings(values)
         resolve_couplings(joints)
@@ -713,16 +722,19 @@ class NewtonPanel(QWidget):
             if self.app.viewport is vp and isinstance(vp.active_tool,PlacementTool):
                 self.app.window._activate_tool("select")
             self.status_message(tr("Placement cancelled."))
-        def finish(anchor,axis):
+        def finish(anchor,axis,zero=None):
             self.placement = None
             try:
-                self.commit_joint(scene,group,dict(values,pivot=anchor,axis=axis),body_values=body_values)
+                placed = fit_limits(with_zero(group,dict(values,pivot=anchor,axis=axis,zero=zero)))
+                self.commit_joint(scene,group,placed,body_values=body_values)
             except ValueError as exc:
                 self.status_message(str(exc))
             finally:
                 if self.app.viewport is vp:
                     self.app.window._activate_tool("select")
-        self.placement = PlacementTool(finish,cancel)
+        preview = dict(joint_settings(dict(values,pivot=[0,0,0],axis=[0,0,1])),uid=group.uid)
+        self.gizmo_sizes.setdefault(group.uid,gizmo_size(group))
+        self.placement = PlacementTool(finish,cancel,preview,zero=values.get("type","hinge")=="hinge")
         vp.set_active_tool(self.placement)
         self.status_message(tr("Pick the origin, then a direction or X/Y/Z. Esc cancels."))
 

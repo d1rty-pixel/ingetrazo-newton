@@ -293,3 +293,18 @@ def test_real_extension_loader_and_mainwindow_session(qtapp, monkeypatch):
             win.leave_workspace()
         win._saved_version = win.viewport.scene.version
         win.close()
+
+
+def test_start_angle_makes_limits_and_targets_absolute(world):
+    # A door modelled open at 90° whose 0° is "closed": closing drives it back by 90°.
+    door = box("Tür",(.5,0,1),(1,.1,2),joint=dict(type="hinge",drive="position",pivot=[0,0,1],axis=[0,0,1],
+               zero=[0,-1,0],start=math.pi/2,target=0,force=200,limited=True,lower=0,upper=math.pi/2))
+    _,bodies,_ = specs([door])
+    initial = world.load(dict(bodies=bodies,floor=False))
+    assert initial["joints"][door.uid]["position"]==pytest.approx(math.pi/2)
+    assert initial["poses"][door.uid][0]==pytest.approx([0,0,1])
+    final = advance(world,3)
+    assert final["joints"][door.uid]["position"]==pytest.approx(0,abs=.02)
+    from newton.worker import joint_settings
+    with pytest.raises(ValueError,match="initial position"):
+        joint_settings(dict(door.ext[KEY]["joint"],lower=-1,upper=1))

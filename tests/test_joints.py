@@ -129,14 +129,14 @@ def test_placement_uses_two_snapped_points_and_axis_shortcut(qtapp):
     finished, cancelled = [], []
     viewport = SimpleNamespace(flash_status=lambda *a:None, update=lambda:None)
     ctx = lambda p: SimpleNamespace(world=QVector3D(*p),viewport=viewport)
-    tool = PlacementTool(lambda a,b:finished.append((a,b)), lambda:cancelled.append(True))
+    tool = PlacementTool(lambda a,b,z:finished.append((a,b)), lambda:cancelled.append(True))
     tool.on_click(ctx((1,2,3)))
     tool.on_click(ctx((1,4,3)))
     qtapp.processEvents()
     assert finished == [([1,2,3],[0,1,0])]
     assert not cancelled
     finished.clear()
-    tool = PlacementTool(lambda a,b:finished.append((a,b)),lambda:cancelled.append(True))
+    tool = PlacementTool(lambda a,b,z:finished.append((a,b)),lambda:cancelled.append(True))
     tool.on_click(ctx((2,3,4)))
     assert tool.on_key(viewport,Qt.Key_Z,Qt.NoModifier)
     qtapp.processEvents()
@@ -145,3 +145,22 @@ def test_placement_uses_two_snapped_points_and_axis_shortcut(qtapp):
     tool.on_cancel(viewport)
     qtapp.processEvents()
     assert cancelled == [True]
+
+
+def test_zero_direction_lies_in_the_turning_plane_and_snaps_to_projected_world_axes(qtapp):
+    finished = []
+    viewport = SimpleNamespace(flash_status=lambda *a:None,update=lambda:None)
+    tool = PlacementTool(lambda a,b,z:finished.append(z),lambda:None,preview={},zero=True)
+    tool.on_click(SimpleNamespace(world=QVector3D(0,0,0),viewport=viewport))
+    tool.on_click(SimpleNamespace(world=QVector3D(1,0,1),viewport=viewport))  # tilted 45° axis
+    plane = tool.drag_plane(viewport)
+    assert plane[0]==QVector3D(0,0,0) and plane[1].toTuple()==pytest.approx((.7071,0,.7071),abs=1e-4)
+    near_y = QVector3D(math.sin(math.radians(2)),math.cos(math.radians(2)),0)
+    assert tool.perpendicular(near_y)==pytest.approx([0,1,0],abs=1e-6)
+    # World X projected into the tilted plane is (1,0,-1)/√2.
+    assert tool.perpendicular(QVector3D(1,0.03,-1))==pytest.approx([.7071,0,-.7071],abs=1e-4)
+    assert tool.perpendicular(QVector3D(1,.3,-1))[1]>.1,"far from an axis the direction stays free"
+    tool.on_key(viewport,Qt.Key_Y,Qt.NoModifier)
+    qtapp.processEvents()
+    assert finished[0]==pytest.approx([0,1,0])
+    assert tool.drag_plane(viewport) is None

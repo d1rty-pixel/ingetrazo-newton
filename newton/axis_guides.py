@@ -3,7 +3,7 @@ import math
 from PySide6.QtCore import Qt,QRectF
 from PySide6.QtGui import QColor,QPen,QVector3D,QFont,QFontMetrics,QBrush,QPainter
 from .eraser import axis_frame,axis_geometry
-from .model import axes_visible
+from .model import axes_visible,with_zero,fit_limits
 from .i18n import tr
 
 
@@ -34,7 +34,7 @@ def place_caption(x,y,width,height,viewport_width,viewport_height,obstacles,occu
 def guide_geometry(panel,viewport,j,detail):
     a,d,u,v,r = axis_frame(panel,viewport,j)
     state = panel.session.joint_states.get(j["uid"],{}) if panel.session.workspace else {}
-    actual = state.get("position",0)
+    actual = state.get("position",j.get("start",0))
     target = panel.session.targets.get(j["uid"],j["target"])
     if j.get("coupling"):
         c = j["coupling"]
@@ -79,8 +79,21 @@ def guide_geometry(panel,viewport,j,detail):
     return lines,labels
 
 
+def axis_rows(panel):
+    """Stored axes, with the one being placed replaced by its live preview."""
+    rows = list(panel.axis_rows) if axes_visible(panel.app.scene) else []
+    preview = panel.placement.preview_row() if panel.placement else None
+    if preview:
+        body = next((g for g in panel.app.scene.groups if g.uid==preview["uid"]),None)
+        if body is not None and preview.get("zero"):
+            preview = fit_limits(with_zero(body,preview))
+        rows = [j for j in rows if j["uid"]!=preview["uid"]]+[preview]
+    return rows
+
+
 def draw(panel,viewport,painter):
-    if viewport is not panel.app.viewport or not axes_visible(panel.app.scene):
+    rows = axis_rows(panel) if viewport is panel.app.viewport else []
+    if not rows:
         return
     painter.save()
     painter.setRenderHint(QPainter.Antialiasing,True)
@@ -97,7 +110,7 @@ def draw(panel,viewport,painter):
     if panel.session.workspace and panel.detail_uid:
         selected.add(panel.detail_uid)
     obstacles = []
-    for j in panel.axis_rows:
+    for j in rows:
         body = next((g for g in panel.app.scene.groups if g.uid==j["uid"]),None)
         if body is None or body.hidden or any(l.name==body.layer and not l.visible for l in panel.app.scene.layers):continue
         segments,_ = axis_geometry(panel,viewport,j)
@@ -132,7 +145,7 @@ def draw(panel,viewport,painter):
         painter.drawRoundedRect(rect,5,5)
         painter.setPen(QColor(*COLOURS[kind]))
         painter.drawText(rect.adjusted(7,4,-7,-4),Qt.AlignVCenter|Qt.AlignLeft,text)
-    for j in panel.axis_rows:
+    for j in rows:
         body = next((g for g in panel.app.scene.groups if g.uid==j["uid"]),None)
         if body is None or body.hidden or any(l.name==body.layer and not l.visible for l in panel.app.scene.layers):
             continue

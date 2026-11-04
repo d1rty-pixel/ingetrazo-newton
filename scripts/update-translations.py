@@ -80,6 +80,8 @@ LEGACY = {
     "Simulationszeit: 0.00 s":"Time: 0.00 s",
 }
 EXTRA_DE = {
+    "Pick the 0° direction, X/Y/Z, or Enter to keep it.":"0°-Richtung wählen, X/Y/Z oder Enter zum Beibehalten.",
+    "Joint limits must include the initial position.":"Die Anschläge müssen die Startlage enthalten.",
     "Runtime":"Runtime","Built-in":"Built-in","Simulation overrides":"Simulation Overrides",
     "Child components":"Teilkomponenten","Compound":"Zusammengesetzt",
     "Compound collision needs child groups or components.":"Diese Kollisionsform benötigt untergeordnete Gruppen oder Komponenten.",

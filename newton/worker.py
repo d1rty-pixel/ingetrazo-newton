@@ -81,11 +81,15 @@ def joint_settings(raw):
     if j["type"] not in ("hinge", "slide") or j["drive"] not in ("free", "velocity", "position"):
         raise ValueError("Unknown joint type or actuator.")
     j["pivot"], j["axis"] = vector(j["pivot"], "Origin"), vector(j["axis"], "Axis")
+    # Angle of the modelled pose, measured from the user's 0° direction ("zero").
+    j["start"] = float(j.get("start",0)) if j["type"]=="hinge" else 0.
+    if j.get("zero") is not None:
+        j["zero"] = vector(j["zero"],"Zero")
     length = math.sqrt(sum(v*v for v in j["axis"]))
     if length < 1e-9:
         raise ValueError("The joint axis must not be zero.")
     j["axis"] = [v/length for v in j["axis"]]
-    for key in ("target", "force", "lower", "upper", "max_speed", "acceleration","deceleration"):
+    for key in ("target", "force", "lower", "upper", "max_speed", "acceleration","deceleration","start"):
         j[key] = float(j[key])
         if not math.isfinite(j[key]):
             raise ValueError("Invalid joint parameter.")
@@ -93,8 +97,8 @@ def joint_settings(raw):
         raise ValueError("Invalid joint limits or force.")
     if j["max_speed"] <= 0 or j["acceleration"] <= 0 or j["deceleration"]<=0:
         raise ValueError("Speed and acceleration must be positive.")
-    if j["limited"] and not j["lower"] <= 0 <= j["upper"]:
-        raise ValueError("Joint limits must include the initial position zero.")
+    if j["limited"] and not j["lower"] <= j["start"] <= j["upper"]:
+        raise ValueError("Joint limits must include the initial position.")
     if j["drive"] == "position" and j["limited"]:
         j["target"] = max(j["lower"], min(j["upper"], j["target"]))
     if j.get("coupling"):
@@ -127,7 +131,9 @@ def resolve_couplings(joints):
         if master["type"]!=j["type"] or master["drive"]!="position":
             raise ValueError("Choose a matching position actuator.")
         if j["limited"]:
-            low,high = sorted((j["lower"]/c["ratio"],j["upper"]/c["ratio"]))
+            # Couplings relate motion from the start poses (MuJoCo's qpos0).
+            low,high = sorted((master["start"]+(j["lower"]-j["start"])/c["ratio"],
+                               master["start"]+(j["upper"]-j["start"])/c["ratio"]))
             if master["limited"]:
                 low,high = max(low,master["lower"]),min(high,master["upper"])
             if high-low<1e-8:
@@ -267,6 +273,8 @@ class World:
                             limited="true" if joint["limited"] else "false")
                 if joint["limited"]:
                     args["range"] = numbers([joint["lower"], joint["upper"]])
+                if joint["start"]:
+                    args["ref"] = numbers([joint["start"]])
                 ET.SubElement(body, "joint", **args)
                 pending.append((uid, f"joint_{name}", joint))
             elif mass > 0 and not references[uid]:
@@ -450,7 +458,7 @@ class World:
         for uid, name, cfg in pending:
             jid = self.mj.mj_name2id(self.model, self.mj.mjtObj.mjOBJ_JOINT, name)
             self.motors[uid] = dict(cfg, dof=int(self.model.jnt_dofadr[jid]),
-                                    qpos=int(self.model.jnt_qposadr[jid]),command_pos=0.,command_vel=0.)
+                                    qpos=int(self.model.jnt_qposadr[jid]),command_pos=float(cfg["start"]),command_vel=0.)
         for j in self.motors.values():
             if j.get("coupling"):
                 c = j["coupling"]

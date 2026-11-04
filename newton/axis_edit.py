@@ -100,8 +100,10 @@ def install(panel):
             uid = pick_axis(panel,ctx.viewport,ctx.screen.x(),ctx.screen.y())
             group = next((g for g in panel.app.scene.groups if g.uid==uid),None)
             if group:
-                j = next(j for j in panel.axis_rows if j["uid"]==uid)
-                panel.app.scene.select([group]);ctx.viewport.notify_scene_changed();panel.show_sidebar()
+                # Selecting the axis object lets the host's Move/Rotate act on the axis.
+                from .axis_objects import markers,owner_id
+                marker = next((g for g in markers(panel.app.scene) if owner_id(g)==uid),group)
+                panel.app.scene.select([marker]);ctx.viewport.notify_scene_changed();panel.show_sidebar()
                 return
         click(ctx)
 

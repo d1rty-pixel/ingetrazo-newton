@@ -286,6 +286,7 @@ def test_viewport_claims_z_before_zoom_shortcut_and_places_joint(panel,qtapp):
     QApplication.sendEvent(vp,event)
     assert event.isAccepted()
     QApplication.sendEvent(vp,QKeyEvent(QEvent.KeyPress,Qt.Key_Z,Qt.NoModifier))
+    assert tool.on_key(vp,Qt.Key_Return,Qt.NoModifier),"Enter keeps the 0° direction"
     qtapp.processEvents()
     assert panel.placement is None
     assert group.ext[KEY]["joint"]["pivot"] == pytest.approx([0,0,1.2])
@@ -307,6 +308,7 @@ def test_toolbar_places_axis_without_dialog_and_sidebar_sets_drive(panel,qtapp):
     assert panel.app.viewport.active_tool is panel.placement
     panel.placement.on_click(SimpleNamespace(world=QVector3D(2,0,2),viewport=panel.app.viewport))
     panel.placement.on_key(panel.app.viewport,Qt.Key_Z,Qt.NoModifier)
+    panel.placement.on_key(panel.app.viewport,Qt.Key_Return,Qt.NoModifier)
     qtapp.processEvents();qtapp.processEvents()
     assert panel.app.window.statusBar().currentMessage()=="Axis placed.","the select tool hint must not hide the result"
     panel.name_edit.setText("Greifer schließen")
@@ -450,13 +452,15 @@ def test_native_eraser_removes_axis_over_geometry_without_deleting_body(panel,mo
     assert panel.hover_axis==group.uid
     eraser.on_click(ctx)
     eraser.on_release(vp)
-    assert source.groups==old_groups
+    from newton.axis_objects import owner_id
+    assert source.groups==[g for g in old_groups if owner_id(g)!=group.uid],"only the axis object goes with the axis"
     assert group.mesh is geometry
     assert group.ext[KEY]["joint"] is None
     assert group.ext[KEY]["reference"]==parent
     assert len(vp.history.undo_stack)==before+1
     vp.history.undo()
     assert group.ext[KEY]["joint"]==original
+    assert source.groups==old_groups
 
 
 def test_axis_eraser_stroke_never_erases_body_when_pointer_leaves_symbol(panel,monkeypatch):
@@ -1257,3 +1261,138 @@ def test_link_legacy_body_keeps_implicit_static_behaviour_and_undo(panel):
     editor.link_selection()
     assert settings(group)['mode']=='static' and settings(group)['profile_link']
     panel.app.viewport.history.undo();assert group.ext is None
+
+
+def test_axis_placement_previews_the_axis_along_the_hover_direction(panel,qtapp):
+    from newton.model import box,AddDemo
+    from newton.axis_guides import axis_rows
+    group = box("Klappe",(2,0,2),(.5,.5,.5))
+    panel.app.viewport.history.execute(AddDemo([group]))
+    panel.app.scene.select([group])
+    panel.refresh()
+    panel.actions["rotate"].trigger()
+    tool,vp = panel.placement,panel.app.viewport
+    tool.on_hover(SimpleNamespace(world=QVector3D(2,0,2),viewport=vp))
+    assert axis_rows(panel)==[],"no preview before the origin is picked"
+    tool.on_click(SimpleNamespace(world=QVector3D(2,0,2),viewport=vp))
+    tool.on_hover(SimpleNamespace(world=QVector3D(2,3,2),viewport=vp))
+    [row] = axis_rows(panel)
+    assert row["uid"]==group.uid and row["type"]=="hinge"
+    assert row["pivot"]==pytest.approx([2,0,2]) and row["axis"]==pytest.approx([0,1,0])
+    assert panel.gizmo_sizes[group.uid]==pytest.approx(.1)
+    from PySide6.QtGui import QImage,QPainter
+    image = QImage(400,300,QImage.Format_ARGB32);image.fill(Qt.white)
+    painter = QPainter(image);panel.draw_joints(vp,painter);painter.end()
+    tool.on_key(vp,Qt.Key_X,Qt.NoModifier)
+    tool.on_key(vp,Qt.Key_Return,Qt.NoModifier)
+    qtapp.processEvents()
+    assert group.ext[KEY]["joint"]["axis"]==[1,0,0]
+    panel.refresh()
+    panel.actions["rotate"].trigger()  # re-placing must not draw the old axis next to the preview
+    panel.placement.on_click(SimpleNamespace(world=QVector3D(2,0,2.2),viewport=vp))
+    panel.placement.on_hover(SimpleNamespace(world=QVector3D(2,0,3),viewport=vp))
+    rows = axis_rows(panel)
+    assert [r["uid"] for r in rows]==[group.uid] and rows[0]["axis"]==pytest.approx([0,0,1])
+
+
+def test_axis_objects_mirror_joints_and_host_transforms_move_the_axis(panel,qtapp):
+    from core.history import MoveGroupCommand,RotateGroupCommand,DeleteGroupCommand,InsertGroupCommand
+    from core.group import copy_group
+    from newton.axis_objects import markers,owner_id,placement
+    from newton.model import AXES_LAYER,prepare
+    group = select_demo_axis(panel)
+    scene,history = panel.app.scene,panel.app.viewport.history
+    [marker] = [m for m in markers(scene) if owner_id(m)==group.uid]
+    joint = lambda:group.ext[KEY]["joint"]
+    assert marker.layer==AXES_LAYER and not marker.mesh.faces
+    assert placement(marker)[0]==pytest.approx(joint()["pivot"],abs=1e-5)
+    assert all(s["uid"]!=marker.uid for s in prepare(scene)[1]),"axis objects never take part in the simulation"
+    scene.select([marker])
+    assert panel.selected()==[group],"a selected axis object stands for its body"
+    steps = len(history.undo_stack)
+    original = dict(joint())
+    history.execute(MoveGroupCommand(marker,QVector3D(0,.5,0)))
+    assert len(history.undo_stack)==steps+1,"moving the axis and writing the joint is one undo step"
+    assert joint()["pivot"]==pytest.approx([original["pivot"][0],original["pivot"][1]+.5,original["pivot"][2]],abs=1e-5)
+    history.execute(RotateGroupCommand(marker,QVector3D(*joint()["pivot"]),QVector3D(1,0,0),90))
+    assert joint()["axis"]==pytest.approx([0,-1,0],abs=1e-5)
+    history.undo();history.undo()
+    assert joint()["pivot"]==pytest.approx(original["pivot"]) and joint()["axis"]==pytest.approx(original["axis"])
+    assert placement(marker)[0]==pytest.approx(original["pivot"],abs=1e-5)
+    history.redo()
+    assert placement(marker)[0]==pytest.approx(joint()["pivot"],abs=1e-5)
+    history.undo()
+    # Moving the body carries joint and axis object along.
+    history.execute(MoveGroupCommand(group,QVector3D(1,0,0)))
+    assert placement(marker)[0]==pytest.approx([original["pivot"][0]+1,*original["pivot"][1:]],abs=1e-5)
+    history.undo()
+    # A pasted copy of the axis object is dropped; a copy of the body gets its own.
+    history.execute(InsertGroupCommand(copy_group(marker)))
+    assert [m for m in markers(scene) if owner_id(m)==group.uid]==[marker]
+    twin = copy_group(group)
+    history.execute(InsertGroupCommand(twin))
+    assert len([m for m in markers(scene) if owner_id(m)==twin.uid])==1
+    history.undo()
+    assert not any(owner_id(m)==twin.uid for m in markers(scene))
+    # Deleting the axis object deletes the axis, in one undo step.
+    history.execute(DeleteGroupCommand(marker))
+    assert joint() is None and marker not in scene.groups
+    history.undo()
+    assert joint()==original and marker in scene.groups
+
+
+def test_documents_without_axis_objects_get_them_on_load_without_an_undo_step(panel):
+    from newton.axis_objects import markers
+    group = select_demo_axis(panel)
+    scene,history = panel.app.scene,panel.app.viewport.history
+    for m in markers(scene):scene.groups.remove(m)
+    history.clear()
+    panel.selection_signature = None
+    panel.refresh()
+    assert [m.ext[KEY]["axis_of"] for m in markers(scene)]==[g.uid for g in scene.groups if (g.ext or {}).get(KEY,{}).get("joint")]
+    assert not history.undo_stack
+
+
+def test_dragging_a_body_previews_its_axis_object_and_dragging_the_axis_object_its_glyph(panel):
+    from newton.axis_objects import markers,owner_id
+    group = select_demo_axis(panel)
+    vp = panel.app.viewport
+    [marker] = [m for m in markers(panel.app.scene) if owner_id(m)==group.uid]
+    vp.begin_groups_preview([group])
+    assert id(marker) in vp._preview_groups and group.uid in vp._newton_preview_axes
+    vp.end_groups_preview()
+    vp.begin_groups_preview([marker])
+    assert group.uid in vp._newton_preview_axes and group.uid not in vp._newton_preview_bodies
+    vp.end_groups_preview()
+
+
+def test_hinge_placement_sets_the_zero_direction_and_start_angle(panel,qtapp):
+    from newton.model import box,AddDemo
+    from newton.axis_guides import axis_rows
+    from newton.axis_objects import markers,owner_id,placement
+    from core.history import RotateGroupCommand
+    group = box("Klappe",(2.5,0,2),(1,.1,.5))
+    panel.app.viewport.history.execute(AddDemo([group]))
+    panel.app.scene.select([group]);panel.refresh()
+    panel.actions["rotate"].trigger()
+    tool,vp = panel.placement,panel.app.viewport
+    tool.on_click(SimpleNamespace(world=QVector3D(2,0,2),viewport=vp))
+    tool.on_key(vp,Qt.Key_Z,Qt.NoModifier)
+    assert panel.placement is tool,"a hinge asks for its 0° direction"
+    tool.on_hover(SimpleNamespace(world=QVector3D(2,1,2.4),viewport=vp))
+    [row] = axis_rows(panel)
+    assert row["zero"]==pytest.approx([0,1,0]) and row["start"]==pytest.approx(-math.pi/2)
+    tool.on_click(SimpleNamespace(world=QVector3D(2,1,2.4),viewport=vp))
+    qtapp.processEvents()
+    joint = group.ext[KEY]["joint"]
+    assert joint["zero"]==pytest.approx([0,1,0]) and joint["start"]==pytest.approx(-math.pi/2)
+    [marker] = [m for m in markers(panel.app.scene) if owner_id(m)==group.uid]
+    assert placement(marker)[2]==pytest.approx([0,1,0],abs=1e-5),"the axis object carries the 0° direction"
+    # Turning the axis object about its own axis turns the 0° direction and the start angle.
+    vp.history.execute(RotateGroupCommand(marker,QVector3D(2,0,2),QVector3D(0,0,1),90))
+    joint = group.ext[KEY]["joint"]
+    assert joint["zero"]==pytest.approx([-1,0,0],abs=1e-5) and joint["start"]==pytest.approx(math.pi,abs=1e-5)
+    # Turning the body turns the 0° direction with it; the start angle stays.
+    vp.history.execute(RotateGroupCommand(group,QVector3D(2,0,2),QVector3D(0,0,1),90))
+    joint = group.ext[KEY]["joint"]
+    assert joint["zero"]==pytest.approx([0,-1,0],abs=1e-5) and joint["start"]==pytest.approx(math.pi,abs=1e-5)
