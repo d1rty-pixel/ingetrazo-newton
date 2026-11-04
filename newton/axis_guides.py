@@ -163,13 +163,6 @@ def draw(panel,viewport,painter):
             x,y = int(xs[0]),int(ys[0])
             painter.drawEllipse(x-7,y-7,14,14)
             if detail or highlight:caption(x,y,j["name"],"actual",j["uid"])
-        if detail and not panel.session.workspace:
-            a,d,_,_,r = axis_frame(panel,viewport,j)
-            xs,ys,front = viewport.world_to_pixels([list((a+d*r*2).toTuple())])
-            if all(front):
-                painter.setPen(QPen(QColor(*COLOURS["actual"]),3))
-                painter.setBrush(QBrush(QColor(24,28,34,220)))
-                painter.drawRect(int(xs[0])-7,int(ys[0])-7,14,14)
         for p,text,kind in labels:
             xs,ys,front = viewport.world_to_pixels([list(p.toTuple())])
             if all(front):

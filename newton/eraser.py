@@ -7,8 +7,6 @@ from .model import settings,remove_axes_command,axes_visible,project_zero
 
 
 def axis_frame(panel,viewport,j):
-    preview = getattr(panel,"axis_preview",None)
-    if preview and preview["uid"]==j["uid"]:j = preview
     a = QVector3D(*j["pivot"])
     direction = QVector3D(*j["axis"]).normalized()
     zero = QVector3D(*j["zero"]) if j.get("zero") else None

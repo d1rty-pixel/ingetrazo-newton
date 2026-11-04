@@ -167,13 +167,6 @@ def glyph_frame(value,size):
     return m
 
 
-def handles(value,size):
-    """Point handle, and for a pin the direction handle at its tip."""
-    point = QVector3D(*value["point"])
-    if value.get("type")!="hinge":return {"point":point}
-    return {"point":point,"direction":point+QVector3D(*value["axis"]).normalized()*size*RADIUS*PIN}
-
-
 def size_of(panel,group):
     sizes = getattr(panel,"gizmo_sizes",{})
     if group.uid not in sizes:
@@ -196,15 +189,6 @@ def screen_size(vp,value,size):
     return size*max(1.,MIN_RADIUS_PX/radius) if radius>1e-6 else size
 
 
-def handle_at(panel,vp,group,x,y):
-    value = settings(group).get("point_attachment")
-    if not value or not axes_visible(panel.app.scene,picking=True):return None
-    for key,p in sorted(handles(value,screen_size(vp,value,size_of(panel,group))).items(),key=lambda item:item[0]!="direction"):
-        xs,ys,front = vp.world_to_pixels([list(p.toTuple())])
-        if front[0] and math.hypot(x-float(xs[0]),y-float(ys[0]))<=10:return key
-    return None
-
-
 def draw(panel,vp,painter):
     scene = panel.app.scene
     if not axes_visible(scene):return
@@ -219,13 +203,11 @@ def draw(panel,vp,painter):
     if vp is not panel.app.viewport:return
     from .axis_objects import CONNECTION,markers,owner_id
     bodies = {g.uid:g for g in scene.groups}
-    selected = {g.uid for g in panel.selected()}
-    preview = getattr(panel,"connection_preview",None) or {}
     painter.save();painter.setRenderHint(QPainter.Antialiasing,True)
     for marker in markers(scene,CONNECTION):
         body = bodies.get(owner_id(marker))
         if body is None or marker.hidden or any(l.name==body.layer and not l.visible for l in scene.layers):continue
-        value = preview.get(body.uid) or settings(body).get("point_attachment")
+        value = settings(body).get("point_attachment")
         if not value:continue
         locked = bool(getattr(marker,"locked",False))
         colour = QColor(*(RED if marker.uid==getattr(panel,"hover_connection",None) else LOCKED if locked else VIOLET))
@@ -235,89 +217,11 @@ def draw(panel,vp,painter):
             xs,ys,front = vp.world_to_pixels([list(m.map(QVector3D(*p)).toTuple()) for p in line])
             for i in range(len(line)-1):
                 if front[i] and front[i+1]:painter.drawLine(int(xs[i]),int(ys[i]),int(xs[i+1]),int(ys[i+1]))
-        editing = body.uid in selected and not locked
-        for key,p in handles(value,size).items():
-            if key=="direction" and not editing:continue
-            xs,ys,front = vp.world_to_pixels([list(p.toTuple())])
-            if not front[0]:continue
+        xs,ys,front = vp.world_to_pixels([value["point"]])
+        if front[0]:
             painter.setPen(QPen(colour,3));painter.setBrush(QBrush(QColor(24,28,34,220)))
-            x,y = int(xs[0]),int(ys[0])
-            if key=="point":painter.drawEllipse(x-7,y-7,14,14)
-            else:painter.drawRect(x-7,y-7,14,14)
+            painter.drawEllipse(int(xs[0])-6,int(ys[0])-6,12,12)
     painter.restore()
-
-
-class ConnectionEditTool(Tool):
-    """Drags a connection point, or the pin direction, like the axis handles."""
-    name = tr("Edit connection")
-    uses_snap = True
-    magnetic_axis_deg = 3.0
-    screen_axis_px = 9.0
-
-    @property
-    def start_point(self):return self.anchor if self.handle=="direction" else None
-
-    def __init__(self,panel,group,handle):
-        value = attachment_settings(settings(group)["point_attachment"])
-        self.panel,self.group,self.handle = panel,group,handle
-        self.values = dict(value)
-        self.done = self.moved = False
-        self.scene = panel.app.scene
-        self.anchor = QVector3D(*value["point"])
-        self.normal = panel.app.viewport.camera.forward().normalized()
-        self.plane_point = handles(value,screen_size(panel.app.viewport,value,size_of(panel,group)))[handle]
-
-    def drag_plane(self,viewport):return self.plane_point,self.normal
-
-    def on_activate(self,viewport):
-        viewport.flash_status(tr("Drag the handle. X/Y/Z sets direction; Esc cancels.") if self.handle=="direction" else tr("Drag the connection point. Esc cancels."),10000)
-
-    def on_hover(self,ctx):
-        if self.done:return
-        p = QVector3D(ctx.world)
-        if self.handle=="point":self.values["point"] = list(p.toTuple())
-        else:
-            d = p-self.anchor
-            if d.lengthSquared()<1e-10:return
-            self.values["axis"] = list(d.normalized().toTuple())
-        self.moved = True
-        self.panel.connection_preview = {self.group.uid:dict(self.values)}
-        ctx.viewport.update()
-
-    def on_click(self,ctx):pass
-
-    def finish(self,commit):
-        if self.done:return
-        self.done = True
-        self.panel.connection_preview = None
-        if commit and self.moved:
-            try:apply_connection(self.panel,self.group,self.values)
-            except ValueError as exc:self.panel.status_message(str(exc))
-        elif commit:
-            # A click without a drag selects the object, as near an unselected point.
-            from .axis_objects import CONNECTION,marker_of
-            marker = marker_of(self.scene,self.group,CONNECTION)
-            if marker is not None:self.scene.select([marker]);self.panel.app.viewport.notify_scene_changed()
-        self.panel.app.viewport.update()
-        QTimer.singleShot(0,lambda:self.panel.app.window._activate_tool("select"))
-
-    def on_release(self,viewport):self.finish(True)
-    def on_cancel(self,viewport):self.finish(False)
-    def on_deactivate(self,viewport):
-        self.done = True
-        self.panel.connection_preview = None
-        viewport.update()
-
-    def claims_key(self,key,modifiers):
-        return self.handle=="direction" and key in (Qt.Key_X,Qt.Key_Y,Qt.Key_Z) and not modifiers & (Qt.ControlModifier|Qt.AltModifier)
-
-    def on_key(self,viewport,key,modifiers):
-        if self.claims_key(key,modifiers):
-            self.values["axis"] = {Qt.Key_X:[1,0,0],Qt.Key_Y:[0,1,0],Qt.Key_Z:[0,0,1]}[key]
-            self.moved = True
-            self.finish(True)
-            return True
-        return False
 
 
 def set_hover(panel,vp,marker):

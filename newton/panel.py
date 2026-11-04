@@ -80,7 +80,6 @@ class NewtonPanel(QWidget):
         self.axis_rows = []
         self.gizmo_sizes = {}
         self.detail_uid = None
-        self.axis_preview = None
         from .collision_view import CollisionView
         self.collision_view = CollisionView(self)
         self.placement = self.dialog = None
