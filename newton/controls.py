@@ -178,7 +178,7 @@ class Controls(QDialog):
                 command = (state.get("command",state.get("target",joint["target"]))*mapping.get("scale",1)+mapping.get("offset",0))*factor
                 label.setToolTip(tr("Target: {target:.1f} · Ramp: {command:.1f} · Load: {load:.0f}%",target=target,command=command,load=state.get("load",0)*100))
                 label.setStyleSheet("color: #e79b38" if state.get("at_limit") else "")
-                if state.get("at_limit"):label.setText(label.text()+" · "+tr("Limit"))
+                if state.get("at_limit"):label.setText(label.text()+" · "+tr("At limit"))
         self.align_values()
 
     def show_performance(self,metrics):

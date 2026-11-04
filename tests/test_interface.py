@@ -548,7 +548,7 @@ def test_reference_tables_show_a_picture_and_change_or_remove_the_link(panel,qta
     apply_connection(panel,door,dict(target=anchor.uid,point=[0,0,2],type="hinge",axis=[0,0,1]))
     panel.app.scene.select([door]);vp.notify_scene_changed();panel.refresh()
     editor = panel.connection_editor
-    assert editor.target.names()==["Anchor"] and editor.add.text()=="Set linked body…"
+    assert editor.target.names()==["Anchor"] and editor.add.text()=="Set connected body…"
     assert any(not label.pixmap().isNull() for label in editor.target.findChildren(QLabel))
     # Setting the linked body keeps the placed point, type and pin axis.
     editor.add.click()

@@ -247,7 +247,7 @@ class World:
             spec, joint = specs[uid], joints[uid]
             parent = references[uid]
             if parent and parent not in specs:
-                raise ValueError("Referenced body is missing, hidden or excluded from the simulation.")
+                raise ValueError("The reference body is missing, hidden or excluded from the simulation.")
             parent_element = build(parent) if parent else world
             base = origins[parent] if parent else [0, 0, 0]
             name = names[uid]
@@ -561,7 +561,7 @@ class World:
         started = time.perf_counter()
         count = int(count)
         if self.model is None or not 1 <= count <= 24:
-            raise ValueError("No world or step count outside 1..24.")
+            raise ValueError("Simulation not ready or step count outside 1 to 24.")
         for uid, target in (targets or {}).items():
             if uid not in self.motors or not math.isfinite(float(target)):
                 raise ValueError("Invalid control target or unknown joint.")

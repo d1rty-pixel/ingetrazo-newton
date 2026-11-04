@@ -21,7 +21,7 @@ class Workspace:
         self.history = History(scene)
 
     def title(self):
-        return tr("Newton simulation")
+        return tr("Newton — temporary simulation")
 
     def is_dirty(self):
         return False

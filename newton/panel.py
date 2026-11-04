@@ -161,7 +161,7 @@ class NewtonPanel(QWidget):
         self.deceleration_sync.setCheckable(True)
         self.deceleration_sync.setChecked(True)
         self.deceleration_sync.setFixedWidth(34)
-        self.deceleration_sync.setToolTip(tr("Keep braking deceleration equal to acceleration"))
+        self.deceleration_sync.setToolTip(tr("Keep deceleration equal to acceleration"))
         self.deceleration_row = QWidget()
         brake_layout = QHBoxLayout(self.deceleration_row);brake_layout.setContentsMargins(0,0,0,0)
         brake_layout.addWidget(self.deceleration,1);brake_layout.addWidget(self.deceleration_sync)

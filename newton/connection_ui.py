@@ -45,7 +45,7 @@ class ConnectionEditor(QWidget):
         try:
             value = settings(group).get("point_attachment") if group else None
             self.fields.setVisible(bool(value))
-            self.add.setText(tr("Set linked body…") if value else tr("Connect…"))
+            self.add.setText(tr("Set connected body…") if value else tr("Connect…"))
             rows = []
             if value:
                 self.kind.setCurrentIndex(self.kind.findData(value.get("type","ball")))
