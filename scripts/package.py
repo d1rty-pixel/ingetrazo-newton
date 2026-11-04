@@ -10,7 +10,7 @@ with ZipFile(out, "w", ZIP_DEFLATED) as archive:
         archive.write(path, path.relative_to(root))
     for path in sorted((root / "newton" / "i18n").glob("*.json")):
         archive.write(path,path.relative_to(root))
-    for name in ("README.md", "LICENSE"):
+    for name in ("README.md", "LICENSE", "docs/handbuch.md"):
         archive.write(root / name, name)
     for path in sorted((root / "scripts").glob("*.ps1")):
         archive.write(path, path.relative_to(root))

@@ -1,8 +1,23 @@
-# Prüfung von Newton 0.14.0
+# Prüfprotokoll
+
+## Unveröffentlichter Stand nach 0.14.0 (Linux)
+
+Geprüft am 4. November 2026 unter Linux x86_64 (Ubuntu, GNOME/Wayland) mit Python 3.12.14 (uv), PySide6 6.11.3, numpy 2.5.4 und MuJoCo 3.3.7; Host-Referenz unverändert IngeTrazo v0.6.0, Commit `e61132a7`, zusätzlich manuell im IngeTrazo-0.6.0-Flatpak.
+
+```text
+.venv/bin/python -m pytest tests -q --basetemp=.test-state/pytest
+141 passed, 2 warnings in 51.43s
+```
+
+- Der Worker startet mit `python -E`. Im Flatpak schlug der Start vorher fehl, weil das vom Launcher gesetzte `PYTHONPATH` das numpy für Python 3.13 in die Python-3.12-Runtime lud. Nach der Änderung lief die Simulation im Flatpak.
+- Neu geprüft: Jede Preferences-Einstellung hat einen eigenen, eindeutigen Erklärtext; deaktivierte Toolbar-Icons haben ein eigenes graues Bild.
+- Responsiveness (offscreen gerendert und automatisch auf Überlappung, abgeschnittenen Text und Überstand geprüft): Sidebar im Dock bei 260–560 px, Preferences-Seiten bei 360–760 px ohne Befund. Die Mindestbreite des Sidebar-Inhalts sank von 326 auf 232 px. Die im echten Fenster beobachtete Überlappung des Kraftfeld-Hinweises ließ sich offscreen nicht nachstellen; sie ist durch einen geänderten Aufbau behoben, aber nur visuell im Flatpak zu bestätigen.
+
+## Version 0.14.0 (Windows)
 
 Geprüft am 4. November 2026 unter Windows x64 mit Python 3.12.14, PySide6 6.11.3 und MuJoCo 3.3.7. Host-Referenz: IngeTrazo v0.6.0, Commit `e61132a7f8a098ca77fb6b0e7cac488c1bd410cb`.
 
-## Automatische Prüfung
+### Automatische Prüfung
 
 Version 0.14.0 benennt die Extension in Newton um: Paket, Klassen, öffentliche Modulimporte, Settings-Schlüssel, Modellschlüssel, Overlay-Layer, Qt-Objektnamen, Preferences-Adapter, Toolbar, Kontextmenüs, Dialoge und Sprachdateien verwenden den neuen Namen. Die mitgelieferten `.igz`-Modelle sind direkt umgestellt. Alte Namensräume werden weder gelesen noch migriert. Die sichtbaren deutschen Toolbar-, Sidebar- und Preferences-Titel wurden zusätzlich über den echten Hostdialog offscreen gerendert und geprüft. Fremdprodukte und deren Quellen behalten ihre tatsächlichen Namen.
 
@@ -110,7 +125,7 @@ Nach der Sidebar-Gliederung (0.6.1) wurde die betroffene Host-/UI-Suite erneut g
 - Vorhandener `Newton_Axes`-Layer wird wiederverwendet; Sichtbarkeit und Kopplung überstehen Speichern/Laden. Ausblenden unterdrückt Zeichnen und Achsen-Picking, ohne Körper oder Newton zu deaktivieren.
 - Markierungen für Bereich, Grenzen, Nullstellung, Ziel und Istposition werden geprüft. Der Achsenrahmen folgt während der Simulation dem bewegten Bezugskörper.
 
-## Sichtprüfung und Installation
+### Sichtprüfung und Installation
 
 Die Sichtprüfung von 0.5.0 zeigte im separaten IngeTrazo-Testfenster native Icons und Trenner, das räumliche Drehachsensymbol, Profilwahl und Bewegungsparameter ohne Übernehmen-Button. Das geöffnete Steuerpult zeigte den benannten Regler und Start/Reset; Pause/Fortsetzen werden zustandsabhängig angezeigt und durch Hosttests geprüft. Die zusätzliche Preferences-Integration von 0.5.1 wurde gegen den echten Hostdialog automatisiert geprüft. In der Vorversion wurden Pendelstart und Servo-Tür auf 60° zusätzlich sichtbar geprüft. Radiergummi, Profilverwaltung und Ziehen sind automatisiert geprüft; ein vollständiger manueller Abnahmelauf dieser Interaktionen wurde nicht aufgezeichnet. Kein Bildratenbenchmark.
 
