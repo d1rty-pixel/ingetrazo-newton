@@ -200,7 +200,7 @@ def test_config_and_demo_are_undoable_and_settings_survive_igz(tmp_path):
     assert len(scene.groups) == 1
 
 
-def test_unconfigured_groups_are_static_ignored_and_hidden_omitted():
+def test_unconfigured_groups_are_static_ignored_and_hidden_simulated():
     dynamic = box("dynamic", (0,0,2), (1,1,1))
     unconfigured = box("static", (3,0,2), (1,1,1))
     unconfigured.ext = None
@@ -208,10 +208,11 @@ def test_unconfigured_groups_are_static_ignored_and_hidden_omitted():
     hidden = box("hidden", (9,0,2), (1,1,1))
     hidden.hidden = True
     scene, bodies, movers = specs([dynamic, unconfigured, ignored, hidden])
-    assert len(scene.groups) == 3
-    assert len(bodies) == 2
+    assert len(scene.groups) == 4
+    assert len(bodies) == 3
     assert bodies[1]["mass"] == 0
     assert ignored.uid not in movers
+    assert movers[hidden.uid].hidden and bodies[2]["mass"] > 0
 
 
 def test_worker_protocol_recovers_from_invalid_command():

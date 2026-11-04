@@ -119,3 +119,13 @@ def test_quality_preserves_geometry_and_elapsed_simulation_time(quality):
         assert result["performance"]["quality"]==quality
         assert world.model.geom_size[0] == pytest.approx([.5,1,.5])
     finally:world.close()
+
+
+def test_hidden_connection_target_still_simulates():
+    anchor = box("anchor",(0,0,2),(.1,.1,.1),mode="static")
+    anchor.hidden = True
+    arm = box("arm",(.5,0,2),(1,.05,.05),point_attachment=dict(type="fixed",target=anchor.uid,point=[0,0,2],axis=[0,1,0]))
+    world = load([anchor,arm])
+    try:
+        assert advance(world,.3)["poses"][arm.uid][0] == pytest.approx([.5,0,2],abs=.003)
+    finally:world.close()

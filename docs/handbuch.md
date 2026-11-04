@@ -165,7 +165,7 @@ Newton verwendet das Python-Paket `newton`, den Modellschlüssel `group.ext["new
 - Ein Körper hat höchstens eine eingehende Bezugskörper-/Gelenkverbindung. Verzweigte Ketten funktionieren; geschlossene Bezugskörperketten und mehrere Gelenke am selben Körper noch nicht. Achskopplungen verbinden die Bewegungskoordinaten bereits vorhandener Gelenke.
 - Newtonkörper sind aktuell Gruppen/Komponenten auf oberster Modellebene. Verschachtelte Geometrie innerhalb eines solchen Körpers bildet einen gemeinsamen Collider.
 - Native Gruppentransformationen und ihre Undo-/Redo-Schritte werden durch lokale Extension-Adapter ergänzt. Direkte Geometrieänderungen durch andere Extensions ohne diese Commands können die Bezugskörper-Nachführung umgehen. Geometrie innerhalb eines Körpers zu verformen ist kein Verschieben des Körpers.
-- Unkonfigurierte normale Gruppen sind statisch. Unkonfigurierte Face-me-Maßstabsfiguren sind nur visuell. Verborgene Top-Level-Gruppen werden ausgelassen; lose Geometrie wird angezeigt, kollidiert aber nicht.
+- Unkonfigurierte normale Gruppen sind statisch. Unkonfigurierte Face-me-Maßstabsfiguren sind nur visuell. Ausgeblendete Gruppen und Gruppen auf ausgeblendeten Layern nehmen unsichtbar an der Simulation teil, als wären sie sichtbar; lose Geometrie wird angezeigt, kollidiert aber nicht.
 - Box und Kugel sind vereinfachte umschließende Collider. Konvexe Hüllen schließen konkave Löcher. Keine automatische konkave Zerlegung; degenerierte Hüllen können abgewiesen werden.
 - Rückprall ist eine Näherung über MuJoCos Kontakt-Dämpfung. Der optionale Boden ist eine unendliche Ebene bei Z=0.
 - Noch keine Kugel-/Universalgelenke, Replay, Magnetismus, Auftrieb oder SketchyPhysics-Skriptkompatibilität.

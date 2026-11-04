@@ -112,8 +112,6 @@ def prepare(source,require_movable=True):
         mesh = world_mesh(group)
         if not mesh.vertices:
             continue
-        if group.hidden or any(l.name == group.layer and not l.visible for l in source.layers):
-            continue
         xyz = [[v.position.x(), v.position.y(), v.position.z()] for v in mesh.vertices]
         lo = [min(v[i] for v in xyz) for i in range(3)]
         hi = [max(v[i] for v in xyz) for i in range(3)]
@@ -142,6 +140,8 @@ def prepare(source,require_movable=True):
         clone.material = copy.deepcopy(group.material)
         clone.billboard = group.billboard
         clone.layer = group.layer
+        # Hidden only for the eye: a hidden body still takes part, like a hidden link of a chain.
+        clone.hidden = group.hidden
         clone.xform = QMatrix4x4()
         clone.xform.translate(*origin)
         scene.groups.append(clone)
@@ -161,7 +161,6 @@ def prepare(source,require_movable=True):
             matrix = group.xform or QMatrix4x4()
             parts = []
             for child in group.children:
-                if child.hidden:continue
                 part = transformed_mesh(world_mesh(child),matrix)
                 vertices = [[p-center[k] for k,p in enumerate(v.position.toTuple())] for v in part.vertices]
                 if vertices:parts.append(vertices)
