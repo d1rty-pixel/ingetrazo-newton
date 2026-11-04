@@ -13,6 +13,15 @@ Status values: **open** (confirmed, not fixed), **observation** (reported, cause
 - **Unverified:** whether it also happens on Windows, with a docked toolbar, with other (native) floating toolbars, while paused, or without other toolbar extensions (`igz_toolbars`, `organize_toolbar`) installed. The offscreen platform does not reproduce real window-manager behaviour.
 - **Next step:** reproduce on a real display; compare a native IngeTrazo toolbar floated in the same way to separate a host/Qt-Wayland issue from a Newton issue.
 
+## Control panel opens too small on Linux
+
+- **Status:** open
+- **Reported:** 2026-11-04, Linux (Ubuntu, GNOME on Wayland), IngeTrazo 0.6.0 Flatpak, toolbar icons 40 px
+- **Symptom:** When a simulation starts, the separate control panel (`newton/controls.py`) opens far too small for its actuator cards.
+- **Background:** Since `729c13d` the panel fits its height to the cards (`fit_height()`) instead of opening at a fixed 520 × 260. `479d004` refits when the "× real time" line appears; offscreen the card area then keeps its full height, but the user still sees a too small window on the real display.
+- **Unverified:** whether the compositor ignores the `resize()` before or after `show()` (Wayland ignores the position, perhaps the size too), whether `sizeHint()` of the cards is too small with the real fonts/style, and whether width or height is the problem. The offscreen platform does not reproduce window-manager behaviour.
+- **Next step:** on the real display, log `size()`, `minimumSizeHint()`, the scroll area's height and the cards' `sizeHint()` right after `show_controls()` and after the first frame.
+
 ## Narrow sidebar shows a small horizontal scrollbar
 
 - **Status:** observation
