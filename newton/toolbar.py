@@ -60,7 +60,7 @@ def physical_label(text,art):
     return widget
 
 
-def physical_check(checkbox,art):
+def pictogram_check(checkbox,art):
     checkbox.setIconSize(QSize(20,20))
     return attach(checkbox,art)
 

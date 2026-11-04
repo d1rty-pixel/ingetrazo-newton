@@ -18,7 +18,7 @@ from .interaction import ReferencePickTool
 from .references import install,validate_reference
 from .worker import joint_settings,resolve_couplings
 from .icons import attach,icon
-from .toolbar import build,decorate,redecorate,physical_label,compact
+from .toolbar import build,decorate,redecorate,physical_label,pictogram_check,compact
 from .range_control import scroll_safe
 from .i18n import tr
 from . import profiles
@@ -150,7 +150,7 @@ class NewtonPanel(QWidget):
             self.drive.addItem(label,value)
         decorate(self.drive,"drive")
         form.addRow(tr("Actuator"),self.drive)
-        self.limited = QCheckBox(tr("Use limits"))
+        self.limited = pictogram_check(QCheckBox(tr("Use limits")),"limits")
         form.addRow(self.limited)
         self.lower,self.upper = spin(-1e6,0,-90),spin(0,1e6,90)
         self.target = spin(-1e6,1e6,0)
@@ -173,7 +173,7 @@ class NewtonPanel(QWidget):
         form.addRow(physical_label(tr("Acceleration"),"acceleration"),self.acceleration)
         form.addRow(physical_label(tr("Deceleration"),"deceleration"),self.deceleration_row)
         form.addRow(physical_label(tr("Max. force"),"force"),self.force)
-        self.axis_lock = QCheckBox(tr("Lock axis object"))
+        self.axis_lock = pictogram_check(QCheckBox(tr("Lock axis object")),"lock")
         self.axis_lock.setToolTip(tr("Locks the axis object in the model so that no tool moves or rotates it by accident. It still follows its body."))
         self.axis_lock.toggled.connect(lambda on:self.lock_marker("axis_of",on))
         form.addRow(self.axis_lock)
@@ -212,7 +212,7 @@ class NewtonPanel(QWidget):
         self.show_colliders.setParent(self)
         self.show_colliders.hide()
         self.show_colliders.toggled.connect(self.collision_view.toggle)
-        self.show_collider = QCheckBox(tr("Show collision shape"))
+        self.show_collider = pictogram_check(QCheckBox(tr("Show collision shape")),"collision_shape")
         self.show_collider.setToolTip(tr("Shows or hides the collision shape of this body only. The global setting in the preferences stays as it is."))
         self.show_collider.toggled.connect(self.show_body_collider)
         self.collision_view.changed.connect(self.refresh_collider_check)

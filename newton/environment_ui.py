@@ -3,7 +3,7 @@ from PySide6.QtCore import QSettings
 from PySide6.QtWidgets import QWidget,QVBoxLayout,QFormLayout,QCheckBox,QDoubleSpinBox,QLabel
 from .model import KEY,settings
 from .i18n import tr
-from .toolbar import physical_label,physical_check
+from .toolbar import physical_label,pictogram_check
 from .range_control import scroll_safe
 from . import help_texts as help
 
@@ -24,7 +24,7 @@ class EnvironmentOverrides(QWidget):
         super().__init__()
         self.panel = panel;self.updating = False;self.group = None
         layout = QVBoxLayout(self);layout.setContentsMargins(0,0,0,0)
-        self.enabled = QCheckBox(tr("Use own simulation settings"));layout.addWidget(self.enabled)
+        self.enabled = pictogram_check(QCheckBox(tr("Use own simulation settings")),"own_settings");layout.addWidget(self.enabled)
         # The field note sits between two forms: a word-wrapped label inside a QFormLayout
         # gets too little height and is overlapped by the following rows.
         self.fields = QWidget();fields = QVBoxLayout(self.fields);fields.setContentsMargins(0,0,0,0)
@@ -42,7 +42,7 @@ class EnvironmentOverrides(QWidget):
         self.linear.setSuffix(" /s");self.angular.setSuffix(" /s")
         form.addRow(physical_label(tr("Linear damping"),"linear_damping"),self.linear)
         form.addRow(physical_label(tr("Angular damping"),"angular_damping"),self.angular)
-        self.floor = physical_check(QCheckBox(tr("Ground contact at Z = 0")),"ground");form.addRow(self.floor)
+        self.floor = pictogram_check(QCheckBox(tr("Ground contact at Z = 0")),"ground");form.addRow(self.floor)
         note = QLabel(tr(help.FIELDS))
         note.setWordWrap(True);fields.addWidget(note)
         form = QFormLayout();form.setContentsMargins(0,0,0,0);form.setRowWrapPolicy(QFormLayout.WrapLongRows)

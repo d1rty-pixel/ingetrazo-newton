@@ -7,7 +7,7 @@ from PySide6.QtWidgets import QWidget,QVBoxLayout,QFormLayout,QTabWidget,QScroll
 from .i18n import tr
 from . import profiles,help_texts as help
 from .environment_ui import number,global_damping
-from .toolbar import decorate,physical_label,physical_check
+from .toolbar import decorate,physical_label,pictogram_check
 
 
 class ProfileParameters(QWidget):
@@ -43,17 +43,17 @@ class ProfileParameters(QWidget):
         self.motion_fields = QWidget();self.motion_form = mf = QFormLayout(self.motion_fields);mf.setContentsMargins(0,0,0,0)
         motion.addRow(self.motion_fields)
         self.drive = choice(mf,"Actuator",[("Free / passive","free"),("Servo / position","position"),("Motor / speed","velocity")],lambda:self.edit("joint","drive",self.drive.currentData()),"drive")
-        self.limited = QCheckBox(tr("Use limits"));mf.addRow(self.limited);self.choices.append(self.limited)
+        self.limited = pictogram_check(QCheckBox(tr("Use limits")),"limits");mf.addRow(self.limited);self.choices.append(self.limited)
         self.limited.toggled.connect(lambda v:self.edit("joint","limited",v))
         self.motion = {}
         for key,title,low,art in (("lower","Minimum",-1e12,"limit_min"),("upper","Maximum",-1e12,"limit_max"),("target","Initial target",-1e12,"target"),
                               ("max_speed","Speed",.000001,"speed"),("acceleration","Acceleration",.000001,"acceleration"),
                               ("deceleration","Deceleration",.000001,"deceleration"),("force","Max. force",0,"force")):
             self.motion[key] = numeric(mf,title,low,1e12,lambda v,k=key:self.edit("joint",k,v/self.factor(k)),art)
-        self.sync = QCheckBox(tr("Synchronize acceleration and deceleration"));mf.addRow(self.sync);self.choices.append(self.sync)
+        self.sync = pictogram_check(QCheckBox(tr("Synchronize acceleration and deceleration")),"sync");mf.addRow(self.sync);self.choices.append(self.sync)
         self.sync.toggled.connect(lambda v:self.edit("joint","deceleration_sync",v))
         overrides = page("Simulation overrides",help.PROFILE_OVERRIDES)
-        self.own = QCheckBox(tr("Use own simulation settings"));overrides.addRow(self.own);self.choices.append(self.own)
+        self.own = pictogram_check(QCheckBox(tr("Use own simulation settings")),"own_settings");overrides.addRow(self.own);self.choices.append(self.own)
         self.own.toggled.connect(self.enable_overrides)
         self.override_fields = QWidget();of = QFormLayout(self.override_fields);of.setContentsMargins(0,0,0,0);overrides.addRow(self.override_fields)
         self.gravity = [];self.velocity = []
@@ -63,7 +63,7 @@ class ProfileParameters(QWidget):
         for key,title,high,suffix in (("linear_damping","Linear damping",100," /s"),("angular_damping","Angular damping",100," /s"),
                                      ("attraction","Attraction",1e12," m³/s²"),("softening","Softening radius",1e6," m")):
             field = numeric(of,title,0,high,lambda v,k=key:self.edit("override",k,v),key);field.setSuffix(suffix);self.override_numbers[key] = field
-        self.floor = physical_check(QCheckBox(tr("Ground contact at Z = 0")),"ground");of.addRow(self.floor);self.choices.append(self.floor)
+        self.floor = pictogram_check(QCheckBox(tr("Ground contact at Z = 0")),"ground");of.addRow(self.floor);self.choices.append(self.floor)
         self.floor.toggled.connect(lambda v:self.edit("override","floor",v))
         for i,axis in enumerate("XYZ"):
             field = numeric(of,tr("Initial velocity {axis}",axis=axis),-1e6,1e6,lambda v,n=i:self.edit_vector("initial_velocity",n,v),"velocity");field.setSuffix(" m/s");self.velocity.append(field)

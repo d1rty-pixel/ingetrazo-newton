@@ -8,7 +8,7 @@ from .connections import KINDS,apply_connection,begin
 from .interaction import ReferencePickTool
 from .reference_table import ReferenceTable
 from .i18n import tr
-from .toolbar import decorate
+from .toolbar import decorate,pictogram_check
 
 
 class ConnectionEditor(QWidget):
@@ -31,7 +31,7 @@ class ConnectionEditor(QWidget):
         narrow(*self.axis)
         for label,field in zip("XYZ",self.axis):axes.addWidget(QLabel(label));axes.addWidget(field)
         detail.addRow(tr("Pin axis"),self.axis_fields);form.addRow(self.fields)
-        self.lock = QCheckBox(tr("Lock connection object"))
+        self.lock = pictogram_check(QCheckBox(tr("Lock connection object")),"lock")
         self.lock.setToolTip(tr("Locks the connection object in the model so that no tool moves or rotates it by accident. It still follows its body."))
         self.lock.toggled.connect(lambda on:panel.lock_marker("connection_of",on))
         form.addRow(self.lock)
