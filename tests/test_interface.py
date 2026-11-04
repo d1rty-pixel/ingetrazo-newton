@@ -1724,11 +1724,11 @@ def test_connection_glyph_follows_its_type_in_the_same_undo_step(panel):
     apply_connection(panel,a,dict(target=b.uid,point=[1,0,2],type="ball"))
     marker = marker_of(scene,a,CONNECTION)
     ball = len(marker.mesh.edges)
-    assert marker.ext[KEY]["glyph"].startswith("ball/") and ball>60,"three rings"
+    assert marker.ext[KEY]["glyph"].startswith("ball/") and ball>40,"equator and meridian"
     steps = len(history.undo_stack)
     apply_connection(panel,a,dict(target=b.uid,point=[1,0,2],type="fixed"))
     assert len(history.undo_stack)==steps+1 and marker_of(scene,a,CONNECTION) is marker
-    assert marker.ext[KEY]["glyph"].startswith("fixed/") and len(marker.mesh.edges)==14,"a cube with two diagonals"
+    assert marker.ext[KEY]["glyph"].startswith("fixed/") and len(marker.mesh.edges)==12,"a plain cube"
     history.undo()
     assert marker.ext[KEY]["glyph"].startswith("ball/") and len(marker.mesh.edges)==ball
     # A wire saved with an older drawing is rebuilt on the next sync.

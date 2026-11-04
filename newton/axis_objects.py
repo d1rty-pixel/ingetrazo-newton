@@ -126,7 +126,7 @@ class AddMarker(Command):
 
 
 # Raise when a connection glyph's drawing changes, so saved wires are rebuilt.
-GLYPH_VERSION = 2
+GLYPH_VERSION = 3
 
 
 def glyph_name(value):

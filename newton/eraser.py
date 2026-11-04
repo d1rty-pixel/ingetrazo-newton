@@ -41,8 +41,8 @@ def axis_geometry(panel,viewport,j):
                          (ring[0],ring[0]-.25*radius*v-.2*radius*u)])
     else:
         tip = a+direction*radius*2
-        segments.extend([(tip,tip-direction*radius*.4+u*radius*.25),
-                         (tip,tip-direction*radius*.4-u*radius*.25),
+        segments.extend([(tip,tip-direction*radius*.55+u*radius*.32),
+                         (tip,tip-direction*radius*.55-u*radius*.32),
                          (a-u*radius*.3,a+u*radius*.3)])
     return segments,a
 
