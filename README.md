@@ -24,6 +24,8 @@ Noch nicht enthalten sind unter anderem Kugel- und Universalgelenke als Achsen, 
 
 ## Installation
 
+Die Runtime (Python 3.12 mit MuJoCo) lässt sich in den Einstellungen unter *Newton ▸ Runtime* mit einem Klick einrichten oder von Hand und per Skript anlegen, für alle IngeTrazo-Pakete (Windows, AppImage, Flatpak, macOS): [docs/runtime-setup.md](docs/runtime-setup.md) (englisch). Die folgenden Abschnitte beschreiben die Installation aus dem Repository.
+
 ### Windows
 
 ```powershell

@@ -7,6 +7,7 @@ Guidance for coding agents and contributors working on Newton, a physics extensi
 - `newton/` is the extension package that IngeTrazo loads (`setup(app)` in `newton/__init__.py`). It targets IngeTrazo 0.6.0 / Extension API 2 and must not modify IngeTrazo core files. Where API 2 lacks a hook, Newton uses a local adapter (for example `preferences.py` wraps the host preferences dialog).
 - `newton/worker.py` is a standalone process: standard library, `mujoco` and `numpy` only, no Qt and no IngeTrazo imports. It speaks JSON lines prefixed with `IGPHYSICS:` over stdin/stdout. `session.py` (simulation) and `collision_view.py` (collision preview) start it with `python -E -u worker.py` using the interpreter from `runtime.json` or the Runtime preference.
 - Model data lives in `group.ext["newton"]` and is saved in the `.igz`. Settings use the `newton/` QSettings prefix. Axis overlays, axis objects and connection objects (wire groups with `ext["newton"]["axis_of"]` or `["connection_of"]`, see `axis_objects.py`) use the reserved layer `Newton Axes`. The joint and `point_attachment` data stay authoritative; a history hook syncs the objects in the same undo step. There are no aliases for older names.
+- `runtime_setup.py` creates, checks and locates the runtime (Python 3.12 + MuJoCo in `<IngeTrazo data>/newton-runtime/`); it is standard library only, doubles as a command line (`python newton/runtime_setup.py --help`) and has two maintainer switches (`RUNTIME_SETUP_ENABLED`, `DOWNLOAD_UV`). `runtime_ui.py` is the preferences widget. The pinned `uv` hashes and `runtime-requirements.txt` must be updated together with `UV_VERSION`, `MUJOCO_VERSION` and `requirements-dev.txt`. See [docs/runtime-setup.md](docs/runtime-setup.md).
 - Module overview: `model.py` (geometry, body specs), `panel.py` (sidebar, browser), `icons.py` (icon library), `toolbar.py` (actions, dropdown pictograms), `joints.py`/`axis_edit.py`/`axis_guides.py`/`axis_objects.py` (axes), `references.py` (reference bodies, undo adapters), `glow.py` (rims around linked bodies and pick candidates), `connections.py`, `flexible.py`, `coupling_ui.py`, `controls.py` (control panel), `profiles*.py`, `preferences.py`, `eraser.py`, `i18n.py`.
 
 ## Development setup
@@ -45,7 +46,7 @@ Canonical full suite (about 45 s, 160 tests):
 - `tests/test_newton.py` runs the worker as a subprocess with `sys.executable`; keep the worker importable without IngeTrazo.
 - Record notable verification runs in [docs/testergebnisse.md](docs/testergebnisse.md).
 
-Useful scripts: `scripts/preview.py` (open a demo in a test window), `scripts/benchmark_newton.py`, `scripts/audit_contacts.py`, `scripts/package.py` (builds `dist/newton-<version>.zip`).
+Useful scripts: `scripts/preview.py` (open a demo in a test window), `scripts/benchmark_newton.py`, `scripts/audit_contacts.py`, `scripts/package.py` (builds `dist/newton-<version>.zip`: one `newton/` folder, as the IngeTrazo catalog requires, reproducible hash).
 
 ## User-visible text
 
