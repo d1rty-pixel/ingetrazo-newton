@@ -50,7 +50,7 @@ def build(release_angle=-32):
     scene.groups.extend([*supports,pendulum])
     ensure_axis_layer(scene)
     # Keep the exhibit unobstructed; its hinge can be shown using the layer eye.
-    next(l for l in scene.layers if l.name=="Newton_Axes").visible = False
+    next(l for l in scene.layers if l.name=="Newton Axes").visible = False
     return scene
 
 

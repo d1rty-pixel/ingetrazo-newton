@@ -3370,7 +3370,7 @@
               "upper": 1.5707963267948966,
               "max_speed": 3.141592653589793,
               "acceleration": 6.283185307179586,
-              "visual_layer": "Newton_Axes"
+              "visual_layer": "Newton Axes"
             }
           }
         },
@@ -15048,7 +15048,7 @@
         "name": "Layer 0"
       },
       {
-        "name": "Newton_Axes",
+        "name": "Newton Axes",
         "color": [
           0.9,
           0.55,

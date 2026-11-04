@@ -97848,7 +97848,7 @@
               ],
               "coupling": null,
               "display": null,
-              "visual_layer": "Newton_Axes"
+              "visual_layer": "Newton Axes"
             },
             "point_attachment": {
               "target": "b14c87abf9d64ea9",
@@ -391184,7 +391184,7 @@
         "name": "Layer 0"
       },
       {
-        "name": "Newton_Axes",
+        "name": "Newton Axes",
         "visible": false,
         "color": [
           0.9,

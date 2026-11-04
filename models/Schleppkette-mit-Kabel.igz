@@ -93,7 +93,7 @@
               "parent": null,
               "deceleration_sync": true,
               "deceleration": 0.3,
-              "visual_layer": "Newton_Axes"
+              "visual_layer": "Newton Axes"
             },
             "reference": null
           }
@@ -52207,7 +52207,7 @@
         "name": "Layer 0"
       },
       {
-        "name": "Newton_Axes",
+        "name": "Newton Axes",
         "visible": false,
         "color": [
           0.9,

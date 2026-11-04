@@ -113,7 +113,7 @@ def joint_settings(raw):
         if not math.isfinite(scale) or abs(scale)<1e-6 or not math.isfinite(offset) or j["drive"]!="position":
             raise ValueError("Invalid control display.")
         j["display"] = dict(scale=scale,offset=offset)
-    j["visual_layer"] = "Newton_Axes"
+    j["visual_layer"] = "Newton Axes"
     return j
 
 

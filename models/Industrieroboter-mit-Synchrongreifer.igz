@@ -6150,7 +6150,7 @@
               "acceleration": 4.363323129985824,
               "force": 200.0,
               "parent": "a30e0d200f67431e",
-              "visual_layer": "Newton_Axes"
+              "visual_layer": "Newton Axes"
             }
           }
         },
@@ -14141,7 +14141,7 @@
               "acceleration": 1.5707963267948966,
               "force": 100.0,
               "parent": "8f79760d9647428e",
-              "visual_layer": "Newton_Axes"
+              "visual_layer": "Newton Axes"
             }
           }
         },
@@ -16319,7 +16319,7 @@
               "acceleration": 1.5707963267948966,
               "force": 30.0,
               "parent": "81bae525444e441b",
-              "visual_layer": "Newton_Axes"
+              "visual_layer": "Newton Axes"
             }
           }
         },
@@ -16683,7 +16683,7 @@
                 "scale": -2.0,
                 "offset": 0.105
               },
-              "visual_layer": "Newton_Axes",
+              "visual_layer": "Newton Axes",
               "deceleration_sync": true,
               "deceleration": 0.1
             }
@@ -17049,7 +17049,7 @@
                 "master": "40f48096a09148b5",
                 "ratio": 1.0
               },
-              "visual_layer": "Newton_Axes"
+              "visual_layer": "Newton Axes"
             }
           }
         },
@@ -17061,7 +17061,7 @@
         "name": "Layer 0"
       },
       {
-        "name": "Newton_Axes",
+        "name": "Newton Axes",
         "visible": false,
         "color": [
           0.9,

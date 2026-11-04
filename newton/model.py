@@ -11,7 +11,7 @@ from .worker import joint_settings,resolve_couplings
 
 KEY = "newton"
 DEFAULTS = dict(mode="dynamic", shape="box", mass=1.0, friction=.5, restitution=.1,simulation_override=None)
-AXES_LAYER = "Newton_Axes"
+AXES_LAYER = "Newton Axes"
 
 
 def ensure_axis_layer(scene):
