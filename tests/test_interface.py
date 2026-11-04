@@ -1555,3 +1555,20 @@ def test_control_panel_marks_errors_and_warnings_but_not_hints(panel):
     assert not controls.hint_mark.isHidden() and controls.hint_mark.accessibleName()=="Warning"
     controls.message("Original model restored.")
     assert controls.hint_mark.isHidden() and controls.hint.text()=="Original model restored."
+
+
+def test_control_panel_opens_at_the_view_corner_and_fits_its_cards(panel):
+    from PySide6.QtCore import QPoint
+    controls = panel.controls
+    vp = panel.app.viewport
+    panel.show_controls()
+    corner = vp.mapToGlobal(QPoint(vp.width(),0))
+    frame = controls.frameGeometry()
+    assert abs(frame.right()+1+controls.MARGIN-corner.x())<=1 and abs(frame.top()-controls.MARGIN-corner.y())<=1
+    empty = controls.height()
+    assert empty<260
+    controls.close()
+    controls.refresh([dict(uid=str(i),body="Body",name="Axis",type="hinge",drive="position",lower=-1,upper=1,
+        limited=True,target=0,max_speed=1) for i in range(40)],False)
+    assert empty<controls.height()<=controls.height_limit
+    assert controls.scroll.verticalScrollBar().maximum()>0 or not controls.isVisible()

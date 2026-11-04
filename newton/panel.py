@@ -826,16 +826,13 @@ class NewtonPanel(QWidget):
 
     def show_controls(self):
         self.controls.refresh(self.control_rows,self.session.workspace is not None)
-        if not self.controls.isVisible():
-            self.controls.resize(420,min(600,max(260,len(self.control_rows)*145+110)))
-            frame = self.app.window.frameGeometry()
-            available = self.app.window.screen().availableGeometry()
-            x = frame.right()+12
-            if x+self.controls.width()>available.right():
-                x = max(available.left(),frame.right()-self.controls.width()-12)
-            y = max(available.top(),min(frame.top()+100,available.bottom()-self.controls.height()-40))
-            self.controls.move(x,y)
+        opening = not self.controls.isVisible()
+        if opening:
+            self.controls.place(self.app.viewport)
         self.controls.show()
+        if opening:
+            # The window frame is known only once shown; Wayland ignores both moves.
+            self.controls.place(self.app.viewport)
         self.controls.raise_()
         self.controls.activateWindow()
 

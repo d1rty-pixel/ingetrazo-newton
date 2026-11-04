@@ -1,6 +1,6 @@
 """Named, live controls in a reusable non-modal window."""
 import math
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt,QPoint
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QLabel, QScrollArea,
     QWidget, QGroupBox, QHBoxLayout, QDoubleSpinBox,QPushButton)
 from .i18n import tr
@@ -19,7 +19,7 @@ class Controls(QDialog):
         self.panel = panel
         self.setWindowTitle(tr("Newton controls"))
         self.setMinimumWidth(520)
-        self.resize(420, 440)
+        self.resize(520, 260)
         self.layout = QVBoxLayout(self)
         self.hint_row = QWidget()
         hint_layout = QHBoxLayout(self.hint_row);hint_layout.setContentsMargins(0,0,0,0)
@@ -115,6 +115,7 @@ class Controls(QDialog):
             if old:
                 old.deleteLater()
             self.align_values()
+            self.fit_height()
         self.start_button.setText(tr("Pause") if active and self.panel.session.running else tr("Resume") if active else tr("Start"))
         self.start_button.setEnabled(not active or self.panel.session.ready)
         self.reset_button.setEnabled(active)
@@ -141,6 +142,27 @@ class Controls(QDialog):
             self.hint_mark.setPixmap(status_mark(level))
             self.hint_mark.setAccessibleName(tr("Error") if level=="error" else tr("Warning"))
         self.hint_row.show()
+        self.fit_height()
+
+    MARGIN = 12
+
+    def place(self,viewport):
+        """Top right corner of the 3D view, next to the sidebar, the same gap above and to the right."""
+        corner = viewport.mapToGlobal(QPoint(viewport.width(),0))
+        self.height_limit = max(200,viewport.height()-2*self.MARGIN)
+        self.fit_height()
+        frame = self.frameGeometry().size()-self.geometry().size()
+        self.move(corner.x()-self.width()-frame.width()-self.MARGIN,corner.y()+self.MARGIN)
+
+    def fit_height(self):
+        # As tall as the cards need, up to the 3D view's height; beyond that the cards scroll.
+        content = self.scroll.widget()
+        if content is None:
+            return
+        chrome = self.layout.sizeHint().height()-self.scroll.sizeHint().height()
+        wanted = chrome+content.sizeHint().height()+2*self.scroll.frameWidth()
+        width = max(self.width(),self.minimumSizeHint().width())
+        self.resize(width,min(getattr(self,"height_limit",600),wanted))
 
     def telemetry(self, data):
         for uid, state in data.items():
