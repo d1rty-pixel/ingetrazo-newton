@@ -3,8 +3,9 @@ from PySide6.QtWidgets import QWidget,QFormLayout,QComboBox
 from .environment_ui import number
 from .model import settings,reference_id
 from .i18n import tr
-from .toolbar import decorate,physical_label,compact
+from .toolbar import decorate,physical_label
 from .flexible import validate,centre_line
+from .reference_table import ReferenceTable,ChooseButton
 
 
 class FlexibleEditor(QWidget):
@@ -28,11 +29,14 @@ class FlexibleEditor(QWidget):
         for title,key in (("Clamped","fixed"),("Pinned","pinned"),("Free","free")):self.start.addItem(tr(title),key)
         decorate(self.start,"attachment")
         detail.addRow(tr("Start"),self.start)
-        self.end = compact(QComboBox());detail.addRow(tr("End attachment"),self.end)
+        self.end_uid = None
+        self.end = ChooseButton(tr("Choose…"),self.end_candidates,self.attach_end,tr("No suitable body"))
+        self.end_table = ReferenceTable(lambda _:self.attach_end(None),tr("Free"))
+        detail.addRow(tr("End attachment"),self.end);detail.addRow(self.end_table)
         form.addRow(self.fields)
         self.kind.currentIndexChanged.connect(self.write)
         for field in (self.radius,self.bend,self.twist,self.damping):field.valueChanged.connect(self.write)
-        self.start.currentIndexChanged.connect(self.write);self.end.currentIndexChanged.connect(self.write)
+        self.start.currentIndexChanged.connect(self.write)
 
     def refresh(self,group):
         self.updating = True;self.group = group
@@ -44,11 +48,19 @@ class FlexibleEditor(QWidget):
             for widget,key,value in ((self.radius,"radius",.015),(self.bend,"bend",2e4),(self.twist,"twist",1e4),(self.damping,"damping",.002)):
                 widget.setValue(cfg.get(key,value))
             self.start.setCurrentIndex(self.start.findData(cfg.get("start","fixed")))
-            self.end.clear();self.end.addItem(tr("Free"),None)
-            for g in self.panel.app.scene.groups:
-                if g is not group and not settings(g).get("flexible") and settings(g)["mode"]!="ignore":self.end.addItem(g.name,g.uid)
-            self.end.setCurrentIndex(max(0,self.end.findData(cfg.get("end_reference"))))
+            self.end_uid = cfg.get("end_reference")
+            end = next((g for g in self.panel.app.scene.groups if g.uid==self.end_uid),None)
+            self.end_table.set_rows([(self.end_uid,end,end.name if end else tr("Missing body"),"")] if self.end_uid else [])
         finally:self.updating = False
+
+    def end_candidates(self):
+        from .panel import body_mode
+        # body_mode, not the stored mode: an unconfigured face-me figure (the scale person) never simulates.
+        for g in self.panel.app.scene.groups:
+            if g is not self.group and not settings(g).get("flexible") and body_mode(g)!="ignore":yield g.uid,g,g.name
+
+    def attach_end(self,uid):
+        self.end_uid = uid;self.write()
 
     def write(self,*args):
         if self.updating or self.group is None or self.panel.session.workspace:return
@@ -65,7 +77,7 @@ class FlexibleEditor(QWidget):
                     finally:self.updating = False
                 cfg = validate(dict(kind=self.kind.currentData(),points=points,radius=self.radius.value(),source=old.get("source","line" if not old else "mesh"),
                     bend=self.bend.value(),twist=self.twist.value(),damping=self.damping.value(),
-                    start=self.start.currentData(),end_reference=self.end.currentData()))
+                    start=self.start.currentData(),end_reference=self.end_uid))
                 if settings(self.group).get("joint"):raise ValueError("Flexible bodies cannot also have a motion axis.")
             patch = dict(flexible=cfg,**(dict(mode="dynamic") if cfg else {}))
             if cfg and cfg["start"]=="free" and reference_id(self.group):patch["reference"] = None

@@ -1,10 +1,12 @@
 """One compact editor for point, pin and rigid connections."""
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QWidget,QFormLayout,QHBoxLayout,QVBoxLayout,QPushButton,QComboBox,QLabel,QCheckBox
+from PySide6.QtCore import QTimer
+from PySide6.QtWidgets import QWidget,QFormLayout,QHBoxLayout,QPushButton,QComboBox,QLabel,QCheckBox
 from views.fold_section import narrow
 from .environment_ui import number
 from .model import settings
 from .connections import KINDS,apply_connection,begin
+from .interaction import ReferencePickTool
+from .reference_table import ReferenceTable
 from .i18n import tr
 from .toolbar import decorate
 
@@ -17,10 +19,8 @@ class ConnectionEditor(QWidget):
         for key,title in KINDS.items():self.kind.addItem(tr(title),key)
         decorate(self.kind,"connection")
         form.addRow(tr("Type"),self.kind)
-        # Stacked: side by side the two labels (longer still in German) widened the sidebar.
-        row = QVBoxLayout();self.add = QPushButton(tr("Connect…"));self.remove = QPushButton(tr("Remove connection"))
-        row.addWidget(self.add);row.addWidget(self.remove);form.addRow(row)
-        self.target = QLabel();self.target.setWordWrap(True);self.target.setTextFormat(Qt.PlainText);form.addRow(self.target)
+        self.target = ReferenceTable(lambda _:self.detach());form.addRow(self.target)
+        self.add = QPushButton(tr("Connect…"));form.addRow(self.add)
         self.fields = QWidget();detail = self.detail = QFormLayout(self.fields);detail.setContentsMargins(0,0,0,0)
         detail.setRowWrapPolicy(QFormLayout.WrapLongRows)
         self.point = [number(-1e9,1e9) for _ in range(3)];self.axis = [number(-1,1) for _ in range(3)]
@@ -38,18 +38,21 @@ class ConnectionEditor(QWidget):
         self.kind.currentIndexChanged.connect(lambda:self.write("type"))
         for index,field in enumerate(self.point):field.valueChanged.connect(lambda _,i=index:self.write("point",i))
         for index,field in enumerate(self.axis):field.valueChanged.connect(lambda _,i=index:self.write("axis",i))
-        self.add.clicked.connect(lambda:begin(panel));self.remove.clicked.connect(self.detach)
+        self.add.clicked.connect(self.link)
 
     def refresh(self,group):
         self.updating = True;self.group = group
         try:
             value = settings(group).get("point_attachment") if group else None
-            self.fields.setVisible(bool(value));self.remove.setVisible(bool(value));self.target.setVisible(bool(value))
-            self.add.setText(tr("Replace…") if value else tr("Connect…"))
+            self.fields.setVisible(bool(value))
+            self.add.setText(tr("Set linked body…") if value else tr("Connect…"))
+            rows = []
             if value:
                 self.kind.setCurrentIndex(self.kind.findData(value.get("type","ball")))
-                target = next((g.name for g in self.panel.app.scene.groups if g.uid==value["target"]),tr("Missing body"))
-                self.target.setText(target)
+                target = next((g for g in self.panel.app.scene.groups if g.uid==value["target"]),None)
+                rows.append((value["target"],target,target.name if target else tr("Missing body"),""))
+            self.target.set_rows(rows)
+            if value:
                 for field,v in zip(self.point,value["point"]):field.setValue(v*1000)
                 for field,v in zip(self.axis,value.get("axis",[0,1,0])):field.setValue(v)
             self.detail.setRowVisible(self.axis_fields,self.kind.currentData()=="hinge")
@@ -70,6 +73,21 @@ class ConnectionEditor(QWidget):
                 value[key] = list(old.get(key,[0,1,0]));value[key][index] = (self.point[index].value()/1000 if key=="point" else self.axis[index].value())
             try:apply_connection(self.panel,self.group,value)
             except (ValueError,TypeError) as exc:self.panel.status_message(str(exc));self.refresh(self.group)
+
+    def link(self):
+        old = settings(self.group).get("point_attachment") if self.group else None
+        if not old:
+            begin(self.panel);return
+        if self.panel.session.workspace:return
+        panel,source,scene = self.panel,self.group,self.panel.app.scene
+        def cancel():panel.app.window._activate_tool("select")
+        def choose(target):
+            if panel.app.scene is not scene or source not in scene.groups:raise ValueError(tr("Document changed."))
+            # Only the linked body changes; point, type and pin axis stay where they were placed.
+            apply_connection(panel,source,dict(old,target=target.uid))
+            QTimer.singleShot(0,cancel)
+        panel.app.viewport.set_active_tool(ReferencePickTool(choose,cancel))
+        panel.status_message(tr("Pick the other body. Esc cancels."))
 
     def detach(self):
         if self.group:apply_connection(self.panel,self.group,None,"Connection removed.")

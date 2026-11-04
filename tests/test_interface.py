@@ -28,8 +28,7 @@ def test_child_component_collision_rejects_plain_mesh_without_changing_model(pan
 def test_mouse_wheel_scrolls_sidebar_instead_of_changing_dropdowns_and_numbers(panel):
     from PySide6.QtCore import QPoint,QPointF
     from PySide6.QtGui import QWheelEvent
-    fields = (panel.shape,panel.drive,panel.mass,panel.coupling_editor.master,panel.coupling_editor.ratio,
-              panel.flexible_editor.end)
+    fields = (panel.shape,panel.drive,panel.mass,panel.coupling_editor.ratio)
     for field in fields:
         before = field.currentIndex() if hasattr(field,"currentIndex") else field.value()
         event = QWheelEvent(QPointF(5,5),QPointF(5,5),QPoint(),QPoint(0,-120),Qt.NoButton,Qt.NoModifier,
@@ -464,7 +463,7 @@ def test_reference_is_picked_in_viewport_and_detached_without_removing_axis(pane
         screen=SimpleNamespace(x=lambda:100,y=lambda:100)))
     qtapp.processEvents()
     assert reference(child)==parent.uid
-    assert "Türrahmen" in panel.reference_label.text()
+    assert any("Türrahmen" in name for name in panel.reference_table.names())
 
 
 def test_simulation_select_tool_stays_drag_tool_and_driven_body_cannot_drag(panel,qtapp):
@@ -488,6 +487,52 @@ def test_enabling_servo_on_legacy_passive_hinge_gets_useful_default_force(panel)
     panel.configure_joint()
     group = next(g for g in panel.app.scene.groups if (g.ext or {}).get(KEY,{}).get("joint"))
     assert group.ext[KEY]["joint"]["force"]==100
+
+
+def remove_button(table,row=0):
+    from PySide6.QtWidgets import QToolButton
+    return table.findChildren(QToolButton)[row]
+
+
+def test_reference_tables_show_a_picture_and_change_or_remove_the_link(panel,qtapp,monkeypatch):
+    from PySide6.QtWidgets import QLabel
+    from newton.model import box,AddDemo,reference_id
+    from newton.connections import apply_connection
+    from newton.flexible import make
+    door = select_demo_axis(panel)
+    vp = panel.app.viewport
+    anchor,other = box("Anchor",(9,9,2),(.1,.1,.1),mode="static"),box("Other",(8,9,2),(.1,.1,.1),mode="static")
+    rope = make("Rope",[[i*.1,3,2] for i in range(12)])
+    vp.history.execute(AddDemo([anchor,other,rope]))
+    apply_connection(panel,door,dict(target=anchor.uid,point=[0,0,2],type="hinge",axis=[0,0,1]))
+    panel.app.scene.select([door]);vp.notify_scene_changed();panel.refresh()
+    editor = panel.connection_editor
+    assert editor.target.names()==["Anchor"] and editor.add.text()=="Set linked body…"
+    assert any(not label.pixmap().isNull() for label in editor.target.findChildren(QLabel))
+    # Setting the linked body keeps the placed point, type and pin axis.
+    editor.add.click()
+    monkeypatch.setattr(vp,"pick_group",lambda *a:other)
+    vp.active_tool.on_click(SimpleNamespace(viewport=vp,screen=SimpleNamespace(x=lambda:1,y=lambda:1)))
+    qtapp.processEvents()
+    link = door.ext[KEY]["point_attachment"]
+    assert link["target"]==other.uid and link["point"]==[0,0,2] and link["type"]=="hinge"
+    assert editor.target.names()==["Other"]
+    remove_button(editor.target).click()
+    assert not door.ext[KEY].get("point_attachment") and editor.add.text()=="Connect…"
+    assert reference_id(door) and panel.reference_table.names()
+    remove_button(panel.reference_table).click()
+    assert not reference_id(door) and panel.reference_table.names()==[]
+    panel.app.scene.select([rope]);vp.notify_scene_changed();panel.refresh()
+    flexible = panel.flexible_editor
+    flexible.end.fill()
+    action = next(a for a in flexible.end.menu.actions() if a.text()=="Anchor")
+    offered = [a.text() for a in flexible.end.menu.actions()]
+    assert "Rope" not in offered and any(g.billboard for g in panel.app.scene.groups)
+    assert not any(g.billboard and g.name in offered for g in panel.app.scene.groups)
+    action.trigger()
+    assert rope.ext[KEY]["flexible"]["end_reference"]==anchor.uid and flexible.end_table.names()==["Anchor"]
+    remove_button(flexible.end_table).click()
+    assert rope.ext[KEY]["flexible"]["end_reference"] is None and flexible.end_table.names()==[]
 
 
 def select_demo_axis(panel,kind="Servo-Tür"):
@@ -911,10 +956,9 @@ def test_coupling_picker_direction_and_erase_master_are_undoable(panel):
     panel.app.scene.select([right])
     panel.app.viewport.notify_scene_changed()
     editor = panel.coupling_editor
-    assert editor.master.currentData()==left.uid
+    assert editor.leader==left.uid and editor.table.names()==[left.name]
     assert editor.direction.currentData()==-1  # physical direction; axes point inward
-    editor.master.setCurrentIndex(0)
-    editor.change()
+    remove_button(editor.table).click()
     assert not right.ext[KEY]["joint"].get("coupling")
     panel.app.viewport.history.undo()
     panel.app.viewport.notify_scene_changed()
@@ -1013,8 +1057,8 @@ def test_collision_pairs_restore_and_undo_preserve_body_mode_and_native_file(pan
     a,b = groups[3:5]
     panel.app.scene.select([a]);panel.app.viewport.notify_scene_changed()
     pairs = panel.collision_pairs
-    assert pairs.list.count()==1
-    pairs.list.setCurrentRow(0);pairs.restore()
+    assert pairs.table.names()==[b.name]
+    remove_button(pairs.table).click()
     assert not excludes(a,b)
     panel.app.viewport.history.undo();panel.app.viewport.notify_scene_changed()
     assert excludes(a,b)

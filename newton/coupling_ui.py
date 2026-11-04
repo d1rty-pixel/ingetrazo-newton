@@ -4,7 +4,8 @@ from PySide6.QtGui import QVector3D
 from .model import settings,joint_rows
 from .worker import joint_settings,resolve_couplings
 from .i18n import tr
-from .toolbar import decorate,physical_label,compact
+from .toolbar import decorate,physical_label
+from .reference_table import ReferenceTable,ChooseButton
 from .range_control import scroll_safe
 from . import help_texts as help
 
@@ -17,7 +18,9 @@ class CouplingEditor(QWidget):
         self.form = form = QFormLayout(self)
         form.setContentsMargins(0,0,0,0)
         form.setRowWrapPolicy(QFormLayout.WrapLongRows)
-        self.master = compact(QComboBox())
+        self.group,self.joint,self.axes,self.leader = None,None,{},None
+        self.master = ChooseButton(tr("Choose…"),self.candidates,self.follow,tr("No suitable axis"))
+        self.table = ReferenceTable(lambda _:self.follow(None),tr("Independent"))
         self.direction = QComboBox()
         self.direction.addItem(tr("Same direction"),1)
         self.direction.addItem(tr("Opposite direction"),-1)
@@ -28,9 +31,9 @@ class CouplingEditor(QWidget):
         self.ratio.setValue(1)
         self.ratio.setKeyboardTracking(False)
         form.addRow(tr("Follow axis"),self.master)
+        form.addRow(self.table)
         form.addRow(tr("Direction"),self.direction)
         form.addRow(physical_label(tr("Ratio"),"ratio"),self.ratio)
-        self.master.activated.connect(self.change)
         self.direction.activated.connect(self.change)
         self.ratio.valueChanged.connect(self.change)
 
@@ -40,22 +43,20 @@ class CouplingEditor(QWidget):
         try:
             j = joint_settings(settings(group)["joint"]) if group and settings(group).get("joint") else None
             self.setEnabled(bool(j))
-            self.master.clear()
-            self.master.addItem(tr("Independent"),None)
             self.axes = {r["uid"]:r for r in joint_rows(self.panel.app.scene)}
-            if j:
-                for uid,row in self.axes.items():
-                    if uid!=group.uid and row["type"]==j["type"] and row["drive"]=="position" and not row.get("coupling"):
-                        self.master.addItem(row["body"]+" · "+row["name"],uid)
-                c = j.get("coupling")
-                if c and c["master"] in self.axes:
-                    self.master.setCurrentIndex(max(0,self.master.findData(c["master"])))
-                    sign = self.orientation(j,self.axes[c["master"]])
-                    self.direction.setCurrentIndex(0 if c["ratio"]*sign>0 else 1)
-                    self.ratio.setValue(abs(c["ratio"]))
-                else:
-                    self.ratio.setValue(1)
-            linked = self.master.currentData() is not None
+            self.joint = j
+            c = j.get("coupling") if j else None
+            self.leader = c["master"] if c and c["master"] in self.axes else None
+            if self.leader:
+                sign = self.orientation(j,self.axes[self.leader])
+                self.direction.setCurrentIndex(0 if c["ratio"]*sign>0 else 1)
+                self.ratio.setValue(abs(c["ratio"]))
+            else:
+                self.ratio.setValue(1)
+            row = self.axes.get(self.leader)
+            body = next((g for g in self.panel.app.scene.groups if g.uid==self.leader),None)
+            self.table.set_rows([(self.leader,body,row["body"],row["name"])] if row else [])
+            linked = self.leader is not None
             self.direction.setEnabled(linked)
             self.ratio.setEnabled(linked)
             self.form.setRowVisible(self.direction,linked)
@@ -68,9 +69,22 @@ class CouplingEditor(QWidget):
                      if self.group and (row.get("coupling") or {}).get("master")==self.group.uid]
         if followers:
             return tr(help.COUPLING_LEADER,bodies=", ".join(followers))
-        if self.master.currentData():
+        if self.leader:
             return tr(help.COUPLING_FOLLOWER)
         return tr(help.COUPLING_FREE)
+
+    def candidates(self):
+        j = self.joint
+        if not j:
+            return
+        for uid,row in self.axes.items():
+            if uid!=self.group.uid and row["type"]==j["type"] and row["drive"]=="position" and not row.get("coupling"):
+                body = next((g for g in self.panel.app.scene.groups if g.uid==uid),None)
+                yield uid,body,row["body"]+" · "+row["name"]
+
+    def follow(self,uid):
+        self.leader = uid
+        self.change()
 
     @staticmethod
     def orientation(a,b):
@@ -84,7 +98,7 @@ class CouplingEditor(QWidget):
             return
         group = groups[0]
         j = joint_settings(settings(group)["joint"])
-        uid = self.master.currentData()
+        uid = self.leader
         j["coupling"] = (dict(master=uid,ratio=self.orientation(j,self.axes[uid])*self.direction.currentData()*self.ratio.value())
                          if uid else None)
         try:

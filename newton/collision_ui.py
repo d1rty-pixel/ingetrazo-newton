@@ -1,9 +1,10 @@
 """Pick pairwise contact exceptions in the model; one undoable command."""
-from PySide6.QtCore import Qt,QTimer
-from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QPushButton,QListWidget,QListWidgetItem
+from PySide6.QtCore import QTimer
+from PySide6.QtWidgets import QWidget,QVBoxLayout,QPushButton
 from core.history import CompoundCommand
 from .model import KEY,settings,Configure
 from .interaction import ReferencePickTool
+from .reference_table import ReferenceTable
 from .i18n import tr
 
 
@@ -29,27 +30,17 @@ class CollisionPairs(QWidget):
         super().__init__()
         self.panel = panel
         layout = QVBoxLayout(self);layout.setContentsMargins(0,0,0,0)
-        self.list = QListWidget();self.list.setMaximumHeight(100)
-        layout.addWidget(self.list)
-        row = QHBoxLayout()
+        self.table = ReferenceTable(self.restore)
         self.add = QPushButton(tr("Exclude body…"))
-        self.remove = QPushButton(tr("Remove exception"))
-        self.add.clicked.connect(self.pick);self.remove.clicked.connect(self.restore)
-        self.list.currentRowChanged.connect(lambda:self.remove.setEnabled(self.list.currentItem() is not None))
-        row.addWidget(self.add);row.addWidget(self.remove);layout.addLayout(row)
+        self.add.clicked.connect(self.pick)
+        layout.addWidget(self.table);layout.addWidget(self.add)
 
     def refresh(self):
         groups = self.panel.selected()
         self.group = groups[0] if len(groups)==1 else None
         self.setVisible(self.group is not None)
-        self.list.clear()
-        if self.group:
-            for other in self.panel.app.scene.groups:
-                if other is not self.group and excludes(self.group,other):
-                    item = QListWidgetItem(other.name);item.setData(Qt.UserRole,other.uid);self.list.addItem(item)
-        self.list.setVisible(self.list.count()>0)
-        self.remove.setVisible(self.list.count()>0)
-        self.remove.setEnabled(False)
+        others = [g for g in self.panel.app.scene.groups if g is not self.group and excludes(self.group,g)] if self.group else []
+        self.table.set_rows([(g.uid,g,g.name,"") for g in others])
 
     def pick(self):
         if not self.group or self.panel.session.workspace:return
@@ -64,10 +55,9 @@ class CollisionPairs(QWidget):
         self.panel.app.viewport.set_active_tool(ReferencePickTool(choose,cancel))
         self.panel.status_message(tr("Pick the body that should pass through this body. Esc cancels."))
 
-    def restore(self):
-        item = self.list.currentItem()
-        if item is None or self.group is None or self.panel.session.workspace:return
-        other = next((g for g in self.panel.app.scene.groups if g.uid==item.data(Qt.UserRole)),None)
+    def restore(self,uid):
+        if self.group is None or self.panel.session.workspace:return
+        other = next((g for g in self.panel.app.scene.groups if g.uid==uid),None)
         if other:
             self.panel.app.viewport.history.execute(pair_command(self.group,other,True))
             self.panel.app.viewport.notify_scene_changed()
