@@ -8,7 +8,7 @@ from PySide6.QtCore import QSettings, Qt, QTimer
 from PySide6.QtGui import QColor, QPen, QVector3D
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QPushButton, QComboBox, QDoubleSpinBox, QCheckBox, QLineEdit,
-    QFileDialog, QScrollArea, QSizePolicy)
+    QFileDialog, QScrollArea)
 from views.fold_section import FoldSection
 from .model import KEY, settings, Configure, prepare, joint_rows, reference_id,remove_axes_command,ensure_axis_layer,unlink_followers,with_zero,fit_limits
 from .session import Session
@@ -35,20 +35,22 @@ def spin(low,high,value):
 
 def section(title,key,open=True):
     # The host's own fold header (Render, AI tabs); its open state survives restarts.
-    fold = FoldSection(title.replace("&","&&"),"newton/open_"+key,default_open=open)
-    # Its inner layout reports vertical growth even when folded, which spread the folded sections over the sidebar.
-    fold.setSizePolicy(QSizePolicy.Preferred,QSizePolicy.Maximum)
-    return fold
+    return FoldSection(title.replace("&","&&"),"newton/open_"+key,default_open=open)
 
 
 def settings_section(title,key,description):
     group = section(title,key,open=False)
-    form = QFormLayout(group.body)
-    form.setRowWrapPolicy(QFormLayout.WrapLongRows)
+    # The wrapped explanation sits above the form: inside a QFormLayout its height-for-width came out short and squashed the rows.
+    outer = QVBoxLayout(group.body)
     explanation = QLabel(description)
     explanation.setWordWrap(True)
     explanation.setTextFormat(Qt.PlainText)
-    form.addRow(explanation)
+    outer.addWidget(explanation)
+    fields = QWidget()
+    form = QFormLayout(fields)
+    form.setContentsMargins(0,0,0,0)
+    form.setRowWrapPolicy(QFormLayout.WrapLongRows)
+    outer.addWidget(fields)
     return group,form,explanation
 
 
@@ -201,6 +203,7 @@ class NewtonPanel(QWidget):
         self.flexible_editor = FlexibleEditor(self);form.addRow(self.flexible_editor)
         layout.addWidget(self.flexible_section)
         self.body_section,form,_ = settings_section(tr("Body & contact"),"body",tr(help.BODY))
+        self.body_form = form
         self.shape = QComboBox()
         for label,value in [(tr("Box"),"box"),(tr("Sphere"),"sphere"),(tr("Convex hull"),"hull"),(tr("Child components"),"compound")]:
             self.shape.addItem(label,value)
@@ -227,7 +230,7 @@ class NewtonPanel(QWidget):
         from .collision_ui import CollisionPairs
         self.collision_pairs = CollisionPairs(self)
         for widget in (heading,explanation,self.collision_pairs):box_layout.addWidget(widget)
-        form.addRow(self.collision_box)
+        self.body_section.body.layout().addWidget(self.collision_box)
         layout.addWidget(self.body_section)
         # Compatibility fields hold committed preferences, never sidebar rows.
         pref = QSettings()
@@ -245,7 +248,8 @@ class NewtonPanel(QWidget):
         layout.addWidget(self.environment_section)
         self.sections = (self.editor,self.profile_box,self.joint_box,self.coupling_section,self.connection_section,
             self.flexible_section,self.body_section,self.environment_section)
-        layout.addStretch()
+        # Only the closing stretch takes spare height: folded sections report vertical growth through their layout.
+        layout.addStretch(1)
         self.selection_widgets = (intro,scroll)
         self.controls = Controls(self)
         self.session.changed.connect(self.refresh)
@@ -670,7 +674,7 @@ class NewtonPanel(QWidget):
         parent = next((g for g in self.app.scene.groups if g.uid==reference_id(group)),None)
         self.reference_label.setText(parent.name+(tr(" · rigid attachment") if not cfg.get("joint") and not cfg.get("flexible") else "") if parent else tr("None"))
         self.shape.setCurrentIndex(self.shape.findData(cfg["shape"]))
-        self.body_section.body.layout().setRowVisible(self.shape,not bool(cfg.get("flexible")))
+        self.body_form.setRowVisible(self.shape,not bool(cfg.get("flexible")))
         self.refresh_collider_check()
         for widget,key in ((self.mass,"mass"),(self.friction,"friction"),(self.bounce,"restitution")):
             widget.setValue(cfg[key])

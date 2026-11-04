@@ -1571,13 +1571,49 @@ def test_control_panel_opens_at_the_view_corner_and_fits_its_cards(panel):
     assert controls.scroll.verticalScrollBar().maximum()>0 or not controls.isVisible()
 
 
-def test_folded_sidebar_sections_stack_instead_of_sharing_the_spare_height(panel):
-    layout = panel.sections[0].parentWidget().layout()
-    for fold in panel.sections:
-        fold.set_open(False)
-        item = layout.itemAt(layout.indexOf(fold))
-        assert not item.expandingDirections() & Qt.Vertical, fold.header.text()
-    assert layout.spacing()>=12
+def squashed_widgets(root):
+    """Visible controls the layout gave less height than they need; a spin box's inner line edit is always smaller."""
+    from PySide6.QtWidgets import QWidget,QAbstractSpinBox,QComboBox,QPushButton,QCheckBox,QLabel,QLineEdit
+    kinds = (QAbstractSpinBox,QComboBox,QPushButton,QCheckBox,QLabel,QLineEdit)
+    return [(type(w).__name__,w.height(),w.minimumSizeHint().height()) for w in root.findChildren(QWidget)
+        if isinstance(w,kinds) and w.isVisible() and not isinstance(w.parentWidget(),QAbstractSpinBox)
+        and w.height()<w.minimumSizeHint().height()-1]
+
+
+@pytest.mark.parametrize("width",[600,400,300,280])
+def test_sidebar_rows_keep_their_height_at_every_width(panel,qtapp,width):
+    from newton.model import box,AddDemo,Configure
+    from newton.connections import apply_connection
+    from newton.flexible import make
+    door = select_demo_axis(panel)
+    vp = panel.app.viewport
+    anchor = box("Anchor",(9,9,2),(.1,.1,.1),mode="static")
+    rope = make("Rope",[[i*.1,3,2] for i in range(12)])
+    vp.history.execute(AddDemo([anchor,rope]))
+    apply_connection(panel,door,dict(target=anchor.uid,point=[0,0,2],type="hinge",axis=[0,0,1]))
+    vp.history.execute(Configure([door],dict(simulation_override=dict(gravity=[0,0,-1])),partial=True))
+    panel.app.window.resize(1500,1100);panel.app.window.show();panel.show_sidebar()
+    panel.setFixedWidth(width)
+    # Switching from a body without a connection to one with it changes which rows show.
+    for body in (anchor,door,rope,door):
+        panel.app.scene.select([body]);vp.notify_scene_changed();panel.refresh()
+        for fold in panel.sections:fold.set_open(True)
+        for _ in range(4):qtapp.processEvents()
+        assert not squashed_widgets(panel),(body.name,squashed_widgets(panel))
+        scroll = panel.sections[0].parentWidget().parentWidget().parentWidget()
+        assert scroll.horizontalScrollBar().maximum()==0,"no sideways scrolling"
+
+
+def test_folded_sidebar_sections_stack_instead_of_sharing_the_spare_height(panel,qtapp):
+    select_demo_axis(panel)
+    panel.app.window.resize(1500,1100);panel.app.window.show();panel.show_sidebar()
+    for fold in panel.sections:fold.set_open(False)
+    for _ in range(4):qtapp.processEvents()
+    shown = [f for f in panel.sections if f.isVisible()]
+    layout = shown[0].parentWidget().layout()
+    assert len(shown)>3 and layout.spacing()>=12
+    for upper,lower in zip(shown,shown[1:]):
+        assert lower.y()-(upper.y()+upper.height())==layout.spacing(),(upper.header.text(),lower.header.text())
 
 
 def test_collision_exceptions_live_in_the_body_and_contact_section(panel):

@@ -1,6 +1,7 @@
 """One compact editor for point, pin and rigid connections."""
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QWidget,QFormLayout,QHBoxLayout,QPushButton,QComboBox,QLabel,QCheckBox
+from PySide6.QtWidgets import QWidget,QFormLayout,QHBoxLayout,QVBoxLayout,QPushButton,QComboBox,QLabel,QCheckBox
+from views.fold_section import narrow
 from .environment_ui import number
 from .model import settings
 from .connections import KINDS,apply_connection,begin
@@ -11,19 +12,23 @@ from .toolbar import decorate
 class ConnectionEditor(QWidget):
     def __init__(self,panel):
         super().__init__();self.panel = panel;self.group = None;self.updating = False
-        form = QFormLayout(self);form.setContentsMargins(0,0,0,0)
+        form = QFormLayout(self);form.setContentsMargins(0,0,0,0);form.setRowWrapPolicy(QFormLayout.WrapLongRows)
         self.kind = QComboBox()
         for key,title in KINDS.items():self.kind.addItem(tr(title),key)
         decorate(self.kind,"connection")
         form.addRow(tr("Type"),self.kind)
-        row = QHBoxLayout();self.add = QPushButton(tr("Connect…"));self.remove = QPushButton(tr("Remove connection"))
+        # Stacked: side by side the two labels (longer still in German) widened the sidebar.
+        row = QVBoxLayout();self.add = QPushButton(tr("Connect…"));self.remove = QPushButton(tr("Remove connection"))
         row.addWidget(self.add);row.addWidget(self.remove);form.addRow(row)
         self.target = QLabel();self.target.setWordWrap(True);self.target.setTextFormat(Qt.PlainText);form.addRow(self.target)
         self.fields = QWidget();detail = self.detail = QFormLayout(self.fields);detail.setContentsMargins(0,0,0,0)
+        detail.setRowWrapPolicy(QFormLayout.WrapLongRows)
         self.point = [number(-1e9,1e9) for _ in range(3)];self.axis = [number(-1,1) for _ in range(3)]
         for axis,point in zip("XYZ",self.point):
             point.setSuffix(" mm");detail.addRow(tr("Point {axis}",axis=axis),point)
         self.axis_fields = QWidget();axes = QHBoxLayout(self.axis_fields);axes.setContentsMargins(0,0,0,0)
+        # Three fields side by side must shrink with the sidebar.
+        narrow(*self.axis)
         for label,field in zip("XYZ",self.axis):axes.addWidget(QLabel(label));axes.addWidget(field)
         detail.addRow(tr("Pin axis"),self.axis_fields);form.addRow(self.fields)
         self.lock = QCheckBox(tr("Lock connection object"))

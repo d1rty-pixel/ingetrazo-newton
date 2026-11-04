@@ -70,7 +70,7 @@ Useful scripts: `scripts/preview.py` (open a demo in a test window), `scripts/be
   - `redecorate()` repaints everything after a palette change (called from `panel.refresh_icons`).
 - Preferences pages are built with `SettingsPage` (`newton/preferences.py`): headed categories separated by a line, each setting with its own explanation (also its tooltip). New settings need a text in `help_texts.py` and its German version.
 - Sidebar sections are the host's collapsibles (`views.fold_section.FoldSection`), created with `section()`/`settings_section()` in `panel.py`; the open state is stored under `newton/open_<key>`. Add new sections to `panel.sections` so they are disabled (but still foldable) during a simulation.
-- The sidebar is resizable. Keep its content narrow enough (currently about 232 px minimum): use `toolbar.compact()` for dropdowns, avoid fixed widths, and do not put word-wrapped labels inside a `QFormLayout` (they get too little height and are overlapped); place them between forms instead.
+- The sidebar is resizable. Keep its content narrow enough (about 240 px content, 280 px sidebar): use `toolbar.compact()` for dropdowns, `views.fold_section.narrow()` for fields side by side, `WrapLongRows` for nested forms, avoid fixed widths, and do not put word-wrapped labels inside a `QFormLayout` (they get too little height and are overlapped); place them between forms instead, as `settings_section()` does. Never cap a section's height (`QSizePolicy.Maximum`): wrapped rows need their height-for-width. `test_sidebar_rows_keep_their_height_at_every_width` checks this.
 
 ## Conventions
 

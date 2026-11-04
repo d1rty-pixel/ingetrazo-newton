@@ -10,12 +10,14 @@ from .flexible import validate,centre_line
 class FlexibleEditor(QWidget):
     def __init__(self,panel):
         super().__init__();self.panel = panel;self.group = None;self.updating = False
-        form = QFormLayout(self);form.setContentsMargins(0,0,0,0)
+        form = QFormLayout(self);form.setContentsMargins(0,0,0,0);form.setRowWrapPolicy(QFormLayout.WrapLongRows)
         self.kind = QComboBox()
         for title,key in (("Rigid","rigid"),("Rope","rope"),("Cable","cable")):self.kind.addItem(tr(title),key)
         decorate(self.kind,"flexible")
         form.addRow(tr("Material"),self.kind)
         self.fields = QWidget();detail = QFormLayout(self.fields);detail.setContentsMargins(0,0,0,0)
+        # Long labels move above their field in a narrow sidebar instead of widening it.
+        detail.setRowWrapPolicy(QFormLayout.WrapLongRows)
         self.radius = number(.001,10,.015);self.radius.setSuffix(" m")
         self.bend,self.twist,self.damping = number(0,1e10,2e4),number(0,1e10,1e4),number(0,100,.002)
         for title,widget,art in (("Radius",self.radius,"radius"),("Bending modulus",self.bend,"bending"),
