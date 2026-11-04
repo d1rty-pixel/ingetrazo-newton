@@ -67,6 +67,7 @@ Der professionelle Begriff für die Zuordnung zu einem übergeordneten Element i
 - **Bezugskörper-Zuordnung lösen** trennt die Abhängigkeit, ohne Teile zu verschieben. Eine vorhandene Achse bleibt erhalten und bezieht sich danach auf die Welt.
 - Ein beweglicher Körper mit Bezugskörper, aber ohne eigene Achse, ist in der Simulation starr mit seinem Bezugskörper verbunden. Eine platzierte Achse gibt die entsprechende relative Bewegung frei.
 - **Fest** bedeutet mit Bezugskörper: fest an diesem verschraubt. Der Körper folgt dessen Bewegung, lässt sich aber nicht selbst ziehen. Ohne Bezugskörper bedeutet fest: an der Welt fixiert.
+- Einstellungen ohne Wirkung sind deaktiviert. Bei **Fest** betrifft das Bewegung, Achskopplung und Biegsames Material; Masse und eigene Simulationseinstellungen bleiben nur mit Bezugskörper aktiv, weil der Körper dann dessen Bewegung mitträgt. Eine mechanische Verbindung bleibt möglich, denn ein fester Körper kann einen beweglichen verankern. Bei **Nicht simulieren** bleiben nur Verhalten und Profil bedienbar.
 - Ohne Bezugskörper ist eine platzierte Achse an der Welt befestigt. Ein beweglicher Körper ohne Achse und ohne Bezugskörper ist frei beweglich.
 
 Direkt verbundene Körper kollidieren nicht miteinander, damit sich Lager nicht selbst blockieren. Andere Körperpaare kollidieren weiterhin. Geschlossene Bezugskörper-/Gelenkkreise werden mit einer Meldung abgewiesen.

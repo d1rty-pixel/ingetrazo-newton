@@ -53,6 +53,13 @@ def settings_section(title,key,description):
 
 
 
+def body_mode(group):
+    """The behaviour the simulation gives a body; unconfigured groups are fixed, face-me figures excluded."""
+    if KEY in (group.ext or {}):
+        return settings(group)["mode"]
+    return "ignore" if group.billboard else "static"
+
+
 def gizmo_size(group):
     from core.group import placement_points
     points = placement_points(group)
@@ -128,6 +135,7 @@ class NewtonPanel(QWidget):
         detach.clicked.connect(self.detach_reference)
         row.addWidget(pick)
         row.addWidget(detach)
+        self.reference_buttons = (pick,detach)
         form.addRow(row)
         layout.addWidget(self.editor)
         layout.removeWidget(self.editor)
@@ -538,19 +546,34 @@ class NewtonPanel(QWidget):
                 return
             self.patch({key:value})
 
+    def usable_settings(self,groups):
+        """Which settings act on at least one selected body: a fixed body has no motion, an excluded one nothing."""
+        modes = {body_mode(g) for g in groups} or {"dynamic"}
+        moving,simulated = "dynamic" in modes,modes!={"ignore"}
+        # A fixed body carried by a reference body still adds its mass to that body.
+        carried = moving or any(body_mode(g)=="static" and reference_id(g) for g in groups)
+        usable = {fold:simulated for fold in (self.body_section,self.connection_section,self.environment_section)}
+        usable.update({fold:moving for fold in (self.joint_box,self.coupling_section,self.flexible_section)})
+        usable[self.environment_section] = carried
+        usable.update(mass=carried,reference=simulated)
+        return usable
+
     def refresh_widgets(self,*args):
         active = self.session.workspace is not None
         if getattr(self,"was_active",False) and not active:
             self.controls.message(tr("Original model restored."))
         self.was_active = active
-        # Only the bodies: sections stay foldable while the simulation runs.
-        for fold in self.sections:
-            fold.body.setEnabled(not active)
         groups = self.selected()
         if active:
             groups = getattr(self,"_sidebar_groups",[])
         else:
             self._sidebar_groups = groups
+        usable = self.usable_settings(groups)
+        # Only the bodies: sections stay foldable while the simulation runs or a setting has no effect.
+        for fold in self.sections:
+            fold.body.setEnabled(not active and usable.get(fold,True))
+        self.mass.setEnabled(usable["mass"])
+        for button in self.reference_buttons:button.setEnabled(usable["reference"])
         if (self._slider_history is not None and (self.app.viewport.history is not self._slider_history
             or tuple(g.uid for g in groups)!=self._slider_selection)):
             self.end_slider_edit()
@@ -619,7 +642,7 @@ class NewtonPanel(QWidget):
             return
         group = groups[0]
         cfg = settings(group)
-        self.mode.setCurrentIndex(self.mode.findData(cfg["mode"] if KEY in (group.ext or {}) else "static"))
+        self.mode.setCurrentIndex(self.mode.findData(body_mode(group)))
         parent = next((g for g in self.app.scene.groups if g.uid==reference_id(group)),None)
         self.reference_label.setText(parent.name+(tr(" · rigid attachment") if not cfg.get("joint") and not cfg.get("flexible") else "") if parent else tr("None"))
         self.shape.setCurrentIndex(self.shape.findData(cfg["shape"]))

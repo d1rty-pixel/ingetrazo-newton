@@ -1586,3 +1586,23 @@ def test_folded_sidebar_sections_stack_instead_of_sharing_the_spare_height(panel
 def test_collision_exceptions_live_in_the_body_and_contact_section(panel):
     assert panel.body_section.isAncestorOf(panel.collision_pairs)
     assert not hasattr(panel,"collision_section")
+
+
+def test_fixed_and_excluded_bodies_disable_settings_without_effect(panel):
+    group = select_demo_axis(panel)
+    def mode(value):
+        panel.mode.setCurrentIndex(panel.mode.findData(value))
+        panel.refresh()
+        return {fold:fold.body.isEnabled() for fold in panel.sections}
+    enabled = mode("dynamic")
+    assert all(enabled.values()) and panel.mass.isEnabled()
+    enabled = mode("static")
+    assert group.ext[KEY]["mode"]=="static"
+    assert not enabled[panel.joint_box] and not enabled[panel.coupling_section] and not enabled[panel.flexible_section]
+    assert enabled[panel.body_section] and enabled[panel.connection_section] and enabled[panel.editor]
+    from newton.model import reference_id
+    assert panel.mass.isEnabled()==bool(reference_id(group))
+    enabled = mode("ignore")
+    assert not enabled[panel.body_section] and not enabled[panel.connection_section] and not enabled[panel.environment_section]
+    assert enabled[panel.editor] and enabled[panel.profile_box] and panel.mode.isEnabled()
+    assert not any(b.isEnabled() for b in panel.reference_buttons)
