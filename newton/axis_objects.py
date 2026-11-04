@@ -86,7 +86,7 @@ def build(body,key,value,size):
     group.axes = m
     group.ext = {KEY:{"mode":"ignore",key:body.uid}}
     if key==CONNECTION:
-        group.ext[KEY]["glyph"] = value.get("type","ball")
+        group.ext[KEY]["glyph"] = glyph_name(value)
     return group
 
 
@@ -125,6 +125,14 @@ class AddMarker(Command):
         scene.version += 1
 
 
+# Raise when a connection glyph's drawing changes, so saved wires are rebuilt.
+GLYPH_VERSION = 2
+
+
+def glyph_name(value):
+    return f'{value.get("type","ball")}/{GLYPH_VERSION}'
+
+
 def marker_of(scene,body,key):
     return next((m for m in markers(scene,key) if owner_id(m)==body.uid),None)
 
@@ -148,7 +156,7 @@ class LockMarker(Command):
 
 
 class Reshape(Command):
-    """Swaps a connection object's wire for the glyph of a changed connection type; lock and selection stay."""
+    """Swaps a connection object's wire for the glyph of a changed type or drawing; lock and selection stay."""
     keeps_paint = True
 
     def __init__(self,group,fresh):
@@ -221,7 +229,7 @@ def plan(scene,before=None,cmd=None,size=lambda g:.2):
                 else:
                     commands.append(AddMarker(build(body,key,value,size(body))))
                 continue
-            if key==CONNECTION and marker.ext[KEY].get("glyph")!=value.get("type","ball"):
+            if key==CONNECTION and marker.ext[KEY].get("glyph")!=glyph_name(value):
                 commands.append(Reshape(marker,build(body,key,value,size(body))))
                 continue
             pivot,axis,zero = placement(marker)

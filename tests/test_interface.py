@@ -1673,20 +1673,24 @@ def test_locked_axis_and_connection_objects_follow_their_body_only(panel,qtapp):
 def test_connection_glyph_follows_its_type_in_the_same_undo_step(panel):
     from newton.model import box,AddDemo
     from newton.connections import apply_connection
-    from newton.axis_objects import CONNECTION,marker_of
+    from newton.axis_objects import CONNECTION,marker_of,glyph_name
     scene,history = panel.app.scene,panel.app.viewport.history
     a,b = box("a",(0,0,2),(1,1,1)),box("b",(2,0,2),(1,1,1),mode="static")
     history.execute(AddDemo([a,b]))
     apply_connection(panel,a,dict(target=b.uid,point=[1,0,2],type="ball"))
     marker = marker_of(scene,a,CONNECTION)
     ball = len(marker.mesh.edges)
-    assert marker.ext[KEY]["glyph"]=="ball" and ball>60,"three rings"
+    assert marker.ext[KEY]["glyph"].startswith("ball/") and ball>60,"three rings"
     steps = len(history.undo_stack)
     apply_connection(panel,a,dict(target=b.uid,point=[1,0,2],type="fixed"))
     assert len(history.undo_stack)==steps+1 and marker_of(scene,a,CONNECTION) is marker
-    assert marker.ext[KEY]["glyph"]=="fixed" and len(marker.mesh.edges)==14,"a cube with two diagonals"
+    assert marker.ext[KEY]["glyph"].startswith("fixed/") and len(marker.mesh.edges)==14,"a cube with two diagonals"
     history.undo()
-    assert marker.ext[KEY]["glyph"]=="ball" and len(marker.mesh.edges)==ball
+    assert marker.ext[KEY]["glyph"].startswith("ball/") and len(marker.mesh.edges)==ball
+    # A wire saved with an older drawing is rebuilt on the next sync.
+    marker.ext[KEY]["glyph"] = "ball/1"
+    history.execute(AddDemo([box("c",(5,5,2),(1,1,1))]))
+    assert marker.ext[KEY]["glyph"]==glyph_name(a.ext[KEY]["point_attachment"])
 
 
 def test_small_connection_glyphs_keep_a_readable_size_on_screen(panel,qtapp):
