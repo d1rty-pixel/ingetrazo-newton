@@ -87,7 +87,7 @@ Beim Entfernen einer führenden Achse oder beim Festsetzen ihres Körpers werden
 
 ## Eigene Simulationseinstellungen und Kraftfelder
 
-Die weiteren Objekteinstellungen sind in **Achskopplung**, **Körper & Kontakt**, **Kollisionsausnahmen** und **Eigene Simulationseinstellungen** gegliedert. Jeder Abschnitt erklärt zusammengehörige Parameter in einem Kontextabsatz. Die Achskopplung erscheint nur bei einer einzelnen ausgewählten Achse; Richtung und Übersetzung erscheinen erst bei einer folgenden Achse.
+Die weiteren Objekteinstellungen sind in **Achskopplung**, **Körper & Kontakt** (mit den Kollisionsausnahmen) und **Eigene Simulationseinstellungen** gegliedert. Jeder Abschnitt erklärt zusammengehörige Parameter in einem Kontextabsatz. Die Achskopplung erscheint nur bei einer einzelnen ausgewählten Achse; Richtung und Übersetzung erscheinen erst bei einer folgenden Achse.
 
 Unter **Eigene Simulationseinstellungen** kann ein Körper die globale Schwerkraft durch einen eigenen Weltvektor X/Y/Z ersetzen, lineare und rotatorische Dämpfung festlegen und den automatischen Boden bei Z = 0 unabhängig ein-/ausschalten. Modellierte Unterlagen behalten ihre normalen Kontakte. Ausschalten des Hauptschalters stellt die Vererbung wieder her. Die Overrides werden mit dem Modell und in eigenen Profilen gespeichert.
 
@@ -109,7 +109,7 @@ Kollisionsformen sind standardmäßig ausgeblendet. **Window → Preferences →
 
 Der Button **Tastenkürzel für Kollisionsanzeige…** in den Newton-Preferences öffnet IngeTrazos native Tastenkürzel-Seite direkt beim passenden Befehl. Dort lassen sich ein Kürzel vergeben und Konflikte prüfen; zunächst ist keines vorbelegt. Ausgewählte Körper werden in der Kollisionsansicht hervorgehoben. Die Anzeige verändert keine Kontakte. Im Bearbeitungsmodus wird die Form nach Geometrie- oder Parameteränderungen neu berechnet; Szene und Undo-History bleiben unverändert.
 
-Im Bereich **Kollisionsausnahmen**: einen Körper auswählen, **Körper ausnehmen…** drücken und den zweiten Körper im Modell anklicken. Dieses Paar darf sich anschließend durchdringen. Die Liste zeigt die gespeicherten Ausnahmen; **Ausnahme entfernen** aktiviert wieder das normale Kontaktverhalten. Beide Befehle sind rückgängig machbar und werden in der `.igz` gespeichert. Direkte Bezugskörper-Verbindungen bleiben zusätzlich automatisch von gegenseitiger Kollision ausgenommen.
+Im Bereich **Körper & Kontakt** unter **Kollisionsausnahmen**: einen Körper auswählen, **Körper ausnehmen…** drücken und den zweiten Körper im Modell anklicken. Dieses Paar darf sich anschließend durchdringen. Die Liste zeigt die gespeicherten Ausnahmen; **Ausnahme entfernen** aktiviert wieder das normale Kontaktverhalten. Beide Befehle sind rückgängig machbar und werden in der `.igz` gespeichert. Direkte Bezugskörper-Verbindungen bleiben zusätzlich automatisch von gegenseitiger Kollision ausgenommen.
 
 ## Simulation und Steuerpult
 

@@ -208,12 +208,16 @@ class NewtonPanel(QWidget):
         self.show_collider.toggled.connect(self.show_body_collider)
         self.collision_view.changed.connect(self.refresh_collider_check)
         form.addRow(self.show_collider)
-        layout.addWidget(self.body_section)
-        self.collision_section,form,_ = settings_section(tr("Collision exceptions"),"collisions",tr(help.COLLISIONS))
+        # Exceptions are a contact setting of this body, so they live in the same section.
+        self.collision_box = QWidget()
+        box_layout = QVBoxLayout(self.collision_box);box_layout.setContentsMargins(0,8,0,0)
+        heading = QLabel(tr("Collision exceptions"));heading.setStyleSheet("font-weight: bold")
+        explanation = QLabel(tr(help.COLLISIONS));explanation.setWordWrap(True);explanation.setTextFormat(Qt.PlainText)
         from .collision_ui import CollisionPairs
         self.collision_pairs = CollisionPairs(self)
-        form.addRow(self.collision_pairs)
-        layout.addWidget(self.collision_section)
+        for widget in (heading,explanation,self.collision_pairs):box_layout.addWidget(widget)
+        form.addRow(self.collision_box)
+        layout.addWidget(self.body_section)
         # Compatibility fields hold committed preferences, never sidebar rows.
         pref = QSettings()
         self.gravity = spin(-100,100,float(pref.value("newton/gravity_z",-9.81)))
@@ -229,7 +233,7 @@ class NewtonPanel(QWidget):
         form.addRow(self.environment)
         layout.addWidget(self.environment_section)
         self.sections = (self.editor,self.profile_box,self.joint_box,self.coupling_section,self.connection_section,
-            self.flexible_section,self.body_section,self.collision_section,self.environment_section)
+            self.flexible_section,self.body_section,self.environment_section)
         layout.addStretch()
         self.selection_widgets = (intro,scroll)
         self.controls = Controls(self)
@@ -602,7 +606,7 @@ class NewtonPanel(QWidget):
         self.coupling_editor.refresh(groups[0] if len(groups)==1 else None)
         self.coupling_section.setVisible(len(groups)==1 and bool(settings(groups[0]).get("joint")))
         self.coupling_help.setText(self.coupling_editor.description())
-        self.collision_section.setVisible(len(groups)==1)
+        self.collision_box.setVisible(len(groups)==1)
         self.collision_pairs.refresh()
         self.environment_section.setVisible(len(groups)==1)
         self.environment.refresh(groups[0] if len(groups)==1 else None)

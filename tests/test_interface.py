@@ -1581,3 +1581,8 @@ def test_folded_sidebar_sections_stack_instead_of_sharing_the_spare_height(panel
         item = layout.itemAt(layout.indexOf(fold))
         assert not item.expandingDirections() & Qt.Vertical, fold.header.text()
     assert layout.spacing()>=12
+
+
+def test_collision_exceptions_live_in_the_body_and_contact_section(panel):
+    assert panel.body_section.isAncestorOf(panel.collision_pairs)
+    assert not hasattr(panel,"collision_section")
