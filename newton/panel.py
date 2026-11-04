@@ -199,6 +199,11 @@ class NewtonPanel(QWidget):
         self.show_colliders.setParent(self)
         self.show_colliders.hide()
         self.show_colliders.toggled.connect(self.collision_view.toggle)
+        self.show_collider = QCheckBox(tr("Show collision shape"))
+        self.show_collider.setToolTip(tr("Shows or hides the collision shape of this body only. The global setting in the preferences stays as it is."))
+        self.show_collider.toggled.connect(self.show_body_collider)
+        self.collision_view.changed.connect(self.refresh_collider_check)
+        form.addRow(self.show_collider)
         layout.addWidget(self.body_section)
         self.collision_section,form,_ = settings_section(tr("Collision exceptions"),"collisions",tr(help.COLLISIONS))
         from .collision_ui import CollisionPairs
@@ -502,6 +507,18 @@ class NewtonPanel(QWidget):
         if not self._refreshing:
             self.mark(self.mode.currentData())
 
+    def show_body_collider(self,shown):
+        groups = self.selected()
+        if len(groups)==1:
+            self.collision_view.show_body(groups[0].uid,shown)
+
+    def refresh_collider_check(self):
+        groups = self.selected()
+        blocked = self.show_collider.blockSignals(True)
+        self.show_collider.setChecked(len(groups)==1 and self.collision_view.shown(groups[0].uid))
+        self.show_collider.setEnabled(len(groups)==1)
+        self.show_collider.blockSignals(blocked)
+
     def live_body(self,key,value):
         if not self._refreshing:
             if key=="shape" and value=="compound" and any(not g.children for g in self.selected()):
@@ -599,6 +616,7 @@ class NewtonPanel(QWidget):
         self.reference_label.setText(parent.name+(tr(" · rigid attachment") if not cfg.get("joint") and not cfg.get("flexible") else "") if parent else tr("None"))
         self.shape.setCurrentIndex(self.shape.findData(cfg["shape"]))
         self.body_section.body.layout().setRowVisible(self.shape,not bool(cfg.get("flexible")))
+        self.refresh_collider_check()
         for widget,key in ((self.mass,"mass"),(self.friction,"friction"),(self.bounce,"restitution")):
             widget.setValue(cfg[key])
         if cfg.get("joint"):

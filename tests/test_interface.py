@@ -157,6 +157,31 @@ def test_context_menu_selects_only_the_physics_object_the_body_owns(panel,qtapp)
     assert not actions["Select axis object"].isEnabled() and not actions["Select connection object"].isEnabled()
 
 
+def test_body_collision_shape_toggle_overrides_only_this_body(panel):
+    from newton.model import box,AddDemo
+    a,b = box("A",(0,0,1),(1,1,1)),box("B",(3,0,1),(1,1,1))
+    panel.app.viewport.history.execute(AddDemo([a,b]))
+    view = panel.collision_view
+    panel.show_colliders.setChecked(False)
+    try:
+        panel.app.scene.select([a]);panel.refresh()
+        assert not panel.show_collider.isChecked()
+        panel.show_collider.setChecked(True)
+        assert view.shown(a.uid) and not view.shown(b.uid) and view.active()
+        assert not panel.show_colliders.isChecked(),"the global setting stays as it is"
+        panel.show_colliders.setChecked(True)
+        assert view.shown(b.uid) and panel.show_collider.isChecked()
+        panel.show_collider.setChecked(False)
+        assert not view.shown(a.uid) and view.shown(b.uid) and panel.show_colliders.isChecked()
+        panel.app.scene.select([b]);panel.refresh()
+        assert panel.show_collider.isChecked()
+        panel.app.scene.select([a,b]);panel.refresh()
+        assert not panel.show_collider.isEnabled()
+    finally:
+        panel.show_colliders.setChecked(False)
+        view.overrides.clear()
+
+
 def test_connection_object_wins_the_pick_over_the_body_around_it(panel,qtapp):
     from newton.model import box,AddDemo
     from newton.connections import apply_connection,HIT_PX

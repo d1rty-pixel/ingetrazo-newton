@@ -14,6 +14,7 @@ class CollisionView(QObject):
         super().__init__(panel)
         self.panel = panel
         self.enabled = False
+        self.overrides,self.override_scene = {},None
         self.key = None
         self.process = None
         self.colliders,self.poses = {},{}
@@ -26,12 +27,31 @@ class CollisionView(QObject):
     def toggle(self,enabled):
         self.enabled = enabled
         self.key = None
-        if enabled:self.request()
+        if self.active():self.request()
         else:self.stop()
         self.changed.emit()
 
+    def body_overrides(self):
+        """Per-body exceptions to the global setting, for this document only and never saved."""
+        if self.override_scene!=id(self.panel.app.scene):
+            self.overrides,self.override_scene = {},id(self.panel.app.scene)
+        return self.overrides
+
+    def shown(self,uid):
+        return self.body_overrides().get(uid,self.enabled)
+
+    def active(self):
+        return self.enabled or any(self.body_overrides().values())
+
+    def show_body(self,uid,shown):
+        overrides = self.body_overrides()
+        if shown==self.enabled:overrides.pop(uid,None)
+        else:overrides[uid] = shown
+        if self.active():self.request()
+        self.changed.emit()
+
     def request(self):
-        if not self.enabled or self.panel.session.workspace:
+        if not self.active() or self.panel.session.workspace:
             return
         key = (id(self.panel.app.scene),self.panel.app.scene.version,self.panel.python.text())
         if key!=self.key:
@@ -51,7 +71,7 @@ class CollisionView(QObject):
         self.panel.status_message(tr("Could not inspect collision shapes. Check the Newton Runtime."))
 
     def inspect(self):
-        if not self.enabled or self.panel.session.workspace:return
+        if not self.active() or self.panel.session.workspace:return
         try:
             _,specs,_ = prepare(self.panel.app.scene,require_movable=False)
             python = self.panel.python.text().strip()
@@ -82,12 +102,13 @@ class CollisionView(QObject):
             return
 
     def draw(self,viewport,painter):
-        if not self.enabled or viewport is not self.panel.app.viewport:return
+        if not self.active() or viewport is not self.panel.app.viewport:return
         session = self.panel.session
         colliders = session.colliders if session.workspace else self.colliders
         selected = {g.uid for g in self.panel.selected()}
         painter.save()
         for uid,shape in colliders.items():
+            if not self.shown(uid):continue
             g = next((g for g in self.panel.app.scene.groups if g.uid==uid),None)
             if g is None or g.hidden or any(l.name==g.layer and not l.visible for l in self.panel.app.scene.layers):continue
             if session.workspace:
