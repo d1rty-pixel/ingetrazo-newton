@@ -273,6 +273,8 @@
   "Select a body and place an axis.": "Körper wählen und Achse platzieren.",
   "Select a body.": "Gruppe im Modell wählen",
   "Select a group containing one open line without faces.": "Wähle eine Gruppe mit einem einzelnen offenen Linienzug ohne Flächen.",
+  "Select axis object": "Achsobjekt auswählen",
+  "Select connection object": "Verbindungsobjekt auswählen",
   "Select one body.": "Einen Körper auswählen.",
   "Select one dependent body.": "Zuerst genau einen abhängigen Körper auswählen.",
   "Select one group or component.": "Bitte genau eine Gruppe oder Komponente auswählen.",

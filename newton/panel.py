@@ -782,8 +782,19 @@ class NewtonPanel(QWidget):
             menu.addAction(icon("connect"),tr("Connect bodies…"),lambda:QTimer.singleShot(0,lambda:begin(self)))
             if settings(groups[0]).get("point_attachment"):
                 menu.addAction(icon("unlink"),tr("Remove connection"),lambda:QTimer.singleShot(0,self.connection_editor.detach))
+            from .axis_objects import AXIS,CONNECTION,markers,owner_id
+            body = groups[0]
+            for key,text,name in ((AXIS,"Select axis object","rotate"),(CONNECTION,"Select connection object","connect")):
+                marker = None if owner_id(body) else next((m for m in markers(self.app.scene,key) if owner_id(m)==body.uid),None)
+                action = menu.addAction(icon(name),tr(text),lambda *_,m=marker:QTimer.singleShot(0,lambda:self.select_object(m)))
+                action.setEnabled(marker is not None)
         if groups:
             menu.addAction(icon("unlink"),tr("Detach reference body"),lambda:QTimer.singleShot(0,self.detach_reference))
+
+    def select_object(self,marker):
+        if marker in self.app.scene.groups:
+            self.app.scene.select([marker])
+            self.app.viewport.notify_scene_changed()
 
     def draw_joints(self,viewport,painter):
         self.collision_view.draw(viewport,painter)

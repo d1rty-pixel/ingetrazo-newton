@@ -131,6 +131,32 @@ def test_connection_objects_mirror_connections_and_host_transforms_move_the_poin
     assert not markers(scene,CONNECTION)
 
 
+def test_context_menu_selects_only_the_physics_object_the_body_owns(panel,qtapp):
+    from PySide6.QtWidgets import QMenu
+    from newton.model import box,AddDemo
+    from newton.connections import apply_connection
+    from newton.axis_objects import AXIS,CONNECTION,markers,owner_id
+    group = select_demo_axis(panel)
+    scene = panel.app.scene
+    anchor = box("Anchor",(9,9,2),(.1,.1,.1),mode="static");panel.app.viewport.history.execute(AddDemo([anchor]))
+    menus = []  # Keeps each menu, and with it its actions, alive.
+    def entries(selection):
+        menus.append(QMenu());panel.context_menu(menus[-1],selection)
+        return {a.text():a for a in menus[-1].actions()}
+    actions = entries([group])
+    assert actions["Select axis object"].isEnabled() and not actions["Select connection object"].isEnabled()
+    actions["Select axis object"].trigger();qtapp.processEvents()
+    [axis] = [m for m in markers(scene,AXIS) if owner_id(m)==group.uid]
+    assert scene.selection=={axis},"the body is replaced by its axis object"
+    apply_connection(panel,group,dict(target=anchor.uid,point=[0,0,2],type="ball"))
+    actions = entries([group])
+    assert actions["Select connection object"].isEnabled()
+    actions["Select connection object"].trigger();qtapp.processEvents()
+    assert scene.selection=={markers(scene,CONNECTION)[0]}
+    actions = entries([anchor])
+    assert not actions["Select axis object"].isEnabled() and not actions["Select connection object"].isEnabled()
+
+
 def test_connection_object_wins_the_pick_over_the_body_around_it(panel,qtapp):
     from newton.model import box,AddDemo
     from newton.connections import apply_connection,HIT_PX

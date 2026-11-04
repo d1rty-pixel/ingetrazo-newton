@@ -273,6 +273,8 @@
   "Select a body and place an axis.": "Select a body and place an axis.",
   "Select a body.": "Select a body.",
   "Select a group containing one open line without faces.": "Select a group containing one open line without faces.",
+  "Select axis object": "Select axis object",
+  "Select connection object": "Select connection object",
   "Select one body.": "Select one body.",
   "Select one dependent body.": "Select one dependent body.",
   "Select one group or component.": "Select one group or component.",
