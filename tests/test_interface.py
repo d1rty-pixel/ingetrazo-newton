@@ -1797,3 +1797,15 @@ def test_selection_outlines_linked_bodies_and_picks_outline_their_candidate(pane
     glow.offer(panel,b)
     assert panel.glow_candidate is b
     glow.offer(panel,None)
+
+
+def test_control_panel_grows_when_the_speed_line_appears(qtapp,panel):
+    seed_demo(panel,"Servo-Tür")
+    panel.show_controls()
+    controls = panel.controls
+    controls.message("Drag passive bodies. Use controls for actuators.")
+    qtapp.processEvents()
+    room = controls.scroll.height()
+    controls.show_performance(dict(speed=1.0))
+    qtapp.processEvents()
+    assert controls.scroll.height()>=room

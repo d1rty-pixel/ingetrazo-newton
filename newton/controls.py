@@ -180,7 +180,9 @@ class Controls(QDialog):
         self.align_values()
 
     def show_performance(self,metrics):
-        self.performance_label.setVisible(bool(metrics))
+        if self.performance_label.isHidden()==bool(metrics):
+            self.performance_label.setVisible(bool(metrics))
+            self.fit_height()
         if not metrics:return
         speed = metrics.get("speed")
         text = tr("Paused") if metrics.get("paused") else tr("{speed:.2f}× real time",speed=speed) if speed is not None else tr("Measuring…")
