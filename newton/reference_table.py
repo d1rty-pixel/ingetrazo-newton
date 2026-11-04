@@ -100,19 +100,32 @@ class ReferenceTable(QWidget):
 
 
 class ChooseButton(QPushButton):
-    """Opens a menu of the bodies that fit; ``candidates()`` yields ``(key, group, name)``."""
+    """Opens a menu of the bodies that fit; ``candidates()`` yields ``(key, group, name)``.
 
-    def __init__(self,text,candidates,choose,nothing):
+    ``offer(group)`` is told which body the hovered entry stands for (None when the menu closes),
+    so the viewport can outline it."""
+
+    def __init__(self,text,candidates,choose,nothing,offer=None):
         super().__init__(text)
-        self.candidates,self.choose,self.nothing = candidates,choose,nothing
+        self.candidates,self.choose,self.nothing,self.offer = candidates,choose,nothing,offer
+        self.offered = []
         self.menu = QMenu(self)
         self.menu.aboutToShow.connect(self.fill)
+        self.menu.hovered.connect(self.hover)
+        self.menu.aboutToHide.connect(lambda:self.offer and self.offer(None))
         self.setMenu(self.menu)
+
+    def hover(self,action):
+        index = action.data()
+        if self.offer:self.offer(self.offered[index] if isinstance(index,int) and index<len(self.offered) else None)
 
     def fill(self):
         self.menu.clear()
+        self.offered = []
         ratio = self.devicePixelRatioF()
         for key,group,name in self.candidates():
-            self.menu.addAction(QIcon(picture(group,SIZE,ratio)),name,lambda k=key:self.choose(k))
+            action = self.menu.addAction(QIcon(picture(group,SIZE,ratio)),name,lambda k=key:self.choose(k))
+            # An index, not the group: the action's Python wrapper may be replaced (see toolbar.Actions).
+            action.setData(len(self.offered));self.offered.append(group)
         if self.menu.isEmpty():
             self.menu.addAction(self.nothing).setEnabled(False)

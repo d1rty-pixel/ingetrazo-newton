@@ -6,6 +6,7 @@ from .worker import joint_settings,resolve_couplings
 from .i18n import tr
 from .toolbar import decorate,physical_label
 from .reference_table import ReferenceTable,ChooseButton
+from .glow import offer
 from .range_control import scroll_safe
 from . import help_texts as help
 
@@ -19,7 +20,7 @@ class CouplingEditor(QWidget):
         form.setContentsMargins(0,0,0,0)
         form.setRowWrapPolicy(QFormLayout.WrapLongRows)
         self.group,self.joint,self.axes,self.leader = None,None,{},None
-        self.master = ChooseButton(tr("Choose…"),self.candidates,self.follow,tr("No suitable axis"))
+        self.master = ChooseButton(tr("Choose…"),self.candidates,self.follow,tr("No suitable axis"),lambda g:offer(panel,g))
         self.table = ReferenceTable(lambda _:self.follow(None),tr("Independent"))
         self.direction = QComboBox()
         self.direction.addItem(tr("Same direction"),1)

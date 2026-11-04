@@ -1748,3 +1748,49 @@ def test_small_connection_glyphs_keep_a_readable_size_on_screen(panel,qtapp):
     import math
     assert max(math.hypot(xs[i]-xs[0],ys[i]-ys[0]) for i in (1,2,3))==pytest.approx(MIN_RADIUS_PX,rel=.05)
     assert screen_size(vp,value,2.)==2.,"large glyphs keep the body's size"
+
+
+def test_selection_outlines_linked_bodies_and_picks_outline_their_candidate(panel):
+    from PySide6.QtGui import QImage,QPainter,QColor
+    from newton.model import box,AddDemo
+    from newton.connections import apply_connection
+    from newton.interaction import ReferencePickTool
+    from newton.reference_table import ChooseButton
+    from newton import glow
+    scene,vp = panel.app.scene,panel.app.viewport
+    a,b,c,d = box("a",(0,0,2),(1,1,1)),box("b",(2,0,2),(1,1,1),mode="static"),box("c",(0,3,2),(1,1,1)),box("d",(5,5,2),(1,1,1))
+    c.ext[KEY]["reference"] = a.uid
+    vp.history.execute(AddDemo([a,b,c,d]))
+    apply_connection(panel,a,dict(target=b.uid,point=[1,0,2],type="ball"))
+    assert {g.name for g in glow.linked(scene,[a])}=={"b","c"},"connection target and dependent body"
+    assert [g.name for g in glow.linked(scene,[b])]==["a"],"links count in both directions"
+    assert glow.linked(scene,[d])==[]
+    scene.select([a])
+    def painted():
+        image = QImage(vp.width(),vp.height(),QImage.Format_ARGB32);image.fill(QColor(0,0,0,0))
+        painter = QPainter(image);glow.draw(panel,vp,painter);painter.end()
+        return sum(image.pixelColor(x,y).alpha()>0 for x in range(0,image.width(),4) for y in range(0,image.height(),4))
+    linked_only = painted()
+    assert linked_only>0
+    tool = ReferencePickTool(lambda g:None,lambda:None,lambda g:g is not d)
+    class Context:
+        viewport,screen = vp,type("P",(),{"x":lambda s:0,"y":lambda s:0})()
+    for picked,expected in ((d,None),(b,b),(None,None)):
+        vp.pick_group = lambda x,y,g=picked:g
+        tool.on_hover(Context())
+        assert tool.glow_group is expected,"only a body the click would accept gets a rim"
+    tool.glow_group = d
+    vp.active_tool = tool
+    try:
+        assert painted()>linked_only
+    finally:
+        vp.active_tool = None
+    offered = []
+    button = ChooseButton("Choose…",lambda:[("b",b,"b")],lambda k:None,"none",offered.append)
+    button.fill()
+    button.hover(button.menu.actions()[0])
+    button.menu.aboutToHide.emit()
+    assert offered==[b,None]
+    glow.offer(panel,b)
+    assert panel.glow_candidate is b
+    glow.offer(panel,None)

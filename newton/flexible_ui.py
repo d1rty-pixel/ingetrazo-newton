@@ -6,6 +6,7 @@ from .i18n import tr
 from .toolbar import decorate,physical_label
 from .flexible import validate,centre_line
 from .reference_table import ReferenceTable,ChooseButton
+from .glow import offer
 
 
 class FlexibleEditor(QWidget):
@@ -30,7 +31,7 @@ class FlexibleEditor(QWidget):
         decorate(self.start,"attachment")
         detail.addRow(tr("Start"),self.start)
         self.end_uid = None
-        self.end = ChooseButton(tr("Choose…"),self.end_candidates,self.attach_end,tr("No suitable body"))
+        self.end = ChooseButton(tr("Choose…"),self.end_candidates,self.attach_end,tr("No suitable body"),lambda g:offer(panel,g))
         self.end_table = ReferenceTable(lambda _:self.attach_end(None),tr("Free"))
         detail.addRow(tr("End attachment"),self.end);detail.addRow(self.end_table)
         form.addRow(self.fields)

@@ -832,7 +832,11 @@ class NewtonPanel(QWidget):
             self.patch(values,[child])
             QTimer.singleShot(0,lambda:self.app.window._activate_tool("select"))
             self.status_message(tr("Reference body assigned: ")+parent.name)
-        vp.set_active_tool(ReferencePickTool(choose,cancel))
+        def accepts(parent):
+            try:validate_reference(scene,child,parent.uid)
+            except ValueError:return False
+            return True
+        vp.set_active_tool(ReferencePickTool(choose,cancel,accepts))
         self.status_message(tr("Pick the reference body."))
 
     def detach_reference(self):
@@ -871,6 +875,8 @@ class NewtonPanel(QWidget):
             self.app.viewport.notify_scene_changed()
 
     def draw_joints(self,viewport,painter):
+        from .glow import draw as draw_glow
+        draw_glow(self,viewport,painter)
         self.collision_view.draw(viewport,painter)
         from .axis_guides import draw
         draw(self,viewport,painter)

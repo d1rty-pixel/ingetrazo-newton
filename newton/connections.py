@@ -49,14 +49,22 @@ class ConnectionTool(Tool):
 
     def __init__(self,panel,source,kind):
         self.panel,self.source,self.kind = panel,source,kind
-        self.scene = panel.app.scene;self.target = None;self.anchor = None;self.hover = None;self.done = False
+        self.scene = panel.app.scene;self.target = None;self.anchor = None;self.hover = None;self.done = False;self.glow_group = None
 
     @property
     def start_point(self):return self.anchor
 
     def on_activate(self,vp):vp.flash_status(tr("Pick the other body. Esc cancels."),15000)
 
-    def on_hover(self,ctx):self.hover = QVector3D(ctx.world);ctx.viewport.update()
+    def on_hover(self,ctx):
+        self.hover = QVector3D(ctx.world)
+        if self.target is None:
+            group = ctx.viewport.pick_group(ctx.screen.x(),ctx.screen.y())
+            try:
+                if group is not None:connection_command(self.scene,self.source,dict(target=group.uid,point=[0,0,0],type=self.kind))
+            except ValueError:group = None
+            self.glow_group = group
+        ctx.viewport.update()
 
     def on_click(self,ctx):
         if self.done:return
@@ -66,7 +74,7 @@ class ConnectionTool(Tool):
                 target = ctx.viewport.pick_group(ctx.screen.x(),ctx.screen.y())
                 if target is None:return
                 connection_command(self.scene,self.source,dict(target=target.uid,point=list(ctx.world.toTuple()),type=self.kind))
-                self.target = target;ctx.viewport.flash_status(tr("Pick the connection point. Esc cancels."),15000);return
+                self.target = target;self.glow_group = None;ctx.viewport.flash_status(tr("Pick the connection point. Esc cancels."),15000);return
             if self.anchor is None:
                 self.anchor = QVector3D(ctx.world)
                 if self.kind!="hinge":self.finish()
@@ -92,7 +100,7 @@ class ConnectionTool(Tool):
 
     def on_cancel(self,vp):self.done = True;QTimer.singleShot(0,lambda:self.panel.app.window._activate_tool("select"))
 
-    def on_deactivate(self,vp):self.done = True
+    def on_deactivate(self,vp):self.done = True;self.glow_group = None
 
     def rubber_band_lines(self):return [(self.anchor,self.hover)] if self.anchor is not None and self.hover is not None else []
 

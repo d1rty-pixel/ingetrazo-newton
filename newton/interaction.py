@@ -9,12 +9,20 @@ class ReferencePickTool(Tool):
     name = tr("Assign reference body")
     uses_snap = False
 
-    def __init__(self, choose, cancel):
-        self.choose, self.cancel = choose, cancel
+    def __init__(self, choose, cancel, accepts=lambda group: True):
+        self.choose, self.cancel, self.accepts = choose, cancel, accepts
         self.done = False
+        self.glow_group = None
 
     def on_activate(self, vp):
         vp.flash_status(tr("Pick the reference body. Esc cancels."),15000)
+
+    def on_hover(self, ctx):
+        group = ctx.viewport.pick_group(ctx.screen.x(),ctx.screen.y())
+        group = group if group is not None and self.accepts(group) else None
+        if group is not self.glow_group:
+            self.glow_group = group
+            ctx.viewport.update()
 
     def on_click(self, ctx):
         group = ctx.viewport.pick_group(ctx.screen.x(),ctx.screen.y())
@@ -26,6 +34,7 @@ class ReferencePickTool(Tool):
 
     def on_deactivate(self, vp):
         self.done = True
+        self.glow_group = None
 
     def on_cancel(self, vp):
         self.cancel()
