@@ -25,6 +25,20 @@ def test_child_component_collision_rejects_plain_mesh_without_changing_model(pan
     assert group.ext[KEY]["shape"]=="box" and len(vp.history.undo_stack)==before
 
 
+def test_mouse_wheel_scrolls_sidebar_instead_of_changing_dropdowns_and_numbers(panel):
+    from PySide6.QtCore import QPoint,QPointF
+    from PySide6.QtGui import QWheelEvent
+    fields = (panel.shape,panel.drive,panel.mass,panel.coupling_editor.master,panel.coupling_editor.ratio,
+              panel.flexible_editor.end)
+    for field in fields:
+        before = field.currentIndex() if hasattr(field,"currentIndex") else field.value()
+        event = QWheelEvent(QPointF(5,5),QPointF(5,5),QPoint(),QPoint(0,-120),Qt.NoButton,Qt.NoModifier,
+                            Qt.NoScrollPhase,False)
+        QApplication.sendEvent(field,event)
+        assert not event.isAccepted()
+        assert before==(field.currentIndex() if hasattr(field,"currentIndex") else field.value())
+
+
 def test_connect_tool_places_a_pin_and_sidebar_edits_it_live(panel,qtapp,monkeypatch):
     from newton.model import box,AddDemo
     from newton.connections import ConnectionTool

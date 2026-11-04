@@ -4,6 +4,7 @@ from PySide6.QtWidgets import QWidget,QVBoxLayout,QFormLayout,QCheckBox,QDoubleS
 from .model import KEY,settings
 from .i18n import tr
 from .toolbar import physical_label,physical_check
+from .range_control import scroll_safe
 from . import help_texts as help
 
 
@@ -15,7 +16,7 @@ def global_damping():
 def number(low,high,value=0):
     widget = QDoubleSpinBox();widget.setRange(low,high);widget.setDecimals(3)
     widget.setKeyboardTracking(False);widget.setValue(value)
-    return widget
+    return scroll_safe(widget)
 
 
 class EnvironmentOverrides(QWidget):

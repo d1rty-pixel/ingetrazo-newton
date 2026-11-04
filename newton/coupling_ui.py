@@ -4,7 +4,8 @@ from PySide6.QtGui import QVector3D
 from .model import settings,joint_rows
 from .worker import joint_settings,resolve_couplings
 from .i18n import tr
-from .toolbar import decorate,physical_label
+from .toolbar import decorate,physical_label,compact
+from .range_control import scroll_safe
 from . import help_texts as help
 
 
@@ -16,12 +17,12 @@ class CouplingEditor(QWidget):
         self.form = form = QFormLayout(self)
         form.setContentsMargins(0,0,0,0)
         form.setRowWrapPolicy(QFormLayout.WrapLongRows)
-        self.master = QComboBox()
+        self.master = compact(QComboBox())
         self.direction = QComboBox()
         self.direction.addItem(tr("Same direction"),1)
         self.direction.addItem(tr("Opposite direction"),-1)
         decorate(self.direction,"direction")
-        self.ratio = QDoubleSpinBox()
+        self.ratio = scroll_safe(QDoubleSpinBox())
         self.ratio.setRange(.001,100)
         self.ratio.setDecimals(3)
         self.ratio.setValue(1)

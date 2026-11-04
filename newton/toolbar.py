@@ -103,7 +103,8 @@ def compact(combo):
     from PySide6.QtWidgets import QComboBox
     combo.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)
     combo.setMinimumContentsLength(6)
-    return combo
+    from .range_control import scroll_safe
+    return scroll_safe(combo)
 
 
 def redecorate():

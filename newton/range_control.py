@@ -1,5 +1,5 @@
 """Wide sidebar slider paired with a compact, precise numeric input."""
-from PySide6.QtCore import Qt,QEvent,Signal
+from PySide6.QtCore import Qt,QEvent,QObject,Signal
 from PySide6.QtWidgets import QWidget,QHBoxLayout,QSlider,QAbstractSpinBox
 from views.tray import style_slider
 
@@ -7,6 +7,22 @@ from views.tray import style_slider
 class ScrollSafeSlider(QSlider):
     def wheelEvent(self,event):
         event.ignore()  # Scroll the sidebar without changing a parameter.
+
+
+class WheelGuard(QObject):
+    def eventFilter(self,obj,event):
+        if event.type()==QEvent.Wheel:
+            event.ignore()  # Ignored, so the surrounding scroll area scrolls instead of the value changing.
+            return True
+        return False
+
+
+_guard = WheelGuard()
+
+
+def scroll_safe(widget):
+    widget.installEventFilter(_guard)
+    return widget
 
 
 class RangeControl(QWidget):

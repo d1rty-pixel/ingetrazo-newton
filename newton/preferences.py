@@ -97,12 +97,12 @@ class NewtonPreferences(QWidget):
 
         page = SettingsPage(self.tabs,tr("Simulation"),tr(help.SIMULATION),pictograms=True)
         page.category(tr("Accuracy"))
-        self.quality = QComboBox()
+        from .range_control import RangeControl,scroll_safe
+        self.quality = scroll_safe(QComboBox())
         for label,key in (("Quick","quick"),("Balanced","balanced"),("Precise","precise")):self.quality.addItem(tr(label),key)
         self.quality.setCurrentIndex(max(0,self.quality.findData(QSettings().value("newton/quality","balanced"))))
         page.setting(None,tr("Quality"),self.quality,tr(help.QUALITY))
         from .environment_ui import number,global_damping
-        from .range_control import RangeControl
         page.category(tr("Gravity and ground"))
         self.gravity = number(-100,100,panel.gravity.value());self.gravity.setSuffix(" m/s²")
         page.setting("gravity",tr("Gravity Z"),RangeControl(self.gravity,-100,100),tr(help.GRAVITY))

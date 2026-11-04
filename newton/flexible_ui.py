@@ -3,7 +3,7 @@ from PySide6.QtWidgets import QWidget,QFormLayout,QComboBox
 from .environment_ui import number
 from .model import settings,reference_id
 from .i18n import tr
-from .toolbar import decorate,physical_label
+from .toolbar import decorate,physical_label,compact
 from .flexible import validate,centre_line
 
 
@@ -26,7 +26,7 @@ class FlexibleEditor(QWidget):
         for title,key in (("Clamped","fixed"),("Pinned","pinned"),("Free","free")):self.start.addItem(tr(title),key)
         decorate(self.start,"attachment")
         detail.addRow(tr("Start"),self.start)
-        self.end = QComboBox();detail.addRow(tr("End attachment"),self.end)
+        self.end = compact(QComboBox());detail.addRow(tr("End attachment"),self.end)
         form.addRow(self.fields)
         self.kind.currentIndexChanged.connect(self.write)
         for field in (self.radius,self.bend,self.twist,self.damping):field.valueChanged.connect(self.write)

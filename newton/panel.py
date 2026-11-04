@@ -17,6 +17,7 @@ from .interaction import ReferencePickTool
 from .references import install,validate_reference
 from .worker import joint_settings,resolve_couplings
 from .toolbar import build,icon,decorate,redecorate,physical_label,compact
+from .range_control import scroll_safe
 from .i18n import tr
 from . import profiles
 from . import help_texts as help
@@ -28,7 +29,7 @@ def spin(low,high,value):
     w.setRange(low,high)
     w.setKeyboardTracking(False)
     w.setValue(value)
-    return w
+    return scroll_safe(w)
 
 
 def settings_section(title,description):
