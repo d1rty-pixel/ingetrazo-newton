@@ -1,7 +1,9 @@
 """Code-native vector icons for the newton toolbar."""
 import weakref
+from collections.abc import Mapping
+import shiboken6
 from PySide6.QtCore import QSize
-from PySide6.QtGui import QIcon,QPixmap,QPalette
+from PySide6.QtGui import QAction,QIcon,QPixmap,QPalette
 from PySide6.QtWidgets import QToolBar,QApplication
 from .i18n import tr
 
@@ -184,6 +186,33 @@ def repaint_pictograms():
         else:widget.setPixmap(pictogram(art,20))
 
 
+class Actions(Mapping):
+    """Toolbar actions by key; a dead wrapper is looked up again by object name.
+
+    PySide 6.11 can invalidate the Python wrapper of a live QAction when other code walks a
+    menu's actions (see IngeTrazo's views/theme.py _redraw_icons), so a cached wrapper is not
+    reliable."""
+
+    def __init__(self,window,actions):
+        self.window = window
+        self._actions = actions
+
+    def __getitem__(self,key):
+        action = self._actions[key]
+        if not shiboken6.isValid(action):
+            action = self.window.findChild(QAction,"newton_"+key)
+            if action is None:
+                raise KeyError(key)
+            self._actions[key] = action
+        return action
+
+    def __iter__(self):
+        return iter(self._actions)
+
+    def __len__(self):
+        return len(self._actions)
+
+
 def build(panel):
     from .connections import begin as begin_connection
     bar = QToolBar(tr("Newton"),panel.app.window)
@@ -220,4 +249,4 @@ def build(panel):
             add(*entry)
     panel.app.window.addToolBar(bar)
     panel.app.restore_toolbar_layout()
-    return bar,actions
+    return bar,Actions(panel.app.window,actions)

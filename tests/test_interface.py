@@ -661,6 +661,19 @@ def test_toolbar_groups_and_icons_follow_palette_and_state(panel):
         QApplication.setPalette(palette)
 
 
+def test_toolbar_actions_survive_an_invalidated_wrapper(panel,qtapp):
+    # PySide 6.11 drops live QAction wrappers when other code walks menus; the sidebar must keep working.
+    import shiboken6
+    group = select_demo_axis(panel)
+    shiboken6.invalidate(panel.actions._actions["rotate"])
+    panel.selection_signature = None
+    panel.refresh_widgets()
+    rotate = panel.actions["rotate"]
+    assert shiboken6.isValid(rotate) and rotate.objectName()=="newton_rotate"
+    assert rotate in panel.toolbar.actions() and rotate.isEnabled()
+    assert panel.heading.text().endswith(group.name)
+
+
 def test_native_preferences_stage_icons_and_profiles_until_ok(panel,monkeypatch):
     from PySide6.QtCore import QSettings
     from PySide6.QtWidgets import QInputDialog
