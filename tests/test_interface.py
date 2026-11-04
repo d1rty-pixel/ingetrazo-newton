@@ -79,6 +79,28 @@ def test_connection_makes_the_body_movable_only_when_it_could_not_work_otherwise
         assert a.ext[KEY]["mode"]==source_mode and not a.ext[KEY].get("point_attachment")
 
 
+def test_connection_marker_has_a_generous_hit_area_and_hover_highlight(panel,qtapp):
+    from PySide6.QtCore import QPointF
+    from PySide6.QtGui import QMouseEvent
+    from newton.model import box,AddDemo
+    from newton.connections import apply_connection,point_in_view,install,HIT_PX
+    a,b = box("Link",(.5,0,2),(1,.1,.1)),box("Anchor",(0,0,2),(.1,.1,.1),mode="static")
+    other = box("Other",(3,3,0),(.1,.1,.1),mode="static")
+    vp = panel.app.viewport;vp.history.execute(AddDemo([a,b,other]))
+    apply_connection(panel,a,dict(target=b.uid,point=[0,0,2],type="ball"))
+    vp.resize(800,600);vp.scene.select([other]);panel.refresh();install(panel)
+    xs,ys,_ = vp.world_to_pixels([list(point_in_view(panel,a,a.ext[KEY]["point_attachment"],vp).toTuple())])
+    near = QPointF(float(xs[0])+HIT_PX-2,float(ys[0]))
+    def send(kind,pos,button=Qt.NoButton):
+        QApplication.sendEvent(vp,QMouseEvent(kind,pos,QPointF(vp.mapToGlobal(pos.toPoint())),button,button,Qt.NoModifier))
+    send(QEvent.MouseMove,near)
+    assert panel.hover_connection==a.uid
+    send(QEvent.MouseMove,QPointF(near.x()+40,near.y()))
+    assert panel.hover_connection is None
+    send(QEvent.MouseButtonPress,near,Qt.LeftButton)
+    assert a in vp.scene.selection and other not in vp.scene.selection
+
+
 def test_connection_to_an_excluded_body_is_refused(panel):
     from newton.model import box,AddDemo
     from newton.connections import connection_command

@@ -117,9 +117,13 @@ def point_in_view(panel,group,value,vp=None):
     return point
 
 
+# Screen pixels around a marker that count as a hit; the marker is an overlay, so it has no geometry to click.
+HIT_PX = 16.
+
+
 def pick(panel,vp,x,y):
     if panel.session.workspace or not axes_visible(panel.app.scene,picking=True):return None
-    best,answer = 11.,None
+    best,answer = HIT_PX,None
     for group in panel.app.scene.groups:
         value = settings(group).get("point_attachment")
         if not value or not editable(panel.app.scene,group):continue
@@ -139,7 +143,7 @@ def draw(panel,vp,painter):
         point = point_in_view(panel,group,value,vp);xs,ys,front = vp.world_to_pixels([list(point.toTuple())])
         if not front[0]:continue
         selected = group in scene.selection or any(g.uid==group.uid for g in getattr(panel,"_sidebar_groups",[]))
-        x,y = int(xs[0]),int(ys[0]);r = 9 if selected else 5
+        x,y = int(xs[0]),int(ys[0]);r = 9 if selected else 7
         colour = QColor(235,65,45) if getattr(panel,"hover_connection",None)==group.uid else QColor(215,91,204)
         painter.setPen(QPen(colour,3 if selected else 2));painter.setBrush(QColor(25,29,35,220))
         painter.drawEllipse(x-r,y-r,r*2,r*2);painter.drawLine(x-r-3,y,x+r+3,y);painter.drawLine(x,y-r-3,x,y+r+3)
@@ -173,6 +177,9 @@ class ConnectionFilter(QObject):
     def __init__(self,panel):super().__init__(panel);self.panel = panel
     def eventFilter(self,vp,event):
         p = self.panel
+        if event.type()==QEvent.MouseMove and event.buttons()==Qt.NoButton:
+            self.hover(vp,event)
+            return False
         if event.type()!=QEvent.MouseButtonPress or event.button()!=Qt.LeftButton or event.modifiers()!=Qt.NoModifier:return False
         if p.session.workspace or vp is not p.app.viewport or vp.nav_mode is not None or vp.active_tool is not p.app.window._tools["select"]:return False
         group = pick(p,vp,event.position().x(),event.position().y())
@@ -180,6 +187,14 @@ class ConnectionFilter(QObject):
         if group not in p.selected():p.app.scene.select([group]);vp.notify_scene_changed();p.show_sidebar()
         else:vp.set_active_tool(MoveConnection(p,group))
         return True
+
+    def hover(self,vp,event):
+        p = self.panel
+        usable = not p.session.workspace and vp is p.app.viewport and vp.nav_mode is None and vp.active_tool is p.app.window._tools["select"]
+        group = pick(p,vp,event.position().x(),event.position().y()) if usable else None
+        uid = group.uid if group is not None else None
+        if uid!=getattr(p,"hover_connection",None):
+            p.hover_connection = uid;vp.update()
 
 
 def install(panel):
