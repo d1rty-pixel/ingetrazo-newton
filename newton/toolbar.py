@@ -110,7 +110,10 @@ def compact(combo):
 
 
 def redecorate():
-    for combo,kind in list(_decorated.items()):decorate(combo,kind)
+    # A Python wrapper can outlive its deleted widget, so the weak registries keep the entry.
+    for combo,kind in list(_decorated.items()):
+        if shiboken6.isValid(combo):decorate(combo,kind)
+        else:del _decorated[combo]
     repaint_pictograms()
 
 
@@ -182,7 +185,9 @@ def physical_check(checkbox,art):
 
 def repaint_pictograms():
     for widget,art in list(_labelled.items()):
-        if hasattr(widget,"setIcon"):widget.setIcon(compose(*PICTOGRAMS[art]))
+        if not shiboken6.isValid(widget):
+            del _labelled[widget]
+        elif hasattr(widget,"setIcon"):widget.setIcon(compose(*PICTOGRAMS[art]))
         else:widget.setPixmap(pictogram(art,20))
 
 

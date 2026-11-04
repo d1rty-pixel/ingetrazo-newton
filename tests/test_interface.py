@@ -245,6 +245,9 @@ def panel(qtapp, monkeypatch,request):
         p.profile_manager.close()
     win._saved_version = win.viewport.scene.version
     win.close()
+    # A closed window stays alive; its palette watcher would repaint every later panel's icons too.
+    win.deleteLater()
+    QApplication.sendPostedEvents(None,QEvent.DeferredDelete)
     set_language(old_language)
 
 

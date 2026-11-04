@@ -34,7 +34,7 @@ python -m venv .venv
 
 ## Tests
 
-Canonical full suite (about 45-65 s, 141 tests at 0.14.0):
+Canonical full suite (about 45 s, 160 tests):
 
 ```bash
 .venv/bin/python -m pytest tests -q --basetemp=.test-state/pytest
