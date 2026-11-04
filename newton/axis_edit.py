@@ -4,7 +4,7 @@ from PySide6.QtCore import Qt,QTimer,QObject,QEvent
 from PySide6.QtGui import QVector3D
 from tools.base import Tool
 from .eraser import pick_axis,axis_frame
-from .connections import pick as pick_connection,set_hover as set_connection_hover
+from .connections import pick as pick_connection,set_hover as set_connection_hover,handle_at as connection_handle,ConnectionEditTool
 from .model import settings,axes_visible
 from .i18n import tr
 
@@ -64,6 +64,12 @@ class AxisEditTool(Tool):
         if commit and self.moved:
             try:self.panel.commit_joint(self.scene,self.group,self.values)
             except ValueError as exc:self.panel.status_message(str(exc))
+        elif commit:
+            # A click without a drag selects the axis object, as on an unselected axis.
+            from .axis_objects import AXIS,marker_of
+            marker = marker_of(self.scene,self.group,AXIS)
+            if marker is not None and not getattr(marker,"locked",False):
+                self.scene.select([marker]);self.panel.app.viewport.notify_scene_changed()
         self.panel.app.viewport.update()
         QTimer.singleShot(0,lambda:self.panel.app.window._activate_tool("select"))
 
@@ -123,6 +129,9 @@ def install(panel):
                 if any(g.uid==j["uid"] for g in panel.selected()) and handle_at(panel,ctx.viewport,j,ctx.screen.x(),ctx.screen.y()):
                     ctx.viewport.setCursor(Qt.SizeAllCursor)
                     break
+            else:
+                if any(connection_handle(panel,ctx.viewport,g,ctx.screen.x(),ctx.screen.y()) for g in editable_connections(panel)):
+                    ctx.viewport.setCursor(Qt.SizeAllCursor)
     tool.on_click,tool.on_hover = on_click,on_hover
 
 
@@ -144,4 +153,22 @@ class HandleFilter(QObject):
             if handle:
                 viewport.set_active_tool(AxisEditTool(p,group,settings(group)["joint"],handle))
                 return True
+        for group in editable_connections(p):
+            handle = connection_handle(p,viewport,group,event.position().x(),event.position().y())
+            if handle:
+                viewport.set_active_tool(ConnectionEditTool(p,group,handle))
+                return True
         return False
+
+
+def editable_connections(panel):
+    """Selected bodies whose connection object the handles may move: not hidden, not locked."""
+    from .axis_objects import CONNECTION,marker_of
+    from .connections import editable
+    scene = panel.app.scene
+    result = []
+    for group in panel.selected():
+        marker = marker_of(scene,group,CONNECTION) if settings(group).get("point_attachment") else None
+        if marker is not None and editable(scene,group) and editable(scene,marker):
+            result.append(group)
+    return result

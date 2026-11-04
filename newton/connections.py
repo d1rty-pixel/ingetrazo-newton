@@ -1,7 +1,7 @@
 """Undoable closed-loop attachments placed and edited in the model."""
 import math
 from PySide6.QtCore import Qt,QTimer
-from PySide6.QtGui import QVector3D,QColor,QPen
+from PySide6.QtGui import QVector3D,QColor,QPen,QBrush,QPainter
 from tools.base import Tool
 from .model import KEY,settings,Configure,axes_visible
 from .worker import attachment_settings
@@ -137,22 +137,173 @@ def ring(painter,x,y,colour):
     painter.drawEllipse(x-r,y-r,r*2,r*2);painter.drawLine(x-r-3,y,x+r+3,y);painter.drawLine(x,y-r-3,x,y+r+3)
 
 
+VIOLET,RED,LOCKED = (215,91,204),(235,65,45),(150,150,150)
+# Glyph radius as a share of the body's gizmo size; the pin reaches PIN times further.
+RADIUS,PIN = .35,2.2
+
+
+def circle(a,b,centre=(0,0,0),r=1.,n=24):
+    return [tuple(centre[k]+(a[k]*math.cos(t)+b[k]*math.sin(t))*r for k in range(3)) for t in (2*math.pi*i/n for i in range(n+1))]
+
+
+def glyph(kind):
+    """Polylines in the object's own frame (z along the pin): a ball is three rings, a pin a rod with end rings, a rigid connection a cube."""
+    x,y,z = (1,0,0),(0,1,0),(0,0,1)
+    if kind=="ball":
+        lines = [circle(x,y),circle(x,z),circle(y,z)]
+    elif kind=="hinge":
+        lines = [[(0,0,-PIN),(0,0,PIN)],circle(x,y),circle(x,y,(0,0,-PIN*.75),.6),circle(x,y,(0,0,PIN*.75),.6)]
+    else:
+        corners = [(a*.75,b*.75,c*.75) for a in (-1,1) for b in (-1,1) for c in (-1,1)]
+        lines = [[corners[i],corners[j]] for i in range(8) for j in range(i+1,8) if bin(i^j).count("1")==1]
+        lines += [[corners[0],corners[7]],[corners[3],corners[4]]]
+    return [[tuple(c*RADIUS for c in p) for p in line] for line in lines]
+
+
+def glyph_frame(value,size):
+    from .axis_objects import CONNECTION,target_matrix
+    m = target_matrix(CONNECTION,value)
+    m.scale(size)
+    return m
+
+
+def handles(value,size):
+    """Point handle, and for a pin the direction handle at its tip."""
+    point = QVector3D(*value["point"])
+    if value.get("type")!="hinge":return {"point":point}
+    return {"point":point,"direction":point+QVector3D(*value["axis"]).normalized()*size*RADIUS*PIN}
+
+
+def size_of(panel,group):
+    sizes = getattr(panel,"gizmo_sizes",{})
+    if group.uid not in sizes:
+        from .panel import gizmo_size
+        sizes[group.uid] = gizmo_size(group)
+    return sizes[group.uid]
+
+
+def handle_at(panel,vp,group,x,y):
+    value = settings(group).get("point_attachment")
+    if not value or not axes_visible(panel.app.scene,picking=True):return None
+    for key,p in sorted(handles(value,size_of(panel,group)).items(),key=lambda item:item[0]!="direction"):
+        xs,ys,front = vp.world_to_pixels([list(p.toTuple())])
+        if front[0] and math.hypot(x-float(xs[0]),y-float(ys[0]))<=10:return key
+    return None
+
+
 def draw(panel,vp,painter):
     scene = panel.app.scene
     if not axes_visible(scene):return
-    if not panel.session.workspace:
-        hover = next((g for g in scene.groups if g.uid==getattr(panel,"hover_connection",None)),None)
-        if hover is not None:
-            from .axis_objects import placement
-            xs,ys,front = vp.world_to_pixels([placement(hover)[0]])
-            if front[0]:ring(painter,int(xs[0]),int(ys[0]),QColor(235,65,45))
+    if panel.session.workspace:
+        # The simulated scene has no connection objects, so the point is drawn here.
+        for group in scene.groups:
+            value = settings(group).get("point_attachment")
+            if not value or group.hidden or any(l.name==group.layer and not l.visible for l in scene.layers):continue
+            point = point_in_view(panel,group,value);xs,ys,front = vp.world_to_pixels([list(point.toTuple())])
+            if front[0]:ring(painter,int(xs[0]),int(ys[0]),QColor(*VIOLET))
         return
-    # The simulated scene has no connection objects, so the point is drawn here.
-    for group in scene.groups:
-        value = settings(group).get("point_attachment")
-        if not value or group.hidden or any(l.name==group.layer and not l.visible for l in scene.layers):continue
-        point = point_in_view(panel,group,value);xs,ys,front = vp.world_to_pixels([list(point.toTuple())])
-        if front[0]:ring(painter,int(xs[0]),int(ys[0]),QColor(215,91,204))
+    if vp is not panel.app.viewport:return
+    from .axis_objects import CONNECTION,markers,owner_id
+    bodies = {g.uid:g for g in scene.groups}
+    selected = {g.uid for g in panel.selected()}
+    preview = getattr(panel,"connection_preview",None) or {}
+    painter.save();painter.setRenderHint(QPainter.Antialiasing,True)
+    for marker in markers(scene,CONNECTION):
+        body = bodies.get(owner_id(marker))
+        if body is None or marker.hidden or any(l.name==body.layer and not l.visible for l in scene.layers):continue
+        value = preview.get(body.uid) or settings(body).get("point_attachment")
+        if not value:continue
+        locked = bool(getattr(marker,"locked",False))
+        colour = QColor(*(RED if marker.uid==getattr(panel,"hover_connection",None) else LOCKED if locked else VIOLET))
+        size = size_of(panel,body);m = glyph_frame(value,size)
+        pen = QPen(colour,2);pen.setCapStyle(Qt.RoundCap);painter.setPen(pen);painter.setBrush(Qt.NoBrush)
+        for line in glyph(value.get("type","ball")):
+            xs,ys,front = vp.world_to_pixels([list(m.map(QVector3D(*p)).toTuple()) for p in line])
+            for i in range(len(line)-1):
+                if front[i] and front[i+1]:painter.drawLine(int(xs[i]),int(ys[i]),int(xs[i+1]),int(ys[i+1]))
+        editing = body.uid in selected and not locked
+        for key,p in handles(value,size).items():
+            if key=="direction" and not editing:continue
+            xs,ys,front = vp.world_to_pixels([list(p.toTuple())])
+            if not front[0]:continue
+            painter.setPen(QPen(colour,3));painter.setBrush(QBrush(QColor(24,28,34,220)))
+            x,y = int(xs[0]),int(ys[0])
+            if key=="point":painter.drawEllipse(x-7,y-7,14,14)
+            else:painter.drawRect(x-7,y-7,14,14)
+    painter.restore()
+
+
+class ConnectionEditTool(Tool):
+    """Drags a connection point, or the pin direction, like the axis handles."""
+    name = tr("Edit connection")
+    uses_snap = True
+    magnetic_axis_deg = 3.0
+    screen_axis_px = 9.0
+
+    @property
+    def start_point(self):return self.anchor if self.handle=="direction" else None
+
+    def __init__(self,panel,group,handle):
+        value = attachment_settings(settings(group)["point_attachment"])
+        self.panel,self.group,self.handle = panel,group,handle
+        self.values = dict(value)
+        self.done = self.moved = False
+        self.scene = panel.app.scene
+        self.anchor = QVector3D(*value["point"])
+        self.normal = panel.app.viewport.camera.forward().normalized()
+        self.plane_point = handles(value,size_of(panel,group))[handle]
+
+    def drag_plane(self,viewport):return self.plane_point,self.normal
+
+    def on_activate(self,viewport):
+        viewport.flash_status(tr("Drag the handle. X/Y/Z sets direction; Esc cancels.") if self.handle=="direction" else tr("Drag the connection point. Esc cancels."),10000)
+
+    def on_hover(self,ctx):
+        if self.done:return
+        p = QVector3D(ctx.world)
+        if self.handle=="point":self.values["point"] = list(p.toTuple())
+        else:
+            d = p-self.anchor
+            if d.lengthSquared()<1e-10:return
+            self.values["axis"] = list(d.normalized().toTuple())
+        self.moved = True
+        self.panel.connection_preview = {self.group.uid:dict(self.values)}
+        ctx.viewport.update()
+
+    def on_click(self,ctx):pass
+
+    def finish(self,commit):
+        if self.done:return
+        self.done = True
+        self.panel.connection_preview = None
+        if commit and self.moved:
+            try:apply_connection(self.panel,self.group,self.values)
+            except ValueError as exc:self.panel.status_message(str(exc))
+        elif commit:
+            # A click without a drag selects the object, as near an unselected point.
+            from .axis_objects import CONNECTION,marker_of
+            marker = marker_of(self.scene,self.group,CONNECTION)
+            if marker is not None:self.scene.select([marker]);self.panel.app.viewport.notify_scene_changed()
+        self.panel.app.viewport.update()
+        QTimer.singleShot(0,lambda:self.panel.app.window._activate_tool("select"))
+
+    def on_release(self,viewport):self.finish(True)
+    def on_cancel(self,viewport):self.finish(False)
+    def on_deactivate(self,viewport):
+        self.done = True
+        self.panel.connection_preview = None
+        viewport.update()
+
+    def claims_key(self,key,modifiers):
+        return self.handle=="direction" and key in (Qt.Key_X,Qt.Key_Y,Qt.Key_Z) and not modifiers & (Qt.ControlModifier|Qt.AltModifier)
+
+    def on_key(self,viewport,key,modifiers):
+        if self.claims_key(key,modifiers):
+            self.values["axis"] = {Qt.Key_X:[1,0,0],Qt.Key_Y:[0,1,0],Qt.Key_Z:[0,0,1]}[key]
+            self.moved = True
+            self.finish(True)
+            return True
+        return False
 
 
 def set_hover(panel,vp,marker):

@@ -71,22 +71,22 @@ def close(a,b):
 
 
 def build(body,key,value,size):
-    """An axis is a rod with a small cross at the pivot; a connection a small octahedron, a pin connection adds its pin."""
+    """An axis is a rod with a small cross at the pivot; a connection draws the glyph of its type (see connections.glyph)."""
     mesh = Mesh()
     m = target_matrix(key,value)
     if key==AXIS:
         lines = [((0,0,0),(0,0,2)),((-.3,0,0),(.3,0,0)),((0,-.3,0),(0,.3,0))]
     else:
-        tips = [(.3,0,0),(-.3,0,0),(0,.3,0),(0,-.3,0),(0,0,.3),(0,0,-.3)]
-        lines = [(a,b) for i,a in enumerate(tips) for b in tips[i+1:] if a!=tuple(-x for x in b)]
-        if value.get("type")=="hinge":
-            lines.append(((0,0,-1),(0,0,1)))
+        from .connections import glyph
+        lines = [segment for line in glyph(value.get("type","ball")) for segment in zip(line,line[1:])]
     for a,b in lines:
         mesh.add_edge(m.map(QVector3D(*a)*size),m.map(QVector3D(*b)*size))
     group = Group(mesh,tr("Axis" if key==AXIS else "Connection")+" · "+body.name)
     group.layer = AXES_LAYER
     group.axes = m
     group.ext = {KEY:{"mode":"ignore",key:body.uid}}
+    if key==CONNECTION:
+        group.ext[KEY]["glyph"] = value.get("type","ball")
     return group
 
 
@@ -147,6 +147,23 @@ class LockMarker(Command):
     def undo(self,scene):self.apply(scene,self.before)
 
 
+class Reshape(Command):
+    """Swaps a connection object's wire for the glyph of a changed connection type; lock and selection stay."""
+    keeps_paint = True
+
+    def __init__(self,group,fresh):
+        self.group,self.state = group,(fresh.mesh,fresh.axes,fresh.ext[KEY]["glyph"])
+
+    def swap(self,scene):
+        old = (self.group.mesh,self.group.axes,self.group.ext[KEY].get("glyph"))
+        self.group.mesh,self.group.axes,self.group.ext[KEY]["glyph"] = self.state
+        self.state = old
+        scene.version += 1
+
+    def do(self,scene):self.swap(scene)
+    def undo(self,scene):self.swap(scene)
+
+
 class MoveMarker(Command):
     keeps_paint = True
 
@@ -203,6 +220,9 @@ def plan(scene,before=None,cmd=None,size=lambda g:.2):
                     if remove:commands.append(remove)
                 else:
                     commands.append(AddMarker(build(body,key,value,size(body))))
+                continue
+            if key==CONNECTION and marker.ext[KEY].get("glyph")!=value.get("type","ball"):
+                commands.append(Reshape(marker,build(body,key,value,size(body))))
                 continue
             pivot,axis,zero = placement(marker)
             want_pivot,want_axis,want_zero = wanted(key,value)

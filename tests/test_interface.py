@@ -1635,3 +1635,54 @@ def test_locked_axis_and_connection_objects_follow_their_body_only(panel,qtapp):
     assert axis.locked and not connection.locked
     history.undo()
     assert not axis.locked
+
+
+def test_connection_glyph_follows_its_type_in_the_same_undo_step(panel):
+    from newton.model import box,AddDemo
+    from newton.connections import apply_connection
+    from newton.axis_objects import CONNECTION,marker_of
+    scene,history = panel.app.scene,panel.app.viewport.history
+    a,b = box("a",(0,0,2),(1,1,1)),box("b",(2,0,2),(1,1,1),mode="static")
+    history.execute(AddDemo([a,b]))
+    apply_connection(panel,a,dict(target=b.uid,point=[1,0,2],type="ball"))
+    marker = marker_of(scene,a,CONNECTION)
+    ball = len(marker.mesh.edges)
+    assert marker.ext[KEY]["glyph"]=="ball" and ball>60,"three rings"
+    steps = len(history.undo_stack)
+    apply_connection(panel,a,dict(target=b.uid,point=[1,0,2],type="fixed"))
+    assert len(history.undo_stack)==steps+1 and marker_of(scene,a,CONNECTION) is marker
+    assert marker.ext[KEY]["glyph"]=="fixed" and len(marker.mesh.edges)==14,"a cube with two diagonals"
+    history.undo()
+    assert marker.ext[KEY]["glyph"]=="ball" and len(marker.mesh.edges)==ball
+
+
+def test_connection_point_drags_with_its_handle_like_an_axis(panel,qtapp):
+    from PySide6.QtTest import QTest
+    from PySide6.QtCore import QPoint
+    from newton.model import box,AddDemo
+    from newton.connections import apply_connection
+    from newton.axis_objects import CONNECTION,marker_of,placement
+    scene,history,vp = panel.app.scene,panel.app.viewport.history,panel.app.viewport
+    a,b = box("a",(0,0,2),(1,1,1)),box("b",(2,0,2),(1,1,1),mode="static")
+    history.execute(AddDemo([a,b]))
+    apply_connection(panel,a,dict(target=b.uid,point=[1,0,2.5],type="hinge",axis=[0,1,0]))
+    scene.select([a]);vp.notify_scene_changed();panel.refresh()
+    panel.app.window.show();vp.resize(800,600);qtapp.processEvents()
+    vp.camera.fit_to(*vp.scene.bounds())
+    panel.app.window._activate_tool("select")
+    xs,ys,front = vp.world_to_pixels([[1,0,2.5]])
+    point = QPoint(round(xs[0]),round(ys[0]))
+    QTest.mousePress(vp,Qt.LeftButton,Qt.NoModifier,point)
+    tool = vp.active_tool
+    assert tool.__class__.__name__=="ConnectionEditTool" and tool.handle=="point"
+    steps = len(history.undo_stack)
+    tool.on_hover(SimpleNamespace(world=QVector3D(1,.2,2.5),viewport=vp))
+    assert panel.connection_preview and a.ext[KEY]["point_attachment"]["point"]==[1,0,2.5]
+    tool.on_release(vp);qtapp.processEvents()
+    assert a.ext[KEY]["point_attachment"]["point"]==pytest.approx([1,.2,2.5])
+    assert placement(marker_of(scene,a,CONNECTION))[0]==pytest.approx([1,.2,2.5],abs=1e-5)
+    assert len(history.undo_stack)==steps+1 and panel.connection_preview is None
+    # A click on the handle without dragging selects the connection object.
+    xs,ys,front = vp.world_to_pixels([[1,.2,2.5]])
+    QTest.mouseClick(vp,Qt.LeftButton,Qt.NoModifier,QPoint(round(xs[0]),round(ys[0])));qtapp.processEvents()
+    assert scene.selection=={marker_of(scene,a,CONNECTION)} and len(history.undo_stack)==steps+1
