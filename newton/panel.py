@@ -215,27 +215,10 @@ class NewtonPanel(QWidget):
         self.advanced_toggle.toggled.connect(self.advanced.setVisible)
         layout.addWidget(self.advanced)
         layout.addStretch()
-        footer = QWidget()
-        row = QHBoxLayout(footer)
-        row.setContentsMargins(0,0,0,0)
-        self.start_button = QPushButton(icon("play"),tr("Start"))
-        self.reset_button = QPushButton(icon("reset"),tr("Reset"))
-        self.start_button.clicked.connect(self.start_or_pause)
-        self.reset_button.clicked.connect(self.session.reset)
-        row.addWidget(self.start_button)
-        row.addWidget(self.reset_button)
-        outer.addWidget(footer)
-        self.clock = QLabel(tr("Time: 0.00 s"))
-        self.status = QLabel(tr("Select a body and place an axis."))
-        self.status.setWordWrap(True)
-        self.status.setTextFormat(Qt.PlainText)
-        outer.addWidget(self.clock)
-        outer.addWidget(self.status)
-        self.selection_widgets = (intro,scroll,footer,self.clock,self.status)
+        self.selection_widgets = (intro,scroll)
         self.controls = Controls(self)
         self.session.changed.connect(self.refresh)
         self.session.message.connect(self.status_message)
-        self.session.frame.connect(lambda t:self.clock.setText(tr("Time: {seconds:.2f} s",seconds=t)))
         self.session.telemetry.connect(self.controls.telemetry)
         app.add_overlay(self.draw_joints)
         app.add_context_menu(self.context_menu)
@@ -375,8 +358,6 @@ class NewtonPanel(QWidget):
             control.refresh_style()
         for key,action in self.actions.items():
             action.setIcon(icon("pause" if key=="play" and self.session.running else key))
-        self.start_button.setIcon(icon("pause" if self.session.running else "play"))
-        self.reset_button.setIcon(icon("reset"))
         self.controls.refresh_icons()
         redecorate()
 
@@ -426,7 +407,7 @@ class NewtonPanel(QWidget):
             self.collision_view.request()
 
     def status_message(self,text):
-        self.status.setText(tr(text))
+        self.app.window.statusBar().showMessage(tr(text))
 
     def selected(self):
         return [g for g in self.app.scene.groups if g in self.app.scene.selection]
@@ -526,14 +507,10 @@ class NewtonPanel(QWidget):
     def refresh_widgets(self,*args):
         active = self.session.workspace is not None
         if getattr(self,"was_active",False) and not active:
-            self.clock.setText(tr("Time: 0.00 s"))
             self.status_message(tr("Original model restored."))
         self.was_active = active
         for w in (self.editor,self.joint_box,self.advanced,self.profile_box,self.advanced_toggle):
             w.setEnabled(not active)
-        self.start_button.setEnabled(not active or self.session.ready)
-        self.start_button.setText(tr("Pause") if active and self.session.running else tr("Resume") if active else tr("Start"))
-        self.reset_button.setEnabled(active)
         groups = self.selected()
         if active:
             groups = getattr(self,"_sidebar_groups",[])
@@ -840,8 +817,7 @@ class NewtonPanel(QWidget):
             quality = QSettings().value("newton/quality","balanced")
             self.session.start(python,scene,specs,movers,self.gravity.value(),self.floor.isChecked(),linear,angular,quality)
             self.status_message(tr("Drag passive bodies. Use controls for actuators."))
-            if any(j["drive"]!="free" for j in self.control_rows):
-                self.show_controls()
+            self.show_controls()
         except Exception as exc:
             self.status_message(str(exc))
 

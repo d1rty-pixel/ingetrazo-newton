@@ -129,7 +129,7 @@ class Controls(QDialog):
     def start(self):
         self.panel.start_or_pause()
         if not self.panel.session.workspace:
-            self.message(self.panel.status.text())
+            self.message(self.panel.app.window.statusBar().currentMessage())
 
     def message(self,text):
         self.hint.setText(tr(text))

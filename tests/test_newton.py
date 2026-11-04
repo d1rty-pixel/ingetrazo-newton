@@ -248,7 +248,7 @@ def test_real_extension_loader_and_mainwindow_session(qtapp, monkeypatch):
         while not panel.session.ready and time.monotonic() < deadline:
             qtapp.processEvents()
             time.sleep(.01)
-        assert panel.session.ready, panel.status.text()
+        assert panel.session.ready, panel.app.window.statusBar().currentMessage()
         deadline = time.monotonic()+.3
         while time.monotonic() < deadline:
             qtapp.processEvents()
@@ -262,12 +262,12 @@ def test_real_extension_loader_and_mainwindow_session(qtapp, monkeypatch):
         while time.monotonic() < deadline:
             qtapp.processEvents()
             time.sleep(.01)
-        clock = panel.clock.text()
+        clock = panel.controls.time_label.text()
         deadline = time.monotonic()+.1
         while time.monotonic() < deadline:
             qtapp.processEvents()
             time.sleep(.01)
-        assert panel.clock.text() == clock
+        assert panel.controls.time_label.text() == clock
         panel.session.reset()
         assert panel.session.process is None
         assert win.viewport.scene is original
@@ -279,7 +279,7 @@ def test_real_extension_loader_and_mainwindow_session(qtapp, monkeypatch):
         while not panel.session.ready and time.monotonic() < deadline:
             qtapp.processEvents()
             time.sleep(.01)
-        assert panel.session.ready, panel.status.text()
+        assert panel.session.ready, panel.app.window.statusBar().currentMessage()
         panel.session.process.kill()
         deadline = time.monotonic()+3
         while panel.session.workspace and time.monotonic() < deadline:

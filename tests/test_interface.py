@@ -109,7 +109,9 @@ def test_flexible_sidebar_edits_and_external_session_reset(panel,qtapp):
     assert group.ext[KEY]["flexible"]["bend"] == 2e4
     assert not panel.actions["rotate"].isEnabled()
     source = panel.app.scene
+    assert not panel.controls.isVisible() and not hasattr(panel,"start_button")
     panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+    assert panel.controls.isVisible(),"the control panel opens even without actuators"
     assert len(panel.session.movers)==11
     wait(qtapp,lambda:panel.session.workspace.scene.version>5)
     panel.session.reset()
@@ -235,7 +237,7 @@ def test_named_controls_drive_real_session_and_reset_without_saving_runtime_targ
     assert suffix in value.suffix()
     value.setValue(display_target)
     assert panel.session.targets[row["uid"]] == pytest.approx(native_target)
-    wait(qtapp,lambda:float(panel.clock.text().split(":")[1].split()[0]) > 1.5,5)
+    wait(qtapp,lambda:float(panel.controls.time_label.text().split(":")[1].split()[0]) > 1.5,5)
     label = panel.controls.rows[row["uid"]][0].text()
     actual = float(label.split(":")[1].split()[0])
     assert actual == pytest.approx(display_target,abs=2)
@@ -419,7 +421,7 @@ def test_invalid_live_limits_keep_valid_model_and_can_be_corrected(panel):
     panel.upper.setValue(0)
     assert group.ext[KEY]["joint"]["upper"]==pytest.approx(math.pi/2)
     assert len(hist.undo_stack)==before
-    assert "Invalid" in panel.status.text()
+    assert "Invalid" in panel.app.window.statusBar().currentMessage()
     panel.upper.setValue(45)
     assert group.ext[KEY]["joint"]["upper"]==pytest.approx(math.pi/4)
 
