@@ -17,17 +17,17 @@ def colour(group,rgb):
 
 def build():
     scene = Scene()
-    base = colour(box("Unterlage",(0,.65,.03),(3.3,2.5,.06),mode="static",restitution=0),(.18,.22,.27))
-    a = colour(box("A · Kollision an",(-.85,0,1.3),(.3,.3,.3),restitution=0),(.15,.65,.86))
-    pa = colour(box("A · Auffangplatte",(-.85,0,.55),(.7,.7,.08),mode="static",restitution=0),(.55,.6,.65))
-    b = colour(box("B · Kollision aus",(.85,0,1.3),(.3,.3,.3),restitution=0),(.95,.35,.12))
-    pb = colour(box("B · Durchlassplatte",(.85,0,.55),(.7,.7,.08),mode="static",restitution=0),(.55,.6,.65))
+    base = colour(box("Support",(0,.65,.03),(3.3,2.5,.06),mode="static",restitution=0),(.18,.22,.27))
+    a = colour(box("A · Collision on",(-.85,0,1.3),(.3,.3,.3),restitution=0),(.15,.65,.86))
+    pa = colour(box("A · Catch plate",(-.85,0,.55),(.7,.7,.08),mode="static",restitution=0),(.55,.6,.65))
+    b = colour(box("B · Collision off",(.85,0,1.3),(.3,.3,.3),restitution=0),(.95,.35,.12))
+    pb = colour(box("B · Pass-through plate",(.85,0,.55),(.7,.7,.08),mode="static",restitution=0),(.55,.6,.65))
     b.ext[KEY]["no_collision"] = [pb.uid]
     pb.ext[KEY]["no_collision"] = [b.uid]
-    arch = Group(name="C · Öffnung und konvexe Hülle")
-    arch.adopt([colour(box("Linker Pfosten",(-.4,1.45,.41),(.16,.24,.70)),(.85,.66,.15)),
-                colour(box("Rechter Pfosten",(.4,1.45,.41),(.16,.24,.70)),(.85,.66,.15)),
-                colour(box("Querbalken",(0,1.45,.81),(.96,.24,.10)),(.85,.66,.15))])
+    arch = Group(name="C · Opening and convex hull")
+    arch.adopt([colour(box("Left post",(-.4,1.45,.41),(.16,.24,.70)),(.85,.66,.15)),
+                colour(box("Right post",(.4,1.45,.41),(.16,.24,.70)),(.85,.66,.15)),
+                colour(box("Crossbeam",(0,1.45,.81),(.96,.24,.10)),(.85,.66,.15))])
     arch.ext = {KEY:dict(DEFAULTS,mode="static",shape="hull")}
     scene.groups.extend([base,a,pa,b,pb,arch])
     return scene
@@ -43,15 +43,15 @@ def validate(scene):
     assert abs(result["poses"][a.uid][0][2]-.74)<.02
     assert abs(result["poses"][b.uid][0][2]-.21)<.02
     w.close()
-    print("Geprüft: Blau landet auf der Platte, Orange fällt durch seine Platte; konvexe Hülle sichtbar.",flush=True)
+    print("Checked: blue lands on the plate, orange falls through its plate; convex hull visible.",flush=True)
 
 
 def main():
-    path = ROOT/"models/Kollisionen-Testmodell.igz"
+    path = ROOT/"models/collision-test.igz"
     if "--existing" in sys.argv:
         scene = Scene();igz.load_into(scene,path)
     else:
-        if path.exists():raise FileExistsError(f"Vorhandenes Modell bleibt erhalten: {path}")
+        if path.exists():raise FileExistsError(f"Existing model kept: {path}")
         scene = build()
     validate(scene)
     if "--existing" not in sys.argv:igz.save_scene(scene,path)

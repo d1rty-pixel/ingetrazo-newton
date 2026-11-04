@@ -17,11 +17,11 @@ def center(g):
 
 def setup_chain(classic=False):
     scene = Scene()
-    parent = box("Basis",(0,0,3),(.3,.3,.3))
+    parent = box("Base",(0,0,3),(.3,.3,.3))
     child = box("Arm",(1,0,3),(.3,.3,.3))
-    grandchild = box("Greifer",(2,0,3),(.3,.3,.3))
+    grandchild = box("Gripper",(2,0,3),(.3,.3,.3))
     if classic:
-        parent = Group(world_mesh(parent),"Klassische Basis")
+        parent = Group(world_mesh(parent),"Classic base")
     child.ext[KEY]["reference"] = parent.uid
     child.ext[KEY]["joint"] = dict(pivot=[.5,0,3],axis=[0,0,1],drive="free",parent=parent.uid)
     grandchild.ext[KEY]["reference"] = child.uid
@@ -126,7 +126,7 @@ def load(world,groups,gravity=0):
 
 
 def test_drag_applies_force_to_passive_body_without_teleporting(world):
-    g = box("Würfel",(0,0,3),(.4,.4,.4))
+    g = box("Cubes",(0,0,3),(.4,.4,.4))
     load(world,[g])
     drag = dict(id=1,uid=g.uid,point=[0,0,3],target=[1,0,3])
     first = world.step(1,drag=drag)["poses"][g.uid][0]
@@ -151,7 +151,7 @@ def test_drag_drives_passive_hinge_chain(world):
 
 @pytest.mark.parametrize("mode",["position","velocity"])
 def test_engine_rejects_manual_drag_of_driven_bodies(world,mode):
-    g = box("Antrieb",(0,0,3),(.4,.4,.4),joint=dict(
+    g = box("Drive",(0,0,3),(.4,.4,.4),joint=dict(
         pivot=[0,0,3],axis=[0,0,1],drive=mode,force=20))
     load(world,[g])
     with pytest.raises(ValueError,match="Actuated"):
@@ -159,8 +159,8 @@ def test_engine_rejects_manual_drag_of_driven_bodies(world,mode):
 
 
 def test_reference_without_axis_is_rigid_relative_to_parent_in_simulation(world):
-    parent = box("Basis",(0,0,3),(.3,.3,.3))
-    child = box("Teil",(1,0,3),(.3,.3,.3),reference=parent.uid)
+    parent = box("Base",(0,0,3),(.3,.3,.3))
+    child = box("Part",(1,0,3),(.3,.3,.3),reference=parent.uid)
     load(world,[parent,child])
     drag = dict(id=1,uid=parent.uid,point=[0,0,3],target=[0,1,3])
     for _ in range(45):
@@ -171,8 +171,8 @@ def test_reference_without_axis_is_rigid_relative_to_parent_in_simulation(world)
 
 
 def test_fixed_dependent_follows_parent_but_cannot_be_grabbed_itself(world):
-    parent = box("Basis",(0,0,3),(.3,.3,.3))
-    child = box("Fest verschraubt",(1,0,3),(.3,.3,.3),reference=parent.uid,mode="static",mass=.5)
+    parent = box("Base",(0,0,3),(.3,.3,.3))
+    child = box("Bolted fixed",(1,0,3),(.3,.3,.3),reference=parent.uid,mode="static",mass=.5)
     load(world,[parent,child])
     drag = dict(id=1,uid=parent.uid,point=[0,0,3],target=[0,1,3])
     for _ in range(45):
@@ -185,7 +185,7 @@ def test_fixed_dependent_follows_parent_but_cannot_be_grabbed_itself(world):
 
 
 def test_motor_reference_respects_acceleration_and_speed_settings(world):
-    g = box("Vorschub",(0,0,3),(.2,.2,.2),joint=dict(
+    g = box("Feed",(0,0,3),(.2,.2,.2),joint=dict(
         type="slide",pivot=[0,0,3],axis=[1,0,0],drive="velocity",target=2,
         force=100,max_speed=.5,acceleration=.2,limited=False))
     load(world,[g])

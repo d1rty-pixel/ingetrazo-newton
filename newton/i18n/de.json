@@ -143,6 +143,7 @@
   "Invalid control target or unknown joint.": "Ungültiger Reglerwert oder unbekanntes Gelenk.",
   "Invalid damping.": "Ungültige Dämpfung.",
   "Invalid flexible material.": "Ungültiger flexibler Werkstoff.",
+  "Invalid geometry: {name}": "Ungültige Geometrie: {name}",
   "Invalid gravity.": "Ungültige Schwerkraft.",
   "Invalid ground contact override.": "Ungültige Bodenkontakteinstellung.",
   "Invalid joint limits or force.": "Ungültige Anschläge oder Kraft.",

@@ -9,17 +9,17 @@ if (-not $Python) {
     $Python = Join-Path $projectRoot '.venv\Scripts\python.exe'
 }
 if (-not (Test-Path -LiteralPath $Python -PathType Leaf)) {
-    throw 'Python mit MuJoCo fehlt. Zuerst scripts\setup-runtime.ps1 ausführen oder -Python angeben.'
+    throw 'Python with MuJoCo is missing. Run scripts\setup-runtime.ps1 first or pass -Python.'
 }
 $Python = (Resolve-Path -LiteralPath $Python).Path
 & $Python -c 'import mujoco; print("MuJoCo", mujoco.__version__)'
-if ($LASTEXITCODE -ne 0) { throw 'MuJoCo ist in diesem Python nicht installiert.' }
+if ($LASTEXITCODE -ne 0) { throw 'MuJoCo is not installed in this Python.' }
 $target = Join-Path $Destination 'newton'
 if (Test-Path -LiteralPath $target) {
-    if (-not $Update) { throw "Ziel existiert bereits: $target. Für ein Update -Update verwenden." }
+    if (-not $Update) { throw "Target already exists: $target. Use -Update to update it." }
     $entry = Join-Path $target '__init__.py'
     if (-not (Test-Path -LiteralPath $entry) -or -not ((Get-Content -LiteralPath $entry -Raw).Contains('Newton'))) {
-        throw 'Keine bekannte Installation von Newton. Vorhandenen Ordner nicht verändert.'
+        throw 'Not a known Newton installation. Existing folder left unchanged.'
     }
     $backup = Join-Path $projectRoot ('.backups\newton-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
     New-Item -ItemType Directory -Path $backup -Force | Out-Null
@@ -30,7 +30,7 @@ if (Test-Path -LiteralPath $target) {
             Copy-Item -LiteralPath $previous -Destination $backup -Recurse
         }
     }
-    Write-Output "Sicherung: $backup"
+    Write-Output "Backup: $backup"
 }
 New-Item -ItemType Directory -Path $target -Force | Out-Null
 Get-ChildItem -LiteralPath (Join-Path $projectRoot 'newton') -Filter '*.py' |
@@ -39,5 +39,5 @@ Copy-Item -LiteralPath (Join-Path $projectRoot 'newton\i18n') -Destination $targ
 Copy-Item -LiteralPath (Join-Path $projectRoot 'newton\icons') -Destination $target -Recurse -Force
 $runtimeConfig = @{python=$Python} | ConvertTo-Json
 [System.IO.File]::WriteAllText((Join-Path $target 'runtime.json'), $runtimeConfig, [System.Text.UTF8Encoding]::new($false))
-Write-Output "Installiert: $target"
-Write-Output 'IngeTrazo neu starten. Extensions -> Newton öffnen.'
+Write-Output "Installed: $target"
+Write-Output 'Restart IngeTrazo. Open Extensions -> Newton.'

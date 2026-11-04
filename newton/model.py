@@ -7,6 +7,7 @@ from PySide6.QtGui import QMatrix4x4, QVector3D
 from core.group import Group, world_mesh, transformed_mesh
 from core.history import Command,CompoundCommand
 from core.scene import Scene
+from .i18n import tr
 from .worker import joint_settings,resolve_couplings
 
 KEY = "newton"
@@ -116,7 +117,7 @@ def prepare(source,require_movable=True):
         lo = [min(v[i] for v in xyz) for i in range(3)]
         hi = [max(v[i] for v in xyz) for i in range(3)]
         if not all(math.isfinite(x) for x in lo + hi):
-            raise ValueError(f"Ungültige Geometrie: {group.name}")
+            raise ValueError(tr("Invalid geometry: {name}").format(name=group.name))
         cfg = settings(group)
         if KEY not in (group.ext or {}):
             # Face-me scale figures are visual references, not physical walls.
@@ -206,28 +207,28 @@ def box(name, center, size, **cfg):
 
 
 def demo(kind):
-    if kind == "Servo-Tür":
-        frame = box("Türrahmen", (-.1,0,1.1), (.2,.3,2.2), mode="static")
-        door = box("Türblatt", (.55,0,1.1), (1.1,.12,2), joint=dict(
-            type="hinge", drive="position", name="Tür öffnen", parent=frame.uid,
+    if kind == "Servo door":
+        frame = box("Door frame", (-.1,0,1.1), (.2,.3,2.2), mode="static")
+        door = box("Door leaf", (.55,0,1.1), (1.1,.12,2), joint=dict(
+            type="hinge", drive="position", name="Open door", parent=frame.uid,
             pivot=[0,0,1.1], axis=[0,0,1], target=0, force=100,
             limited=True, lower=0, upper=math.pi/2))
         return [frame, door]
-    if kind == "Linearschlitten":
-        rail = box("Schiene", (0,0,.25), (2,.3,.2), mode="static")
-        carriage = box("Schlitten", (0,0,.55), (.4,.5,.3), joint=dict(
-            type="slide", drive="position", name="Schlittenposition", parent=rail.uid,
+    if kind == "Linear carriage":
+        rail = box("Rail", (0,0,.25), (2,.3,.2), mode="static")
+        carriage = box("Carriage", (0,0,.55), (.4,.5,.3), joint=dict(
+            type="slide", drive="position", name="Carriage position", parent=rail.uid,
             pivot=[0,0,.55], axis=[1,0,0], target=0, force=100,
             limited=True, lower=-.7, upper=.7))
         return [rail, carriage]
-    if kind == "Würfel":
-        return [box(f"Newton Würfel {i+1}", (.08*(i%2),0,.6+i*.65), (.5,.5,.5))
+    if kind == "Cubes":
+        return [box(f"Newton cube {i+1}", (.08*(i%2),0,.6+i*.65), (.5,.5,.5))
                 for i in range(8)]
-    if kind == "Pendel":
+    if kind == "Pendulum":
         # Initial COM deliberately off-axis: gravity must generate torque.
-        return [box("Newton Pendel", (.8,0,2.4), (.25,.25,1.6),
+        return [box("Newton pendulum", (.8,0,2.4), (.25,.25,1.6),
                     joint=dict(pivot=[0,0,3.2], axis=[0,1,0], speed=0, force=0))]
-    if kind == "Motorisiertes Rad":
+    if kind == "Motorised wheel":
         # Cylinder along Y, with one coloured radial marker as part of the mesh.
         from core.mesh import Mesh
         mesh = Mesh()
@@ -247,13 +248,13 @@ def demo(kind):
         f = mesh.add_face([QVector3D(0,-.122,0), QVector3D(.72,-.122,-.04),
                            QVector3D(.72,-.122,.04)])
         f.attrs["color"] = (1,.65,.1)
-        g = Group(mesh, "Newton Motor-Rad")
+        g = Group(mesh, "Newton motor wheel")
         g.xform = QMatrix4x4()
         g.xform.translate(0,0,1.5)
         g.ext = {KEY: {**DEFAULTS, "shape": "hull", "joint": dict(
             pivot=[0,0,1.5], axis=[0,1,0], speed=3, force=20)}}
         return [g]
-    raise ValueError("Unbekannte Demo")
+    raise ValueError("Unknown demo")
 
 
 def project_zero(axis,zero):

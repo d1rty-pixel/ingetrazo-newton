@@ -8,7 +8,7 @@ from newton.worker import World,joint_settings,resolve_couplings
 
 def robot_world(contact=False):
     scene = build(True)
-    jaws = [g for g in scene.groups if "Backe" in g.name]
+    jaws = [g for g in scene.groups if "jaw" in g.name]
     if contact:
         # Held in place to apply a deliberately asymmetric contact load.
         scene.groups.append(box("Stop",(1.32,-.004,1.52),(.06,.04,.06),mode="static",friction=1.2))

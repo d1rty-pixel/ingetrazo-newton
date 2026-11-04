@@ -29,7 +29,7 @@ def test_compound_opening_is_a_real_collision_opening(shape,expected_z):
 def test_energy_chain_links_are_single_rigid_open_frames():
     from scripts.energy_chain import build
     scene = build();_,specs,_ = prepare(scene);world = World();world.load(dict(bodies=specs,floor=False))
-    links = [g for g in scene.groups if g.name.startswith("Glied ")]
+    links = [g for g in scene.groups if g.name.startswith("Link ")]
     try:
         assert len(links)==22 and all(len(g.children)==4 for g in links)
         assert all(world.model.body_geomnum[world.bodies[g.uid]]==4 for g in links)
@@ -46,14 +46,14 @@ def test_energy_chain_links_are_single_rigid_open_frames():
 def test_crank_rod_is_outside_wheel_plane_and_motor_still_drives_it():
     from scripts.crank_carrier import build
     scene = build()
-    wheel = next(g for g in scene.groups if g.name.startswith("Speichenrad"))
-    rod = next(g for g in scene.groups if g.name=="Pleuelstange")
-    wheel_y = max(v.position.y() for part in wheel.children if part.name not in ("Kurbelzapfen","Bolzensicherung") for v in world_mesh(part).vertices)
+    wheel = next(g for g in scene.groups if g.name.startswith("Spoked wheel"))
+    rod = next(g for g in scene.groups if g.name=="Connecting rod bar")
+    wheel_y = max(v.position.y() for part in wheel.children if part.name not in ("Crank pin","Pin retainer") for v in world_mesh(part).vertices)
     rod_y = min(v.position.y() for v in world_mesh(rod).vertices)
     assert rod_y-wheel_y>=.0399
     _,specs,_ = prepare(scene);world = World();world.load(dict(bodies=specs,floor=False))
-    shaft = next(g for g in scene.groups if g.name=="Antriebswelle")
-    slider = next(g for g in scene.groups if g.name.startswith("Kolbenstange"))
+    shaft = next(g for g in scene.groups if g.name=="Drive shaft")
+    slider = next(g for g in scene.groups if g.name.startswith("Piston rod"))
     try:
         for _ in range(120):result = world.step(8)
         assert result["joints"][shaft.uid]["position"]>1.9

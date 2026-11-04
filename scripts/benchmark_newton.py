@@ -30,7 +30,7 @@ def benchmark(path,seconds=2,profile=False,quality="balanced"):
 
 
 if __name__=="__main__":
-    report = benchmark(ROOT/"models/Kurbeltrieb-mit-Schleppkette.igz",profile="--profile" in sys.argv,
+    report = benchmark(ROOT/"models/crank-drive-drag-chain.igz",profile="--profile" in sys.argv,
         quality=next((v.split("=",1)[1] for v in sys.argv if v.startswith("--quality=")),"balanced"))
     print(json.dumps(report,indent=2))
     output = next((v.split("=",1)[1] for v in sys.argv if v.startswith("--output=")),None)

@@ -48,7 +48,7 @@ def test_falling_body_lands_on_floor_and_static_does_not_move(world):
 
 
 def test_pendulum_rotates_but_anchor_stays_fixed(world):
-    g = demo("Pendel")[0]
+    g = demo("Pendulum")[0]
     _, bodies, _ = specs([g])
     world.load(dict(bodies=bodies, floor=False))
     poses = advance(world, .5)["poses"][g.uid]
@@ -57,7 +57,7 @@ def test_pendulum_rotates_but_anchor_stays_fixed(world):
 
 
 def test_motor_drives_wheel_and_reinit_resets(world):
-    g = demo("Motorisiertes Rad")[0]
+    g = demo("Motorised wheel")[0]
     _, bodies, _ = specs([g])
     initial = world.load(dict(bodies=bodies, floor=True))
     final = advance(world, .5)
@@ -182,7 +182,7 @@ def test_config_and_demo_are_undoable_and_settings_survive_igz(tmp_path):
     from formats import igz
     scene = Scene()
     hist = History(scene)
-    groups = demo("Pendel")
+    groups = demo("Pendulum")
     hist.execute(AddDemo(groups))
     original = copy.deepcopy(groups[0].ext)
     hist.execute(Configure(groups, dict(mode="static", mass=3)))
@@ -239,7 +239,7 @@ def test_real_extension_loader_and_mainwindow_session(qtapp, monkeypatch):
         dock = next(d for d in win._extension_docks if d.objectName() == "extension_newton")
         panel = dock.widget()
         panel.python.setText(sys.executable)
-        seed_demo(panel,"Pendel")
+        seed_demo(panel,"Pendulum")
         original = win.viewport.scene
         pendulum = next(g for g in original.groups if KEY in (g.ext or {}))
         original_matrix = list(pendulum.xform.data())
@@ -298,7 +298,7 @@ def test_real_extension_loader_and_mainwindow_session(qtapp, monkeypatch):
 
 def test_start_angle_makes_limits_and_targets_absolute(world):
     # A door modelled open at 90° whose 0° is "closed": closing drives it back by 90°.
-    door = box("Tür",(.5,0,1),(1,.1,2),joint=dict(type="hinge",drive="position",pivot=[0,0,1],axis=[0,0,1],
+    door = box("Door",(.5,0,1),(1,.1,2),joint=dict(type="hinge",drive="position",pivot=[0,0,1],axis=[0,0,1],
                zero=[0,-1,0],start=math.pi/2,target=0,force=200,limited=True,lower=0,upper=math.pi/2))
     _,bodies,_ = specs([door])
     initial = world.load(dict(bodies=bodies,floor=False))

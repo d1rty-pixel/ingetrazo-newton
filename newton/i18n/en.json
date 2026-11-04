@@ -143,6 +143,7 @@
   "Invalid control target or unknown joint.": "Invalid control target or unknown joint.",
   "Invalid damping.": "Invalid damping.",
   "Invalid flexible material.": "Invalid flexible material.",
+  "Invalid geometry: {name}": "Invalid geometry: {name}",
   "Invalid gravity.": "Invalid gravity.",
   "Invalid ground contact override.": "Invalid ground contact override.",
   "Invalid joint limits or force.": "Invalid joint limits or force.",

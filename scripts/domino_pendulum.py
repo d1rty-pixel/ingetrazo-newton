@@ -22,7 +22,7 @@ from robot_arm import beam,cylinder
 
 def build(release_angle=-32):
     scene = domino_build()
-    base = box("Unterlage",(.55,.65,.03),(3.15,1.9,.06),mode="static",friction=.8,restitution=0)
+    base = box("Support",(.55,.65,.03),(3.15,1.9,.06),mode="static",friction=.8,restitution=0)
     for f in base.mesh.faces:
         f.attrs["color"] = (.19,.23,.28)
     scene.groups[0] = base
@@ -30,20 +30,20 @@ def build(release_angle=-32):
     first = scene.groups[1]
     first.xform = QMatrix4x4();first.xform.translate(0,0,.235)
     supports = []
-    for y,label in ((-.24,"vorn"),(.24,"hinten")):
-        foot = box("Pendelfuß "+label,(-.23,y,.08),(.42,.16,.04),mode="static",reference=base.uid)
-        post = box("Pendelstütze "+label,(-.23,y,.47),(.055,.055,.74),mode="static",reference=base.uid)
+    for y,label in ((-.24,"front"),(.24,"rear")):
+        foot = box("Pendulum foot "+label,(-.23,y,.08),(.42,.16,.04),mode="static",reference=base.uid)
+        post = box("Pendulum post "+label,(-.23,y,.47),(.055,.055,.74),mode="static",reference=base.uid)
         supports.extend([foot,post])
-    crossbar = box("Pendelquerträger",(-.23,0,.86),(.08,.59,.06),mode="static",reference=base.uid)
+    crossbar = box("Pendulum crossbeam",(-.23,0,.86),(.08,.59,.06),mode="static",reference=base.uid)
     supports.append(crossbar)
     for g in supports:
         for f in g.mesh.faces: f.attrs["color"] = (.54,.59,.65)
     pivot = [-.23,0,.86]
     angle,length = math.radians(release_angle),.58
     bob = [pivot[0]+length*math.sin(angle),0,pivot[2]-length*math.cos(angle)]
-    pendulum = Group(Mesh(),"Startpendel")
+    pendulum = Group(Mesh(),"Starting pendulum")
     pendulum.ext = {KEY:dict(DEFAULTS,mass=.4,shape="hull",friction=.4,restitution=0,
-        reference=crossbar.uid,joint=dict(type="hinge",drive="free",name="Pendellager",
+        reference=crossbar.uid,joint=dict(type="hinge",drive="free",name="Pendulum bearing",
             pivot=pivot,axis=[0,1,0],parent=crossbar.uid,force=0,limited=False))}
     beam(pendulum.mesh,pivot,bob,.018,.018,(.70,.73,.76))
     cylinder(pendulum.mesh,bob,[0,1,0],.065,.085,(.86,.18,.10))
@@ -58,7 +58,7 @@ def validate(scene):
     _,specs,_ = prepare(scene)
     world = World();world.load(dict(bodies=specs,gravity=-9.81,floor=True))
     first = next(g for g in scene.groups if g.name=="Domino 01")
-    pendulum = next(g for g in scene.groups if g.name=="Startpendel")
+    pendulum = next(g for g in scene.groups if g.name=="Starting pendulum")
     first_bid,pendulum_bid = world.bodies[first.uid],world.bodies[pendulum.uid]
     assert abs(world.data.xmat[first_bid][8]-1)<1e-6
     contact_time = fall_time = None
@@ -70,18 +70,18 @@ def validate(scene):
         if abs(world.data.xmat[first_bid][8])<.55:
             fall_time = result["time"];break
     world.close()
-    assert contact_time and fall_time and contact_time<fall_time,"Pendel muss den ersten Stein tatsächlich anstoßen."
-    print(f"Pendelkontakt nach {contact_time:.2f} s; erster Stein fällt nach {fall_time:.2f} s.",flush=True)
+    assert contact_time and fall_time and contact_time<fall_time,"The pendulum must actually hit the first stone."
+    print(f"Pendulum contact after {contact_time:.2f} s; first stone falls after {fall_time:.2f} s.",flush=True)
     validate_domino(scene)
 
 
 def main():
     folder = ROOT/"models";folder.mkdir(exist_ok=True)
-    path = folder/"Domino-30-Steine-mit-Pendel.igz"
+    path = folder/"domino-30-with-pendulum.igz"
     if "--existing" in sys.argv:
         scene = Scene();igz.load_into(scene,path)
     else:
-        if path.exists(): raise FileExistsError(f"Vorhandenes Modell nicht überschrieben: {path}")
+        if path.exists(): raise FileExistsError(f"Existing model not overwritten: {path}")
         scene = build()
     validate(scene)
     if "--existing" not in sys.argv: igz.save_scene(scene,path)

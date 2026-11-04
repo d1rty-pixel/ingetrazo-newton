@@ -22,7 +22,7 @@ def build():
     length,radius = 1.2,.65
     total = 2*length+math.pi*radius
     height,thickness,width,top = .35,.045,.16,.06
-    base = box("Unterlage",(.8,.65,.03),(2.65,1.9,.06),mode="static",friction=.8,restitution=0)
+    base = box("Support",(.8,.65,.03),(2.65,1.9,.06),mode="static",friction=.8,restitution=0)
     for f in base.mesh.faces:
         f.attrs["color"] = (.19,.23,.28)
     scene.groups.append(base)
@@ -74,22 +74,22 @@ def validate(scene):
     count = len(fallen)
     drift = float(np.max(np.ptp(np.asarray(resting),axis=0)))
     world.close()
-    assert count==30,f"Nur {count}/30 Steine sind gefallen."
+    assert count==30,f"Only {count}/30 stones have fallen."
     assert fallen[tiles[-1].uid]>fallen[tiles[1].uid]
-    assert drift<.001,f"Restbewegung zu groß: {drift*1000:.2f} mm"
-    print(f"Geprüft: {count}/30 Steine gefallen; letzter Stein nach {fallen[tiles[-1].uid]:.1f} s; Restbewegung {drift*1000:.2f} mm (10–15 s).",flush=True)
+    assert drift<.001,f"Residual motion too large: {drift*1000:.2f} mm"
+    print(f"Checked: {count}/30 stones fallen; last stone after {fallen[tiles[-1].uid]:.1f} s; residual motion {drift*1000:.2f} mm (10–15 s).",flush=True)
 
 
 def main():
     folder = ROOT/"models"
     folder.mkdir(exist_ok=True)
-    path = folder/"Domino-30-Steine.igz"
+    path = folder/"domino-30.igz"
     if "--existing" in sys.argv:
         scene = Scene()
         igz.load_into(scene,path)
     else:
         if path.exists():
-            raise FileExistsError(f"Modell bereits vorhanden, nicht überschrieben: {path}; zum Öffnen --existing --open verwenden.")
+            raise FileExistsError(f"Model already exists, not overwritten: {path}; use --existing --open to open it.")
         scene = build()
     validate(scene)
     if "--existing" not in sys.argv:

@@ -44,7 +44,7 @@ def build():
     sun_x = -DISTANCE*MASSES[1]/sum(MASSES)
     planet_x = DISTANCE*MASSES[0]/sum(MASSES)
     scene = Scene()
-    scene.groups = [sphere("Sonne",.7,(sun_x,0,2),(1.,.61,.08),MASSES[0],[0,OMEGA*sun_x,0]),
+    scene.groups = [sphere("Sun",.7,(sun_x,0,2),(1.,.61,.08),MASSES[0],[0,OMEGA*sun_x,0]),
                     sphere("Planet",.28,(planet_x,0,2),(.12,.48,.93),MASSES[1],[0,OMEGA*planet_x,0])]
     return scene
 
@@ -64,16 +64,16 @@ def validate(scene):
             assert np.linalg.norm((MASSES[0]*a+MASSES[1]*b)/sum(MASSES)-[0,0,2])<1e-5
             largest_sun_motion = max(largest_sun_motion,np.linalg.norm(a-origin))
         assert largest_sun_motion>.35
-        print(f"Geprüft: 3 Umläufe, Abstand 4 m, Schwerpunkt stabil, Sonne bewegt sich mit. Umlaufzeit {PERIOD:.2f} s.",flush=True)
+        print(f"Checked: 3 orbits, distance 4 m, centre of mass stable, sun moves along. Orbital period {PERIOD:.2f} s.",flush=True)
     finally:world.close()
 
 
 def main():
-    path = ROOT/"models/Sonne-und-Planet.igz"
+    path = ROOT/"models/sun-and-planet.igz"
     if "--existing" in sys.argv:
         scene = Scene();igz.load_into(scene,path)
     else:
-        if path.exists():raise FileExistsError(f"Vorhandenes Modell bleibt erhalten: {path}")
+        if path.exists():raise FileExistsError(f"Existing model kept: {path}")
         scene = build()
     validate(scene)
     if "--existing" not in sys.argv:igz.save_scene(scene,path)

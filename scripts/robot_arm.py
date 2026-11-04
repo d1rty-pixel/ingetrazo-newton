@@ -72,18 +72,18 @@ def servo(name,pivot,axis,limits,force,parent):
 def build(gripper=False):
     scene = Scene()
     shoulder,elbow,wrist = [0,0,.65],[.45,0,1.30],[1.05,0,1.45]
-    base = body("Sockel",0)
+    base = body("Pedestal",0)
     beam(base.mesh,[0,0,.015],[0,0,.13],.62,.62,DARK)
     cylinder(base.mesh,[0,0,.23],[0,0,1],.23,.20,STEEL)
-    turn = body("Drehturm",5,base.uid,servo("01 Basisdrehung",[0,0,.33],[0,0,1],(-160,160),200,base.uid))
+    turn = body("Turret",5,base.uid,servo("01 Base rotation",[0,0,.33],[0,0,1],(-160,160),200,base.uid))
     cylinder(turn.mesh,[0,0,.37],[0,0,1],.25,.08,ORANGE)
     beam(turn.mesh,[0,0,.41],shoulder,.24,.24,ORANGE)
     cylinder(turn.mesh,shoulder,[0,1,0],.16,.31,DARK)
-    upper = body("Oberarm",3,turn.uid,servo("02 Schulter",shoulder,[0,1,0],(-55,65),160,turn.uid))
+    upper = body("Upper arm",3,turn.uid,servo("02 Shoulder",shoulder,[0,1,0],(-55,65),160,turn.uid))
     beam(upper.mesh,shoulder,elbow,.18,.22,ORANGE)
     cylinder(upper.mesh,[0,-.19,.65],[0,1,0],.115,.08,STEEL)
     cylinder(upper.mesh,elbow,[0,1,0],.135,.27,DARK)
-    fore = body("Unterarm",2,upper.uid,servo("03 Ellbogen",elbow,[0,1,0],(-90,100),100,upper.uid))
+    fore = body("Forearm",2,upper.uid,servo("03 Elbow",elbow,[0,1,0],(-90,100),100,upper.uid))
     beam(fore.mesh,elbow,wrist,.14,.16,ORANGE)
     cylinder(fore.mesh,[.45,-.17,1.3],[0,1,0],.095,.08,STEEL)
     if gripper:
@@ -92,15 +92,15 @@ def build(gripper=False):
         axis /= np.linalg.norm(axis)
         w = np.array(wrist)
         cylinder(fore.mesh,w,axis,.105,.09,DARK)
-        hand = body("Handgelenk",.8,fore.uid,
-                    servo("04 Handdrehung",w.tolist(),axis.tolist(),(-180,180),30,fore.uid))
+        hand = body("Wrist",.8,fore.uid,
+                    servo("04 Wrist rotation",w.tolist(),axis.tolist(),(-180,180),30,fore.uid))
         cylinder(hand.mesh,w+.075*axis,axis,.09,.06,STEEL)
         beam(hand.mesh,w+.10*axis,w+.18*axis,.23,.09,ORANGE)
         fingers = []
-        for side,name in ((-1,"Linke Backe"),(1,"Rechte Backe")):
+        for side,name in ((-1,"Left jaw"),(1,"Right jaw")):
             offset = np.array([0,side*.075,0])
             pivot = w+.17*axis+offset
-            joint = dict(type="slide",drive="position",name="05 Schließen links" if side<0 else "06 Schließen rechts",
+            joint = dict(type="slide",drive="position",name="05 Close left" if side<0 else "06 Close right",
                          pivot=pivot.tolist(),axis=[0,-side,0],parent=hand.uid,
                          limited=True,lower=0,upper=.05,target=0,
                          max_speed=.025,acceleration=.1,force=30)
@@ -110,7 +110,7 @@ def build(gripper=False):
             fingers.append(finger)
         # The two axis vectors already point inward: equal coordinates mean
         # equal and opposite world motion. Only the first axis is actuated.
-        fingers[0].ext[KEY]["joint"].update(name="Greifer Öffnung",display=dict(scale=-2,offset=.105))
+        fingers[0].ext[KEY]["joint"].update(name="Gripper opening",display=dict(scale=-2,offset=.105))
         fingers[1].ext[KEY]["joint"].update(coupling=dict(master=fingers[0].uid,ratio=1))
         scene.groups.extend([base,turn,upper,fore,hand,*fingers])
         return scene
@@ -141,18 +141,18 @@ def validate(scene):
             target = targets[c["master"]]*c["ratio"] if c else targets[g.uid]
             assert abs(actual-target)<tolerance,(g.name,target,actual)
     world.close()
-    print(f"Geprüft: {len(driven)} Antriebe, drei Zielposen, Rückkehr zur Ausgangslage.",flush=True)
+    print(f"Checked: {len(driven)} drives, three target poses, return to the initial position.",flush=True)
 
 
 def main():
     gripper = "--gripper" in sys.argv
     folder = ROOT/"models"
     folder.mkdir(exist_ok=True)
-    path = folder/("Industrieroboter-mit-Synchrongreifer.igz" if gripper else "Industrieroboter-3-Achsen.igz")
+    path = folder/("industrial-robot-synchronous-gripper.igz" if gripper else "industrial-robot-3-axis.igz")
     if "--existing" in sys.argv:
         if not path.is_file():raise FileNotFoundError(path)
     else:
-        if path.exists():raise FileExistsError(f"Zum Öffnen des vorhandenen Modells --existing --open verwenden: {path}")
+        if path.exists():raise FileExistsError(f"To open the existing model use --existing --open: {path}")
         scene = build(gripper)
         validate(scene)
         from newton.model import ensure_axis_layer
@@ -185,7 +185,7 @@ def main():
     panel = next(d.widget() for d in win._extension_docks if d.objectName()=="extension_newton")
     panel.python.setText(sys.executable)
     if "--sidebar" in sys.argv:
-        selected = next(g for g in win.viewport.scene.groups if g.name==("Linke Backe" if gripper else "Oberarm"))
+        selected = next(g for g in win.viewport.scene.groups if g.name==("Left jaw" if gripper else "Upper arm"))
         win.viewport.scene.select([selected]);win.viewport.notify_scene_changed();panel.show_sidebar()
     else:
         panel.show_controls()

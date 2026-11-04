@@ -223,7 +223,7 @@ def test_connection_object_wins_the_pick_over_the_body_around_it(panel,qtapp):
     assert a.ext[KEY]["point_attachment"] is None
 
 def test_performance_is_visible_in_controls_and_pause_is_not_measured(panel,qtapp):
-    seed_demo(panel,"Servo-Tür");panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+    seed_demo(panel,"Servo door");panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
     wait(qtapp,lambda:panel.session.performance.get("speed") is not None)
     assert "real time" in panel.controls.performance_label.text()
     assert "Newton:" in panel.controls.performance_label.toolTip()
@@ -277,7 +277,7 @@ def test_grouped_open_line_becomes_rope_and_move_undo_keeps_path_aligned(panel):
 
 
 def test_environment_overrides_edit_and_undo_without_changing_motion(panel):
-    seed_demo(panel,"Servo-Tür")
+    seed_demo(panel,"Servo door")
     group = next(g for g in panel.app.scene.groups if (g.ext or {}).get(KEY,{}).get("joint"))
     panel.app.scene.select([group]);panel.refresh()
     editor = panel.environment
@@ -360,8 +360,8 @@ def panel(qtapp, monkeypatch,request):
 
 
 @pytest.mark.parametrize("kind,name,display_target,native_target,suffix",[
-    ("Servo-Tür","Tür öffnen",60,math.pi/3,"°"),
-    ("Linearschlitten","Schlittenposition",400,.4,"mm")])
+    ("Servo door","Open door",60,math.pi/3,"°"),
+    ("Linear carriage","Carriage position",400,.4,"mm")])
 def test_named_controls_drive_real_session_and_reset_without_saving_runtime_target(
         panel,qtapp,kind,name,display_target,native_target,suffix):
     seed_demo(panel,kind)
@@ -384,21 +384,21 @@ def test_named_controls_drive_real_session_and_reset_without_saving_runtime_targ
 
 
 def test_sidebar_joint_edit_preserves_arbitrary_axis_and_can_be_undone(panel):
-    seed_demo(panel,"Servo-Tür")
+    seed_demo(panel,"Servo door")
     group = next(g for g in panel.app.scene.groups if (g.ext or {}).get(KEY,{}).get("joint"))
     group.ext[KEY]["joint"]["axis"] = [-.6,0,.8]
     panel.app.scene.select([group])
     panel.refresh()
-    panel.name_edit.setText("Meine Tür")
+    panel.name_edit.setText("My door")
     panel.configure_joint()
     assert group.ext[KEY]["joint"]["axis"] == pytest.approx([-.6,0,.8])
-    assert group.ext[KEY]["joint"]["name"] == "Meine Tür"
+    assert group.ext[KEY]["joint"]["name"] == "My door"
     panel.app.viewport.history.undo()
-    assert group.ext[KEY]["joint"]["name"] == "Tür öffnen"
+    assert group.ext[KEY]["joint"]["name"] == "Open door"
 
 
 def test_ui_rejects_cyclic_parent_before_modifying_document(panel):
-    seed_demo(panel,"Servo-Tür")
+    seed_demo(panel,"Servo door")
     source = panel.app.scene
     door = next(g for g in source.groups if (g.ext or {}).get(KEY,{}).get("joint"))
     frame = next(g for g in source.groups if g.uid == door.ext[KEY]["joint"]["parent"])
@@ -410,7 +410,7 @@ def test_ui_rejects_cyclic_parent_before_modifying_document(panel):
 
 
 def test_viewport_claims_z_before_zoom_shortcut_and_places_joint(panel,qtapp):
-    seed_demo(panel,"Servo-Tür")
+    seed_demo(panel,"Servo door")
     source = panel.app.scene
     group = next(g for g in source.groups if (g.ext or {}).get(KEY,{}).get("joint"))
     cfg = dict(group.ext[KEY]["joint"])
@@ -433,7 +433,7 @@ def test_viewport_claims_z_before_zoom_shortcut_and_places_joint(panel,qtapp):
 def test_toolbar_places_axis_without_dialog_and_sidebar_sets_drive(panel,qtapp):
     from newton.model import box,AddDemo
     from newton.joints import PlacementTool
-    group = box("Greifer",(2,0,2),(.5,.5,.5))
+    group = box("Gripper",(2,0,2),(.5,.5,.5))
     panel.app.viewport.history.execute(AddDemo([group]))
     panel.app.scene.select([group])
     panel.refresh()
@@ -448,7 +448,7 @@ def test_toolbar_places_axis_without_dialog_and_sidebar_sets_drive(panel,qtapp):
     panel.placement.on_key(panel.app.viewport,Qt.Key_Return,Qt.NoModifier)
     qtapp.processEvents();qtapp.processEvents()
     assert panel.app.window.statusBar().currentMessage()=="Axis placed.","the select tool hint must not hide the result"
-    panel.name_edit.setText("Greifer schließen")
+    panel.name_edit.setText("Close gripper")
     panel.name_edit.editingFinished.emit()
     panel.drive.setCurrentIndex(panel.drive.findData("position"))
     panel.target.setValue(30)
@@ -456,7 +456,7 @@ def test_toolbar_places_axis_without_dialog_and_sidebar_sets_drive(panel,qtapp):
     panel.acceleration.setValue(90)
     panel.configure_joint()
     j = group.ext[KEY]["joint"]
-    assert j["name"]=="Greifer schließen"
+    assert j["name"]=="Close gripper"
     assert j["target"]==pytest.approx(math.pi/6)
     assert j["max_speed"]==pytest.approx(math.pi/4)
     assert j["acceleration"]==pytest.approx(math.pi/2)
@@ -465,7 +465,7 @@ def test_toolbar_places_axis_without_dialog_and_sidebar_sets_drive(panel,qtapp):
 def test_reference_is_picked_in_viewport_and_detached_without_removing_axis(panel,qtapp,monkeypatch):
     from newton.model import demo,AddDemo
     from newton.references import reference
-    parent,child = demo("Servo-Tür")
+    parent,child = demo("Servo door")
     panel.app.viewport.history.execute(AddDemo([parent,child]))
     panel.app.scene.select([child])
     panel.refresh()
@@ -479,12 +479,12 @@ def test_reference_is_picked_in_viewport_and_detached_without_removing_axis(pane
         screen=SimpleNamespace(x=lambda:100,y=lambda:100)))
     qtapp.processEvents()
     assert reference(child)==parent.uid
-    assert any("Türrahmen" in name for name in panel.reference_table.names())
+    assert any("Door frame" in name for name in panel.reference_table.names())
 
 
 def test_simulation_select_tool_stays_drag_tool_and_driven_body_cannot_drag(panel,qtapp):
     from newton.interaction import DragTool
-    seed_demo(panel,"Servo-Tür")
+    seed_demo(panel,"Servo door")
     uid = panel.control_rows[0]["uid"]
     panel.start_or_pause()
     wait(qtapp,lambda:panel.session.ready)
@@ -497,7 +497,7 @@ def test_simulation_select_tool_stays_drag_tool_and_driven_body_cannot_drag(pane
 
 
 def test_enabling_servo_on_legacy_passive_hinge_gets_useful_default_force(panel):
-    seed_demo(panel,"Pendel")
+    seed_demo(panel,"Pendulum")
     panel.drive.setCurrentIndex(panel.drive.findData("position"))
     panel.target.setValue(30)
     panel.configure_joint()
@@ -576,7 +576,7 @@ def test_reference_tables_show_a_picture_and_change_or_remove_the_link(panel,qta
     assert rope.ext[KEY]["flexible"]["end_reference"] is None and flexible.end_table.names()==[]
 
 
-def select_demo_axis(panel,kind="Servo-Tür"):
+def select_demo_axis(panel,kind="Servo door"):
     seed_demo(panel,kind)
     group = next(g for g in panel.app.scene.groups if (g.ext or {}).get(KEY,{}).get("joint"))
     panel.app.scene.select([group])
@@ -595,7 +595,7 @@ def test_sidebar_edits_apply_without_buttons_and_refresh_does_not_write(panel,qt
     for _ in range(3):
         panel.refresh()
     assert len(hist.undo_stack)==before
-    assert not any("übernehmen" in b.text().lower() for b in panel.findChildren(QPushButton))
+    assert not any(w in b.text().lower() for b in panel.findChildren(QPushButton) for w in ("apply","übernehmen"))
     panel.max_speed.selectAll()
     QTest.keyClicks(panel.max_speed,"45")
     assert joint_settings(group.ext[KEY]["joint"])["max_speed"]==pytest.approx(math.pi)
@@ -608,9 +608,9 @@ def test_sidebar_edits_apply_without_buttons_and_refresh_does_not_write(panel,qt
     assert len(hist.undo_stack)==before
     panel.acceleration.setValue(60)
     assert group.ext[KEY]["joint"]["acceleration"]==pytest.approx(math.pi/3)
-    panel.name_edit.setText("Tür links")
+    panel.name_edit.setText("Door left")
     panel.name_edit.editingFinished.emit()
-    assert group.ext[KEY]["joint"]["name"]=="Tür links"
+    assert group.ext[KEY]["joint"]["name"]=="Door left"
 
 
 def test_changing_one_field_preserves_other_fields_full_precision(panel):
@@ -638,7 +638,7 @@ def test_invalid_live_limits_keep_valid_model_and_can_be_corrected(panel,qtapp):
     assert group.ext[KEY]["joint"]["upper"]==pytest.approx(math.pi/4)
 
 
-@pytest.mark.parametrize("kind",["Servo-Tür","Linearschlitten"])
+@pytest.mark.parametrize("kind",["Servo door","Linear carriage"])
 def test_native_eraser_removes_axis_over_geometry_without_deleting_body(panel,monkeypatch,kind):
     from PySide6.QtCore import QPointF
     group = select_demo_axis(panel,kind)
@@ -764,7 +764,7 @@ def test_browser_exposes_axes_and_control_names_while_newton_sidebar_is_empty(pa
     outliner.refresh()
     row = outliner._items[id(group)]
     assert "Rotary servo" in row.text(COL_TYPE)
-    assert "Tür öffnen" in row.text(COL_TYPE)
+    assert "Open door" in row.text(COL_TYPE)
 
 
 def test_profile_overwrites_parameters_as_one_undo_but_preserves_spatial_identity(panel):
@@ -1231,7 +1231,7 @@ def test_axis_placement_uses_the_native_line_geometry_and_world_axis_snaps(panel
 
 
 def test_sidebar_position_slider_uses_linear_limits_and_one_undo_per_drag(panel):
-    group = select_demo_axis(panel,"Linearschlitten")
+    group = select_demo_axis(panel,"Linear carriage")
     control = panel.ranges["target"]
     assert (control.a,control.b)==pytest.approx((-700,700))
     assert (panel.target.minimum(),panel.target.maximum())==pytest.approx((-700,700))
@@ -1519,7 +1519,7 @@ def test_link_legacy_body_keeps_implicit_static_behaviour_and_undo(panel):
 def test_axis_placement_previews_the_axis_along_the_hover_direction(panel,qtapp):
     from newton.model import box,AddDemo
     from newton.axis_guides import axis_rows
-    group = box("Klappe",(2,0,2),(.5,.5,.5))
+    group = box("Flap",(2,0,2),(.5,.5,.5))
     panel.app.viewport.history.execute(AddDemo([group]))
     panel.app.scene.select([group])
     panel.refresh()
@@ -1624,7 +1624,7 @@ def test_hinge_placement_sets_the_zero_direction_and_start_angle(panel,qtapp):
     from newton.axis_guides import axis_rows
     from newton.axis_objects import markers,owner_id,placement
     from core.history import RotateGroupCommand
-    group = box("Klappe",(2.5,0,2),(1,.1,.5))
+    group = box("Flap",(2.5,0,2),(1,.1,.5))
     panel.app.viewport.history.execute(AddDemo([group]))
     panel.app.scene.select([group]);panel.refresh()
     panel.actions["rotate"].trigger()
@@ -1680,7 +1680,7 @@ def test_control_panel_opens_at_the_view_corner_and_fits_its_cards(panel):
 
 
 def test_control_panel_opens_tall_enough_for_its_cards(qtapp,panel):
-    seed_demo(panel,"Servo-Tür")
+    seed_demo(panel,"Servo door")
     panel.show_controls()
     qtapp.processEvents()
     scroll = panel.controls.scroll
@@ -1892,7 +1892,7 @@ def test_selection_outlines_linked_bodies_and_picks_outline_their_candidate(pane
 
 
 def test_control_panel_grows_when_the_speed_line_appears(qtapp,panel):
-    seed_demo(panel,"Servo-Tür")
+    seed_demo(panel,"Servo door")
     panel.show_controls()
     controls = panel.controls
     controls.message("Drag passive bodies. Use controls for actuators.")

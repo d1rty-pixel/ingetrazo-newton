@@ -45,7 +45,7 @@ def test_servo_reaches_live_angle_and_holds_under_gravity(world):
 
 
 def test_linear_position_moves_to_target_and_clamps_to_limits(world):
-    groups = demo("Linearschlitten")
+    groups = demo("Linear carriage")
     uid = groups[1].uid
     load(world,groups)
     result = advance(world,2,{uid:.4})
@@ -56,7 +56,7 @@ def test_linear_position_moves_to_target_and_clamps_to_limits(world):
 
 
 def test_passive_linear_axis_falls_only_along_axis(world):
-    g = box("Schlitten", (1,2,3), (.2,.2,.2), joint=dict(
+    g = box("Carriage", (1,2,3), (.2,.2,.2), joint=dict(
         type="slide", drive="free", pivot=[1,2,3], axis=[0,0,1],
         limited=True, lower=-1, upper=1))
     load(world,[g])
@@ -67,7 +67,7 @@ def test_passive_linear_axis_falls_only_along_axis(world):
 
 
 def test_linear_velocity_motor_can_reverse(world):
-    g = box("Vorschub", (0,0,3), (.2,.2,.2), joint=dict(
+    g = box("Feed", (0,0,3), (.2,.2,.2), joint=dict(
         type="slide", drive="velocity", pivot=[0,0,3], axis=[1,0,0],
         force=100, target=.2, limited=False))
     load(world,[g])
@@ -78,9 +78,9 @@ def test_linear_velocity_motor_can_reverse(world):
 
 
 def test_joint_to_moving_parent_follows_parent_and_preserves_relative_anchor(world):
-    parent = box("Träger", (0,0,5), (.3,.3,.3))
+    parent = box("Carrier", (0,0,5), (.3,.3,.3))
     child = box("Arm", (.6,0,5), (.8,.15,.15), joint=dict(
-        parent=parent.uid, type="hinge", drive="position", name="Armwinkel",
+        parent=parent.uid, type="hinge", drive="position", name="Arm angle",
         pivot=[.2,0,5], axis=[0,0,1], target=.5, force=100))
     load(world,[child,parent])  # deliberately child before parent in source
     result = advance(world,1)
@@ -103,10 +103,10 @@ def test_cycle_and_missing_parent_are_explicit_errors(world):
 
 
 def test_passive_hinge_has_no_drive_and_legacy_motor_migrates(world):
-    g = demo("Pendel")[0]
+    g = demo("Pendulum")[0]
     load(world,[g])
     assert world.motors[g.uid]["drive"] == "free"
-    g = demo("Motorisiertes Rad")[0]
+    g = demo("Motorised wheel")[0]
     load(world,[g])
     assert world.motors[g.uid]["drive"] == "velocity"
     assert world.motors[g.uid]["target"] == 3
@@ -114,13 +114,13 @@ def test_passive_hinge_has_no_drive_and_legacy_motor_migrates(world):
 
 def test_partial_body_changes_preserve_joint_name_parent_and_other_properties():
     scene = Scene()
-    scene.groups = demo("Servo-Tür")
+    scene.groups = demo("Servo door")
     g = scene.groups[1]
     old = copy.deepcopy(g.ext[KEY]["joint"])
     hist = History(scene)
     hist.execute(Configure([g],dict(mass=3),partial=True))
     assert g.ext[KEY]["joint"] == old
-    assert joint_rows(scene)[0]["name"] == "Tür öffnen"
+    assert joint_rows(scene)[0]["name"] == "Open door"
     hist.undo()
     assert g.ext[KEY]["mass"] == 1
 

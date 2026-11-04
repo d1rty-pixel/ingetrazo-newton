@@ -22,9 +22,9 @@ def side_link(pitch,y,sign):
         j = (i+1)%len(outline)
         mesh.add_face([rings[0][i],rings[1][i],rings[1][j],rings[0][j]]).attrs["color"] = (.13,.19,.23)
     for edge in mesh.edges:edge.soft = True
-    plate = Group(mesh,"Seitenlasche")
-    pins = [cylinder("Gelenkbund",[x,y+sign*.005,0],[x,y+sign*.010,0],.015,(.50,.57,.61),20) for x in (0,pitch)]
-    group = Group(name="Seitenlasche mit Gelenkbünden");group.adopt([plate,*pins])
+    plate = Group(mesh,"Side plate")
+    pins = [cylinder("Hinge collar",[x,y+sign*.005,0],[x,y+sign*.010,0],.015,(.50,.57,.61),20) for x in (0,pitch)]
+    group = Group(name="Side plate with hinge collars");group.adopt([plate,*pins])
     return group
 
 
@@ -38,9 +38,9 @@ def build():
         dx,dz = b[0]-a[0],b[2]-a[2];pitch = math.hypot(dx,dz);theta = math.atan2(dz,dx)
         stagger = .006 if i%2 else -.006
         parts = [side_link(pitch,-(.1+stagger),-1),side_link(pitch,.1+stagger,1)]
-        for name,z in (("Unterer Quersteg",-.05),("Oberer Quersteg",.05)):
+        for name,z in (("Lower crossbar",-.05),("Upper crossbar",.05)):
             parts.append(coloured(box(name,(pitch/2,0,z),(.024,.19,.012)),(.24,.31,.35)))
-        link = Group(name=f"Glied {i+1:02d} · Rahmen");link.adopt(parts)
+        link = Group(name=f"Link {i+1:02d} · Frame");link.adopt(parts)
         link.xform = QMatrix4x4();link.xform.translate(*a);link.xform.rotate(-math.degrees(theta),0,1,0)
         link.ext = {KEY:dict(DEFAULTS,mode="static" if i==0 else "dynamic",mass=.048,
             shape="compound",friction=.2,restitution=0)}
@@ -51,7 +51,7 @@ def build():
                 limited=True,lower=-math.pi/6+delta,upper=delta)
         parent = link.uid;links.append(link);scene.groups.append(link)
     links[-1].ext[KEY]["point_attachment"] = dict(target=carriage.uid,point=points[-1])
-    cable = make("Kabel in der Schleppkette",points,kind="cable",radius=.012,bend=5e5,twist=2e5,
+    cable = make("Cable in the drag chain",points,kind="cable",radius=.012,bend=5e5,twist=2e5,
         damping=.001,mass=.08,end_reference=carriage.uid,colour=(.94,.55,.12))
     cable.ext[KEY]["reference"] = links[0].uid;scene.groups.append(cable)
     return scene

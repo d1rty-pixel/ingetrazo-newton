@@ -18,7 +18,7 @@ def audit(path,seconds=4):
     world = World();world.load(dict(bodies=specs,gravity=-9.81,floor=False))
     body_names = {bid:names.get(uid,uid) for uid,bid in world.bodies.items()}
     counts = [];pairs = Counter();kinds = Counter();penetration = 0;started = time.perf_counter()
-    def category(name):return "chain" if name.startswith("Glied ") else "cable" if "Netzkabel" in name else "rod" if name=="Pleuelstange" else "wheel" if "Speichenrad" in name else "bed" if name=="Maschinenbett" else "other"
+    def category(name):return "chain" if name.startswith("Link ") else "cable" if "Power cable" in name else "rod" if name=="Connecting rod bar" else "wheel" if "Spoked wheel" in name else "bed" if name=="Machine bed" else "other"
     for _ in range(round(seconds*30)):
         world.step(8);counts.append(int(world.data.ncon))
         for c in world.data.contact[:world.data.ncon]:
@@ -33,7 +33,7 @@ def audit(path,seconds=4):
 
 
 if __name__=="__main__":
-    path = next((a for a in sys.argv[1:] if not a.startswith("--")),str(ROOT/"models/Kurbeltrieb-mit-Schleppkette.igz"))
+    path = next((a for a in sys.argv[1:] if not a.startswith("--")),str(ROOT/"models/crank-drive-drag-chain.igz"))
     report = audit(path)
     print(json.dumps(report,indent=2))
     output = next((a.split("=",1)[1] for a in sys.argv if a.startswith("--output=")),None)

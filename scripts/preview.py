@@ -27,7 +27,7 @@ dock = next(d for d in win._extension_docks if d.objectName() == "extension_newt
 panel = dock.widget()
 panel.python.setText(sys.executable)
 from newton.model import demo,AddDemo
-groups = demo(sys.argv[1] if len(sys.argv)>1 else "Servo-Tür")
+groups = demo(sys.argv[1] if len(sys.argv)>1 else "Servo door")
 win.viewport.history.execute(AddDemo(groups))
 win.viewport.scene.select(groups)
 win.viewport.notify_scene_changed()

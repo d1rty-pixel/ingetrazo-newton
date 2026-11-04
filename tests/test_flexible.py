@@ -36,8 +36,8 @@ def test_native_elasticity_has_independent_bodies_and_preserves_source(tmp_path)
         assert world.data.time == pytest.approx(5)
         assert [g.ext for g in source.groups] == before
         assert all(c["kind"]=="Capsule" for uid,c in world.collider_lines().items() if ":flex:" in uid)
-        weights = {g.name:world.data.xpos[world.bodies[g.uid]][2] for g in restored.groups if "Gewicht" in g.name}
-        assert weights["Kabel · Gewicht"]>weights["Seil · Gewicht"]+.05
+        weights = {g.name:world.data.xpos[world.bodies[g.uid]][2] for g in restored.groups if "Weight" in g.name}
+        assert weights["Cable · Weight"]>weights["Rope · Weight"]+.05
         # End attachments remain within 1 cm despite the load and ground contacts.
         eq = world.data.efc_pos[world.data.efc_type==0]
         assert np.max(np.abs(eq))<.01
@@ -63,7 +63,7 @@ def test_articulated_chain_swings_without_links_separating():
     initial = world.poses()["poses"]
     try:
         final = advance(world,4)["poses"]
-        links = [g for g in scene.groups if g.name.startswith("Kettenglied")]
+        links = [g for g in scene.groups if g.name.startswith("Chain link")]
         assert final[links[0].uid][0] == pytest.approx(initial[links[0].uid][0])
         assert final[links[-1].uid][0][2]<1.5
         for a,b in zip(links,links[1:]):
@@ -74,10 +74,10 @@ def test_articulated_chain_swings_without_links_separating():
 def test_carrier_keeps_cable_inside_while_carriage_moves_both_ways():
     scene = carrier();world,_ = loaded(scene)
     cable = scene.groups[-1];points = cable.ext[KEY]["flexible"]["points"]
-    carriage = next(g for g in scene.groups if g.name=="Schlitten")
+    carriage = next(g for g in scene.groups if g.name=="Carriage")
     initial = {uid:np.array(p[0]) for uid,p in world.poses()["poses"].items()}
     parts = [world.bodies[segment_uid(cable.uid,i)] for i in range(len(points)-1)]
-    frames = [next(g for g in scene.groups if g.name==f"Glied {i+1:02d} · Boden") for i in range(len(points)-1)]
+    frames = [next(g for g in scene.groups if g.name==f"Link {i+1:02d} · Base") for i in range(len(points)-1)]
     try:
         for target in (.18,-.10,.20):
             result = advance(world,4,{carriage.uid:target})
