@@ -133,6 +133,19 @@ def test_connection_objects_mirror_connections_and_host_transforms_move_the_poin
     assert not markers(scene,CONNECTION)
 
 
+def test_context_menu_groups_reference_connection_and_selection_entries(panel,qtapp):
+    from PySide6.QtWidgets import QMenu
+    group = select_demo_axis(panel)
+    menu = QMenu();panel.context_menu(menu,[group])
+    assert [a.text() or "|" for a in menu.actions()]==["Assign reference body…","Detach reference body","|",
+        "Connect bodies","|","Select axis object","Select connection object"]
+    connect = menu.actions()[3].menu()
+    assert [a.text() for a in connect.actions()]==["Ball joint","Pin joint","Fixed connection"]
+    other = next(g for g in panel.app.scene.groups if g is not group)
+    several = QMenu();panel.context_menu(several,[group,other])
+    assert [a.text() for a in several.actions()]==["Detach reference body"]
+
+
 def test_context_menu_selects_only_the_physics_object_the_body_owns(panel,qtapp):
     from PySide6.QtWidgets import QMenu
     from newton.model import box,AddDemo

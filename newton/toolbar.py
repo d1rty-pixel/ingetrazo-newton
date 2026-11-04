@@ -122,7 +122,7 @@ def build(panel):
         [("connect_ball","connection_ball","Ball joint",lambda:begin_connection(panel,"ball"),"Place the point, then pick the other body"),
          ("connect_hinge","connection_hinge","Pin joint",lambda:begin_connection(panel,"hinge"),"Place the point and the pin direction, then pick the other body"),
          ("connect_fixed","connection_fixed","Fixed connection",lambda:begin_connection(panel,"fixed"),"Place the point, then pick the other body")],
-        [("link","link","Assign reference body",panel.pick_reference,"Pick a reference body"),
+        [("link","link","Assign reference body…",panel.pick_reference,"Pick a reference body"),
          ("unlink","unlink","Detach reference body",panel.detach_reference,"Keep the current placement")],
         [("free","movable","Movable",lambda:panel.mark("dynamic"),"Make the selection movable"),
          ("fixed","fixed","Fixed",lambda:panel.mark("static"),"Fix the selection")],

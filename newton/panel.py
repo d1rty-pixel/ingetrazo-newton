@@ -855,20 +855,27 @@ class NewtonPanel(QWidget):
         if self.session.workspace:
             return
         groups = [g for g in self.app.scene.groups if g in selection]
+        if not groups:
+            return
         if len(groups)==1:
             menu.addAction(icon("link"),tr("Assign reference body…"),lambda:QTimer.singleShot(0,self.pick_reference))
-            from .connections import begin
-            menu.addAction(icon("connect"),tr("Connect bodies…"),lambda:QTimer.singleShot(0,lambda:begin(self)))
-            if settings(groups[0]).get("point_attachment"):
-                menu.addAction(icon("unlink"),tr("Remove connection"),lambda:QTimer.singleShot(0,self.connection_editor.detach))
-            from .axis_objects import AXIS,CONNECTION,markers,owner_id
-            body = groups[0]
-            for key,text,name in ((AXIS,"Select axis object","rotate"),(CONNECTION,"Select connection object","connect")):
-                marker = None if owner_id(body) else next((m for m in markers(self.app.scene,key) if owner_id(m)==body.uid),None)
-                action = menu.addAction(icon(name),tr(text),lambda *_,m=marker:QTimer.singleShot(0,lambda:self.select_object(m)))
-                action.setEnabled(marker is not None and not getattr(marker,"locked",False))
-        if groups:
-            menu.addAction(icon("unlink"),tr("Detach reference body"),lambda:QTimer.singleShot(0,self.detach_reference))
+        menu.addAction(icon("unlink"),tr("Detach reference body"),lambda:QTimer.singleShot(0,self.detach_reference))
+        if len(groups)!=1:
+            return
+        from .connections import KINDS,begin
+        menu.addSeparator()
+        connect = menu.addMenu(icon("connect"),tr("Connect bodies"))
+        for kind,label in KINDS.items():
+            connect.addAction(icon("connection_"+kind),tr(label),lambda *_,k=kind:QTimer.singleShot(0,lambda:begin(self,k)))
+        if settings(groups[0]).get("point_attachment"):
+            menu.addAction(icon("unlink"),tr("Remove connection"),lambda:QTimer.singleShot(0,self.connection_editor.detach))
+        menu.addSeparator()
+        from .axis_objects import AXIS,CONNECTION,markers,owner_id
+        body = groups[0]
+        for key,text,name in ((AXIS,"Select axis object","rotate"),(CONNECTION,"Select connection object","connect")):
+            marker = None if owner_id(body) else next((m for m in markers(self.app.scene,key) if owner_id(m)==body.uid),None)
+            action = menu.addAction(icon(name),tr(text),lambda *_,m=marker:QTimer.singleShot(0,lambda:self.select_object(m)))
+            action.setEnabled(marker is not None and not getattr(marker,"locked",False))
 
     def select_object(self,marker):
         if marker in self.app.scene.groups:
