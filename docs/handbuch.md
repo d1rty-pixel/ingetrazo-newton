@@ -5,7 +5,7 @@ Dieses Handbuch beschreibt die Bedienung von Newton 0.14.0. Installation und Üb
 ## Grundablauf
 
 1. Eine Gruppe oder Komponente auswählen.
-2. In der **Newton-Toolbar** das **Drehachsen-Icon** oder **Linearachsen-Icon** anklicken. Es öffnet sich kein Dialog.
+2. In der Toolbar **Newton Tools** das **Drehachsen-Icon** oder **Linearachsen-Icon** anklicken. Es öffnet sich kein Dialog.
 3. Im Modell zuerst den Dreh-/Startpunkt setzen. Ein zweiter Klick legt die positive Achsenrichtung fest. Die Fangfunktionen von IngeTrazo gelten dabei. Nach dem ersten Klick kann alternativ **X**, **Y** oder **Z** gedrückt werden. **Esc** bricht ohne Änderung ab.
 4. In der **Newton-Sidebar** das Verhalten und den Antrieb einstellen. Änderungen gelten direkt: Zahlen mit Enter oder beim Verlassen des Feldes, Auswahllisten und Schalter sofort. Jede Änderung ist rückgängig machbar.
 5. **Start** drücken. Passive Körper lassen sich mit gedrückter linker Maustaste greifen und ziehen. Das **Steuerpult** enthält benannte Antriebsregler. **Reset** kehrt zum unveränderten Originalmodell zurück.
@@ -118,7 +118,7 @@ Im Bereich **Körper & Kontakt** unter **Kollisionsausnahmen**: einen Körper au
 
 ## Simulation und Steuerpult
 
-- **Start / Pause / Fortsetzen / Reset** sind in Toolbar und Steuerpult verfügbar. Start und Pause teilen sich einen zustandsabhängigen Button. Das Steuerpult funktioniert auch ohne Objektauswahl.
+- **Start / Pause / Fortsetzen / Reset** sind in der Toolbar **Newton Simulation** und im Steuerpult verfügbar. Start und Pause teilen sich einen zustandsabhängigen Button. Das Steuerpult funktioniert auch ohne Objektauswahl.
 - In der Simulation greift die linke Maustaste passive, nicht feste Körper. Die Bewegung erfolgt als gedämpfte Zugkraft an der Greifstelle, ohne Teleportieren; Gelenke und Kontakte wirken weiter. Loslassen beendet die Zugkraft.
 - Die Maus bewegt das Zugziel in der zum Bildschirm parallelen Ebene durch den Greifpunkt. Kamera-Navigation über die mittlere Maustaste bleibt verfügbar.
 - **Servo- und Motorkörper mit Regler können nicht manuell gezogen werden**, auch dann nicht, wenn das Kraftlimit klein ist. Sie werden ausschließlich über das Steuerpult gesteuert. Diese Regel wird sowohl in der Oberfläche als auch im Newtonprozess geprüft.
@@ -151,7 +151,7 @@ Unter **Preferences → Newton → Profile → Zugeordnete Körper synchronisier
 
 Jede Seite ist in Kategorien mit Überschrift gegliedert, die durch eine Linie getrennt sind. Jede Einstellung hat einen eigenen Erklärtext, der auch als Tooltip erscheint. Einstellungen, die eine physikalische Größe verändern (Schwerkraft, Boden, Dämpfung), zeigen zusätzlich ein Piktogramm dieser Größe. **Kollisionsformen in neuen Fenstern anzeigen** legt fest, ob die Kollisionsanzeige beim Öffnen eines Fensters eingeschaltet ist.
 
-Vier native Trenner gliedern die zwölf Toolbar-Aktionen in Achsen/Verbindungen, Körper, Bezugskörper, Simulation und Sidebar. Profilverwaltung und Einstellungen sind aus der Toolbar entfernt. Die Toolbar verwendet IngeTrazos Toolbar-Größe. Die Icons folgen dem Stil von IngeTrazo: Die Form ist in Textfarbe gezeichnet, das bestimmende Detail (Drehpunkt, Richtung, Verbindung) in der Akzentfarbe. Deaktivierte Icons erscheinen vollständig grau. Die Icons reagieren auf die helle und dunkle Palette.
+Newton bringt zwei Toolbars mit. **Newton Tools** enthält, jeweils durch etwas Abstand getrennt, Achsen, Verbindungen, Bezugskörper, Beweglich/Fest, die Sidebar und ganz rechts das Steuerpult. **Newton Simulation** enthält Start/Pause, Reset und Körper ziehen. Profilverwaltung und Einstellungen sind aus der Toolbar entfernt. Die Toolbar verwendet IngeTrazos Toolbar-Größe. Die Icons folgen dem Stil von IngeTrazo: Die Form ist in Textfarbe gezeichnet, das bestimmende Detail (Drehpunkt, Richtung, Verbindung) in der Akzentfarbe. Deaktivierte Icons erscheinen vollständig grau. Die Icons reagieren auf die helle und dunkle Palette.
 
 In Sidebar und Profil-Editor zeigen Auswahllisten mit festen Werten (Verhalten, Kollisionsform, Antrieb, Verbindung, Werkstoff, Befestigung, Kopplungsrichtung, Achse) zu jedem Wert ein Piktogramm, das die Wechselwirkung der beteiligten Körper darstellt. Zahlenfelder physikalischer Größen (etwa Masse, Reibung, Rückprall, Grenzen, Geschwindigkeit, Kraft, Schwerkraft, Dämpfung, Anziehung, Kabelradius und -steifigkeit) tragen ein kleines Piktogramm hinter ihrem Namen. Die Sidebar lässt sich bis etwa 280 px Breite verkleinern, ohne dass Inhalte abgeschnitten oder Zeilen gestaucht werden.
 

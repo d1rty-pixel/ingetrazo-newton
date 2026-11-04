@@ -1,10 +1,10 @@
-"""Newton toolbar, dropdown pictograms and labels with drawings of physical quantities."""
+"""Newton toolbars, dropdown pictograms and labels with drawings of physical quantities."""
 import weakref
 from collections.abc import Mapping
 import shiboken6
 from PySide6.QtCore import QSize
 from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QToolBar
+from PySide6.QtWidgets import QToolBar,QWidget
 from .i18n import tr
 from .icons import attach,icon,repaint
 
@@ -93,42 +93,44 @@ class Actions(Mapping):
 
 
 def build(panel):
+    """The "Newton Tools" bar for modelling and the "Newton Simulation" bar to run it."""
     from .connections import begin as begin_connection
-    bar = QToolBar(tr("Newton"),panel.app.window)
-    bar.setObjectName("newton_toolbar")
     from views.icons import toolbar_icon_px
     size = toolbar_icon_px()
-    bar.setIconSize(QSize(size,size))
     actions = {}
-    def add(key,art,label,callback,tip):
-        action = bar.addAction(icon(art),tr(label))
-        action.setObjectName("newton_"+key)
-        action.setProperty("newton_icon",art)
-        action.setToolTip(tr(label)+" — "+tr(tip))
-        action.triggered.connect(callback)
-        actions[key] = action
-    groups = [
-        ("Axes",[("rotate","rotate","Place rotation axis",lambda:panel.edit_joint("hinge"),"Pick the pivot and direction"),
-            ("slide","slide","Place linear axis",lambda:panel.edit_joint("slide"),"Pick the origin and direction"),
-            ("connect_ball","connection_ball","Ball joint",lambda:begin_connection(panel,"ball"),"Place the point, then pick the other body"),
-            ("connect_hinge","connection_hinge","Pin joint",lambda:begin_connection(panel,"hinge"),"Place the point and the pin direction, then pick the other body"),
-            ("connect_fixed","connection_fixed","Fixed connection",lambda:begin_connection(panel,"fixed"),"Place the point, then pick the other body")]),
-        ("Bodies",[("free","movable","Movable",lambda:panel.mark("dynamic"),"Make the selection movable"),
-            ("fixed","fixed","Fixed",lambda:panel.mark("static"),"Fix the selection")]),
-        ("References",[("link","link","Assign reference body",panel.pick_reference,"Pick a reference body"),
-            ("unlink","unlink","Detach reference body",panel.detach_reference,"Keep the current placement")]),
-        ("Simulation",[("play","play","Start / pause",panel.start_or_pause,"Run or pause the simulation"),
-            ("reset","reset","Reset",panel.session.reset,"Return to the original model"),
-            ("drag","drag","Drag body",panel.activate_drag,"Drag passive bodies"),
-            ("controls","controls","Controls",panel.show_controls,"Open named actuator controls")]),
-        ("Extension",[("panel","panel","Newton properties",panel.show_sidebar,"Show properties of the selection")])]
-    for index,(title,entries) in enumerate(groups):
-        if index:
-            separator = bar.addSeparator()
-            separator.setObjectName("newton_separator_"+str(index))
-            separator.setToolTip(tr(title))
-        for entry in entries:
-            add(*entry)
-    panel.app.window.addToolBar(bar)
+    def bar(title,name,groups):
+        bar = QToolBar(title,panel.app.window)
+        bar.setObjectName(name)
+        bar.setIconSize(QSize(size,size))
+        for index,entries in enumerate(groups):
+            if index:
+                gap = QWidget()
+                gap.setFixedSize(size//2,size//2)
+                bar.addWidget(gap).setObjectName(name+"_gap_"+str(index))
+            for key,art,label,callback,tip in entries:
+                action = bar.addAction(icon(art),tr(label))
+                action.setObjectName("newton_"+key)
+                action.setProperty("newton_icon",art)
+                action.setToolTip(tr(label)+" — "+tr(tip))
+                action.triggered.connect(callback)
+                actions[key] = action
+        panel.app.window.addToolBar(bar)
+        return bar
+    tools = bar(tr("Newton Tools"),"newton_tools",[
+        [("rotate","rotate","Place rotation axis",lambda:panel.edit_joint("hinge"),"Pick the pivot and direction"),
+         ("slide","slide","Place linear axis",lambda:panel.edit_joint("slide"),"Pick the origin and direction")],
+        [("connect_ball","connection_ball","Ball joint",lambda:begin_connection(panel,"ball"),"Place the point, then pick the other body"),
+         ("connect_hinge","connection_hinge","Pin joint",lambda:begin_connection(panel,"hinge"),"Place the point and the pin direction, then pick the other body"),
+         ("connect_fixed","connection_fixed","Fixed connection",lambda:begin_connection(panel,"fixed"),"Place the point, then pick the other body")],
+        [("link","link","Assign reference body",panel.pick_reference,"Pick a reference body"),
+         ("unlink","unlink","Detach reference body",panel.detach_reference,"Keep the current placement")],
+        [("free","movable","Movable",lambda:panel.mark("dynamic"),"Make the selection movable"),
+         ("fixed","fixed","Fixed",lambda:panel.mark("static"),"Fix the selection")],
+        [("panel","panel","Newton properties",panel.show_sidebar,"Show properties of the selection")],
+        [("controls","controls","Controls",panel.show_controls,"Open named actuator controls")]])
+    simulation = bar(tr("Newton Simulation"),"newton_simulation",[
+        [("play","play","Start / pause",panel.start_or_pause,"Run or pause the simulation"),
+         ("reset","reset","Reset",panel.session.reset,"Return to the original model"),
+         ("drag","drag","Drag body",panel.activate_drag,"Drag passive bodies")]])
     panel.app.restore_toolbar_layout()
-    return bar,Actions(panel.app.window,actions)
+    return tools,simulation,Actions(panel.app.window,actions)

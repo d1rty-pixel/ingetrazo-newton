@@ -424,7 +424,7 @@ def test_toolbar_places_axis_without_dialog_and_sidebar_sets_drive(panel,qtapp):
     panel.app.viewport.history.execute(AddDemo([group]))
     panel.app.scene.select([group])
     panel.refresh()
-    assert panel.toolbar.objectName()=="newton_toolbar"
+    assert panel.toolbar.objectName()=="newton_tools"
     assert len(panel.actions)==14
     assert all(not a.icon().isNull() for a in panel.actions.values())
     panel.actions["rotate"].trigger()
@@ -811,7 +811,13 @@ def test_toolbar_groups_and_icons_follow_palette_and_state(panel):
     from PySide6.QtGui import QPalette,QColor,QIcon
     from PySide6.QtWidgets import QApplication
     palette = QApplication.palette()
-    assert len([a for a in panel.toolbar.actions() if a.isSeparator()])==4
+    from PySide6.QtWidgets import QWidgetAction
+    def keys(bar):return [a.objectName().removeprefix("newton_") for a in bar.actions() if not isinstance(a,QWidgetAction)]
+    assert keys(panel.toolbar)==["rotate","slide","connect_ball","connect_hinge","connect_fixed","link","unlink","free","fixed","panel","controls"]
+    assert keys(panel.simulation_bar)==["play","reset","drag"]
+    # Categories are set apart by space, not by separator lines.
+    assert len([a for a in panel.toolbar.actions() if isinstance(a,QWidgetAction)])==5
+    assert not [a for a in panel.toolbar.actions()+panel.simulation_bar.actions() if a.isSeparator()]
     assert "profiles" not in panel.actions and "settings" not in panel.actions
     assert len(panel.actions)==14
     try:

@@ -50,12 +50,12 @@ Das Flatpak darf auf das Home-Verzeichnis zugreifen und kann die `.venv` deshalb
 
 ### Nach der Installation
 
-IngeTrazo vollständig neu starten und **Extensions → Newton…** öffnen. Die Newton-Toolbar lässt sich über die normale Toolbar-Verwaltung einblenden. Die `.venv` muss erhalten bleiben, solange Newton sie benutzt. Nach einem Umzug wird der Python-Pfad unter **Preferences → Newton → Runtime** neu gewählt.
+IngeTrazo vollständig neu starten und **Extensions → Newton…** öffnen. Die Toolbars **Newton Tools** (Modellieren) und **Newton Simulation** lassen sich über die normale Toolbar-Verwaltung einblenden. Die `.venv` muss erhalten bleiben, solange Newton sie benutzt. Nach einem Umzug wird der Python-Pfad unter **Preferences → Newton → Runtime** neu gewählt.
 
 ## Erste Schritte
 
 1. Eine Gruppe oder Komponente auswählen.
-2. In der Newton-Toolbar **Drehachse** oder **Linearachse** anklicken.
+2. In der Toolbar **Newton Tools** **Drehachse** oder **Linearachse** anklicken.
 3. Im Modell den Dreh- bzw. Startpunkt anklicken, dann die Richtung anklicken oder **X**, **Y** oder **Z** drücken. **Esc** bricht ab.
 4. In der Newton-Sidebar Verhalten und Antrieb einstellen. Änderungen gelten sofort und lassen sich rückgängig machen.
 5. **Start** drücken. Passive Körper mit der linken Maustaste ziehen, Antriebe über das Steuerpult bewegen. **Reset** stellt das Originalmodell wieder her.

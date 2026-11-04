@@ -251,7 +251,7 @@ class NewtonPanel(QWidget):
         self.session.telemetry.connect(self.controls.telemetry)
         app.add_overlay(self.draw_joints)
         app.add_context_menu(self.context_menu)
-        self.toolbar,self.actions = build(self)
+        self.toolbar,self.simulation_bar,self.actions = build(self)
         self.refresh_profiles()
         self.name_edit.editingFinished.connect(lambda:self.live_joint("name",self.name_edit.text()))
         self.drive.currentIndexChanged.connect(lambda:self.live_joint("drive",self.drive.currentData()))
