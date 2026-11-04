@@ -71,6 +71,15 @@ Useful scripts: `scripts/preview.py` (open a demo in a test window), `scripts/be
   - Arrowheads are 3 units long (`l3 3-3 3`); damping is two parallel bars, the second one shorter.
   - The accent marks what the action, choice or setting changes. "None" choices (`no_axis`, `rigid`) have no accent; `play`, `pause` and `reset` are drawn in the accent only.
   - Leave stroke widths to the renderer, except deliberate thick bars (`stroke-width="4"`).
+  - Names are lower-case snake case; a dropdown value's drawing is prefixed with its kind (`connection_ball`, `drive_free`). A toolbar action for a dropdown value uses that value's drawing (`connect_ball` shows `connection_ball`).
+- Adding an icon: write the SVG with the header and both groups, reference it by name (`icon()`, `attach()`, `CHOICES` or a physical pictogram), run `scripts/icons.py --sheet` and compare it with its neighbours at 22 px in light and dark, then run `tests/test_icons.py`.
+- Model overlays (axes, connection objects, rims) draw like the pictograms and share one colour language, defined in `axis_guides.COLOURS`:
+  - sand (`axis`): the shape of an axis or connection; a connection object is drawn like its type's pictogram;
+  - yellow (`actual`): current position, connection point and the rims of bodies linked to the selection;
+  - violet (`target`): the servo target only; green, blue and orange: range, minimum and maximum; dotted grey: zero;
+  - red: the object a click or the eraser would hit; grey: locked;
+  - host accent: the body a pick would take (`newton/glow.py`).
+  Do not give a colour a second meaning.
 - `newton/icons.py`: `icon(name)` (QIcon), `pixmap(name, size)`, `attach(widget, name)` for buttons and labels that must follow palette changes (`repaint()`, called via `toolbar.redecorate()` from `panel.refresh_icons`).
 - `newton/toolbar.py`: `CHOICES` maps fixed dropdown values to icon names and `decorate(combo, kind)` applies them; `physical_label()` and `physical_check()` put a physical pictogram on form labels and checkboxes. Only settings that change a physical quantity get one.
 - `scripts/icons.py` exports icons by name as coloured SVG/PNG and writes `dist/icons/overview.png` (every icon small and enlarged, light and dark); check it after every drawing change. `tests/test_icons.py` fails on a referenced icon without a file, on a file nobody uses, and on a file that breaks the format.
