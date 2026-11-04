@@ -1124,6 +1124,23 @@ def test_axis_labels_are_larger_separated_and_pickable(panel):
     assert pick_axis(panel,vp,rect.center().x(),rect.center().y())==uid==group.uid
 
 
+def test_axis_labels_follow_the_toolbar_icon_size(panel):
+    from PySide6.QtCore import QSettings
+    from PySide6.QtGui import QImage,QPainter
+    select_demo_axis(panel)
+    vp = panel.app.viewport
+    heights = {}
+    try:
+        for px in (20,24,40):
+            QSettings().setValue("ui/toolbar_icon_px",px)
+            image = QImage(1200,900,QImage.Format_ARGB32);image.fill(Qt.white)
+            painter = QPainter(image);panel.draw_joints(vp,painter);painter.end()
+            heights[px] = max(r.height() for r,uid in panel.axis_label_hits)
+    finally:
+        QSettings().remove("ui/toolbar_icon_px")
+    assert heights[20]<heights[24]<heights[40]
+
+
 def test_axis_placement_uses_the_native_line_geometry_and_world_axis_snaps(panel):
     from tools.line import LineTool
     from newton.joints import PlacementTool

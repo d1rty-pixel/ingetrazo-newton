@@ -31,6 +31,15 @@ def place_caption(x,y,width,height,viewport_width,viewport_height,obstacles,occu
     return best[1]
 
 
+def caption_font(viewport):
+    """Bold caption font that follows the host's toolbar icon size, as IngeTrazo has no UI font size yet."""
+    from views.icons import toolbar_icon_px,DEFAULT_TOOLBAR_ICON_PX
+    font = QFont(viewport.font())
+    font.setPointSizeF(max(12,font.pointSizeF()+3)*toolbar_icon_px()/DEFAULT_TOOLBAR_ICON_PX)
+    font.setBold(True)
+    return font
+
+
 def guide_geometry(panel,viewport,j,detail):
     a,d,u,v,r = axis_frame(panel,viewport,j)
     state = panel.session.joint_states.get(j["uid"],{}) if panel.session.workspace else {}
@@ -97,9 +106,7 @@ def draw(panel,viewport,painter):
         return
     painter.save()
     painter.setRenderHint(QPainter.Antialiasing,True)
-    font = QFont(viewport.font())
-    font.setPointSizeF(max(12,font.pointSizeF()+3))
-    font.setBold(True)
+    font = caption_font(viewport)
     painter.setFont(font)
     metrics = QFontMetrics(font)
     occupied = []

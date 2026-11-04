@@ -1,7 +1,7 @@
 """Undoable closed-loop attachments placed and edited in the model."""
 import math
 from PySide6.QtCore import Qt,QTimer,QPointF
-from PySide6.QtGui import QVector3D,QColor,QPen,QBrush,QPainter,QFont,QFontMetrics
+from PySide6.QtGui import QVector3D,QColor,QPen,QBrush,QPainter,QFontMetrics
 from tools.base import Tool
 from .model import KEY,settings,Configure,axes_visible
 from .worker import attachment_settings
@@ -239,8 +239,8 @@ def point_mark(painter,x,y,kind,colour):
 
 def caption(panel,vp,painter,x,y,text,colour):
     """A name plate like the axes' own, placed clear of the axis guides."""
-    from .axis_guides import place_caption
-    font = QFont(vp.font());font.setPointSizeF(max(12,font.pointSizeF()+3));font.setBold(True)
+    from .axis_guides import place_caption,caption_font
+    font = caption_font(vp)
     painter.setFont(font);metrics = QFontMetrics(font)
     text = metrics.elidedText(text,Qt.ElideRight,max(160,min(360,vp.width()//2)))
     rect = place_caption(x,y,metrics.horizontalAdvance(text)+14,metrics.height()+10,vp.width(),vp.height(),
