@@ -147,12 +147,13 @@ def circle(a,b,centre=(0,0,0),r=1.,n=24):
 
 
 def glyph(kind):
-    """Polylines in the object's own frame (z along the pin): a ball is three rings, a pin a rod with end rings, a rigid connection a cube."""
+    """Polylines in the object's own frame (z along the pin): a ball is three rings, a pin a rod through a ring, a rigid connection a cube."""
     x,y,z = (1,0,0),(0,1,0),(0,0,1)
     if kind=="ball":
         lines = [circle(x,y),circle(x,z),circle(y,z)]
     elif kind=="hinge":
-        lines = [[(0,0,-PIN),(0,0,PIN)],circle(x,y),circle(x,y,(0,0,-PIN*.75),.6),circle(x,y,(0,0,PIN*.75),.6)]
+        # Like its dropdown pictogram: a (dashed) pin through a small ring.
+        lines = [[(0,0,-PIN),(0,0,PIN)],circle(x,y,r=.6)]
     else:
         corners = [(a*.75,b*.75,c*.75) for a in (-1,1) for b in (-1,1) for c in (-1,1)]
         lines = [[corners[i],corners[j]] for i in range(8) for j in range(i+1,8) if bin(i^j).count("1")==1]
@@ -213,7 +214,9 @@ def draw(panel,vp,painter):
         colour = QColor(*(RED if marker.uid==getattr(panel,"hover_connection",None) else LOCKED if locked else VIOLET))
         size = screen_size(vp,value,size_of(panel,body));m = glyph_frame(value,size)
         pen = QPen(colour,2);pen.setCapStyle(Qt.RoundCap);painter.setPen(pen);painter.setBrush(Qt.NoBrush)
-        for line in glyph(value.get("type","ball")):
+        kind = value.get("type","ball")
+        for index,line in enumerate(glyph(kind)):
+            pen.setStyle(Qt.DashLine if kind=="hinge" and index==0 else Qt.SolidLine);painter.setPen(pen)
             xs,ys,front = vp.world_to_pixels([list(m.map(QVector3D(*p)).toTuple()) for p in line])
             for i in range(len(line)-1):
                 if front[i] and front[i+1]:painter.drawLine(int(xs[i]),int(ys[i]),int(xs[i+1]),int(ys[i+1]))
