@@ -33,9 +33,11 @@ def place_caption(x,y,width,height,viewport_width,viewport_height,obstacles,occu
 
 def caption_font(viewport):
     """Bold caption font that follows the host's toolbar icon size, as IngeTrazo has no UI font size yet."""
-    from views.icons import toolbar_icon_px,DEFAULT_TOOLBAR_ICON_PX
+    from views.icons import toolbar_icon_px,TOOLBAR_ICON_SIZES
     font = QFont(viewport.font())
-    font.setPointSizeF(max(12,font.pointSizeF()+3)*toolbar_icon_px()/DEFAULT_TOOLBAR_ICON_PX)
+    # Full size at the largest icons, never below the viewport's own text.
+    largest = max(size for size,_ in TOOLBAR_ICON_SIZES)
+    font.setPointSizeF(max(font.pointSizeF(),max(12,font.pointSizeF()+3)*toolbar_icon_px()/largest))
     font.setBold(True)
     return font
 

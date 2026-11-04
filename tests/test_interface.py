@@ -1138,7 +1138,7 @@ def test_axis_labels_follow_the_toolbar_icon_size(panel):
             heights[px] = max(r.height() for r,uid in panel.axis_label_hits)
     finally:
         QSettings().remove("ui/toolbar_icon_px")
-    assert heights[20]<heights[24]<heights[40]
+    assert heights[20]<=heights[24]<heights[40]
 
 
 def test_axis_placement_uses_the_native_line_geometry_and_world_axis_snaps(panel):
