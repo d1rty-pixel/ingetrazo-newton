@@ -110,7 +110,9 @@ def build(panel):
     groups = [
         ("Axes",[("rotate","rotate","Place rotation axis",lambda:panel.edit_joint("hinge"),"Pick the pivot and direction"),
             ("slide","slide","Place linear axis",lambda:panel.edit_joint("slide"),"Pick the origin and direction"),
-            ("connect","connect","Connect bodies",lambda:begin_connection(panel),"Pick another body and place the connection")]),
+            ("connect_ball","connection_ball","Ball joint",lambda:begin_connection(panel,"ball"),"Place the point, then pick the other body"),
+            ("connect_hinge","connection_hinge","Pin joint",lambda:begin_connection(panel,"hinge"),"Place the point and the pin direction, then pick the other body"),
+            ("connect_fixed","connection_fixed","Fixed connection",lambda:begin_connection(panel,"fixed"),"Place the point, then pick the other body")]),
         ("Bodies",[("free","movable","Movable",lambda:panel.mark("dynamic"),"Make the selection movable"),
             ("fixed","fixed","Fixed",lambda:panel.mark("static"),"Fix the selection")]),
         ("References",[("link","link","Assign reference body",panel.pick_reference,"Pick a reference body"),

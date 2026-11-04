@@ -43,14 +43,17 @@ def test_connect_tool_places_a_pin_and_sidebar_edits_it_live(panel,qtapp,monkeyp
     from newton.connections import ConnectionTool
     a,b = box("Link",(.5,0,2),(1,.1,.1)),box("Anchor",(0,0,2),(.1,.1,.1),mode="static")
     vp = panel.app.viewport;vp.history.execute(AddDemo([a,b]));vp.scene.select([a]);panel.refresh()
-    panel.connection_editor.kind.setCurrentIndex(panel.connection_editor.kind.findData("hinge"))
-    before = len(vp.history.undo_stack);panel.actions["connect"].trigger()
-    tool = vp.active_tool;assert type(tool).__name__=="ConnectionTool"
+    assert all(panel.actions[k].isEnabled() for k in ("connect_ball","connect_hinge","connect_fixed"))
+    before = len(vp.history.undo_stack);panel.actions["connect_hinge"].trigger()
+    tool = vp.active_tool;assert type(tool).__name__=="ConnectionTool" and tool.kind=="hinge"
     monkeypatch.setattr(vp,"pick_group",lambda *args:b)
     ctx = SimpleNamespace(viewport=vp,screen=SimpleNamespace(x=lambda:100,y=lambda:100),world=QVector3D(0,0,2))
-    tool.on_click(ctx);assert not a.ext[KEY].get("point_attachment")
+    tool.on_hover(ctx);assert tool.glow_group is None,"no target before the point is placed"
     tool.on_click(ctx);assert tool.claims_key(Qt.Key_Y,Qt.NoModifier)
-    tool.on_key(vp,Qt.Key_Y,Qt.NoModifier);qtapp.processEvents()
+    tool.on_key(vp,Qt.Key_Y,Qt.NoModifier);assert not a.ext[KEY].get("point_attachment")
+    assert not tool.claims_key(Qt.Key_Y,Qt.NoModifier)
+    tool.on_hover(ctx);assert tool.glow_group is b,"the final click's candidate is outlined"
+    tool.on_click(ctx);qtapp.processEvents()
     assert a.ext[KEY]["point_attachment"]["target"]==b.uid
     assert a.ext[KEY]["point_attachment"]["axis"]==[0,1,0]
     assert len(vp.history.undo_stack)==before+1
@@ -422,7 +425,7 @@ def test_toolbar_places_axis_without_dialog_and_sidebar_sets_drive(panel,qtapp):
     panel.app.scene.select([group])
     panel.refresh()
     assert panel.toolbar.objectName()=="newton_toolbar"
-    assert len(panel.actions)==12
+    assert len(panel.actions)==14
     assert all(not a.icon().isNull() for a in panel.actions.values())
     panel.actions["rotate"].trigger()
     assert panel.dialog is None
@@ -810,7 +813,7 @@ def test_toolbar_groups_and_icons_follow_palette_and_state(panel):
     palette = QApplication.palette()
     assert len([a for a in panel.toolbar.actions() if a.isSeparator()])==4
     assert "profiles" not in panel.actions and "settings" not in panel.actions
-    assert len(panel.actions)==12
+    assert len(panel.actions)==14
     try:
         assert all(not a.icon().isNull() for a in panel.actions.values())
         rotate = panel.actions["rotate"].icon()

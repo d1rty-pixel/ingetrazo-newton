@@ -611,7 +611,8 @@ class NewtonPanel(QWidget):
             self.actions[key].setEnabled(not active and bool(groups) and (len(groups)==1 or key in ("unlink","free","fixed")))
         if len(groups)==1 and settings(groups[0]).get("flexible"):
             self.actions["rotate"].setEnabled(False);self.actions["slide"].setEnabled(False)
-        self.actions["connect"].setEnabled(not active and len(groups)==1 and not settings(groups[0]).get("flexible"))
+        for key in ("connect_ball","connect_hinge","connect_fixed"):
+            self.actions[key].setEnabled(not active and len(groups)==1 and not settings(groups[0]).get("flexible"))
         self.actions["drag"].setEnabled(active and self.session.ready)
         self.actions["reset"].setEnabled(active)
         self.actions["play"].setEnabled(not active or self.session.ready)

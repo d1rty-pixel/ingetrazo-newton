@@ -47,55 +47,69 @@ class ConnectionTool(Tool):
     uses_snap = True
     magnetic_axis_deg = 3.;screen_axis_px = 9.
 
+    """Point first, then the pin direction for a pin joint, and the other body with the final click."""
+
     def __init__(self,panel,source,kind):
         self.panel,self.source,self.kind = panel,source,kind
-        self.scene = panel.app.scene;self.target = None;self.anchor = None;self.hover = None;self.done = False;self.glow_group = None
+        self.scene = panel.app.scene;self.anchor = None;self.axis = None;self.hover = None;self.done = False;self.glow_group = None
 
     @property
     def start_point(self):return self.anchor
 
-    def on_activate(self,vp):vp.flash_status(tr("Pick the other body. Esc cancels."),15000)
+    @property
+    def placed(self):return self.anchor is not None and (self.kind!="hinge" or self.axis is not None)
+
+    def value(self,target):
+        value = dict(target=target.uid,type=self.kind,point=list(self.anchor.toTuple()))
+        if self.axis is not None:value["axis"] = list(self.axis.toTuple())
+        return value
+
+    def prompt(self,vp):
+        text = ("Pick the connection point. Esc cancels." if self.anchor is None else
+                "Pick the other body. Esc cancels." if self.placed else "Pick the pin direction or press X/Y/Z.")
+        vp.flash_status(tr(text),15000)
+
+    def on_activate(self,vp):self.prompt(vp)
 
     def on_hover(self,ctx):
         self.hover = QVector3D(ctx.world)
-        if self.target is None:
+        group = None
+        if self.placed:
             group = ctx.viewport.pick_group(ctx.screen.x(),ctx.screen.y())
             try:
-                if group is not None:connection_command(self.scene,self.source,dict(target=group.uid,point=[0,0,0],type=self.kind))
+                if group is not None:connection_command(self.scene,self.source,self.value(group))
             except ValueError:group = None
-            self.glow_group = group
+        self.glow_group = group
         ctx.viewport.update()
 
     def on_click(self,ctx):
         if self.done:return
         try:
             if self.panel.app.scene is not self.scene:raise ValueError("Document changed.")
-            if self.target is None:
-                target = ctx.viewport.pick_group(ctx.screen.x(),ctx.screen.y())
-                if target is None:return
-                connection_command(self.scene,self.source,dict(target=target.uid,point=list(ctx.world.toTuple()),type=self.kind))
-                self.target = target;self.glow_group = None;ctx.viewport.flash_status(tr("Pick the connection point. Esc cancels."),15000);return
             if self.anchor is None:
-                self.anchor = QVector3D(ctx.world)
-                if self.kind!="hinge":self.finish()
-                else:ctx.viewport.flash_status(tr("Pick the pin direction or press X/Y/Z."),15000)
-            else:self.finish(QVector3D(ctx.world)-self.anchor)
+                self.anchor = QVector3D(ctx.world);self.prompt(ctx.viewport)
+            elif not self.placed:
+                self.aim(ctx.viewport,QVector3D(ctx.world)-self.anchor)
+            else:
+                target = ctx.viewport.pick_group(ctx.screen.x(),ctx.screen.y())
+                if target is not None:self.finish(target)
         except ValueError as exc:self.panel.status_message(str(exc))
 
-    def finish(self,axis=None):
-        if self.done:return
-        value = dict(target=self.target.uid,type=self.kind,point=list(self.anchor.toTuple()))
-        if self.kind=="hinge":
-            if axis is None or axis.lengthSquared()<1e-10:return
-            value["axis"] = list(axis.normalized().toTuple())
-        apply_connection(self.panel,self.source,value,"Connection created.")
-        self.done = True;QTimer.singleShot(0,lambda:self.panel.app.window._activate_tool("select"))
+    def aim(self,vp,axis):
+        if axis.lengthSquared()<1e-10:return
+        self.axis = axis.normalized();self.prompt(vp)
 
-    def claims_key(self,key,modifiers):return self.anchor is not None and key in (Qt.Key_X,Qt.Key_Y,Qt.Key_Z) and not modifiers & (Qt.ControlModifier|Qt.AltModifier)
+    def finish(self,target):
+        if self.done:return
+        apply_connection(self.panel,self.source,self.value(target),"Connection created.")
+        self.done = True;self.glow_group = None;QTimer.singleShot(0,lambda:self.panel.app.window._activate_tool("select"))
+
+    def claims_key(self,key,modifiers):
+        return self.anchor is not None and not self.placed and key in (Qt.Key_X,Qt.Key_Y,Qt.Key_Z) and not modifiers & (Qt.ControlModifier|Qt.AltModifier)
 
     def on_key(self,vp,key,modifiers):
         if self.claims_key(key,modifiers):
-            self.finish(QVector3D(*{Qt.Key_X:(1,0,0),Qt.Key_Y:(0,1,0),Qt.Key_Z:(0,0,1)}[key]));return True
+            self.aim(vp,QVector3D(*{Qt.Key_X:(1,0,0),Qt.Key_Y:(0,1,0),Qt.Key_Z:(0,0,1)}[key]));return True
         return False
 
     def on_cancel(self,vp):self.done = True;QTimer.singleShot(0,lambda:self.panel.app.window._activate_tool("select"))
@@ -105,10 +119,13 @@ class ConnectionTool(Tool):
     def rubber_band_lines(self):return [(self.anchor,self.hover)] if self.anchor is not None and self.hover is not None else []
 
 
-def begin(panel):
+def begin(panel,kind=None):
+    """Connect the selected body; without ``kind`` the sidebar's connection type is used."""
     groups = panel.selected()
     if panel.session.workspace or len(groups)!=1:return
-    panel.app.viewport.set_active_tool(ConnectionTool(panel,groups[0],panel.connection_editor.kind.currentData()))
+    if not editable(panel.app.scene,groups[0]):
+        panel.status_message(tr("The body is hidden or locked."));return
+    panel.app.viewport.set_active_tool(ConnectionTool(panel,groups[0],kind or panel.connection_editor.kind.currentData()))
 
 
 def point_in_view(panel,group,value):
