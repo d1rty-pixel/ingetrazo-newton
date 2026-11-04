@@ -9,23 +9,28 @@ MAX_POINTS = 4000
 _points = {}
 
 
-def links(group):
-    """Uids this body points to: reference body, connection target, rope end, coupling leader."""
+# Rim colour per kind of link, in drawing order (axis_guides.COLOURS).
+KINDS = {"connection":"connected","reference":"actual","exemption":"exemption"}
+
+
+def links(group,kind="reference"):
+    """Uids this body points to by kind: reference body and coupling leader, connection target and
+    rope end, or collision exemptions."""
     if KEY not in (group.ext or {}):
         return set()
     cfg = settings(group)
-    found = {reference_id(group),(cfg.get("point_attachment") or {}).get("target"),
-             (cfg.get("flexible") or {}).get("end_reference"),
-             ((cfg.get("joint") or {}).get("coupling") or {}).get("master")}
+    found = {"reference":{reference_id(group),((cfg.get("joint") or {}).get("coupling") or {}).get("master")},
+             "connection":{(cfg.get("point_attachment") or {}).get("target"),(cfg.get("flexible") or {}).get("end_reference")},
+             "exemption":set(cfg.get("no_collision",[]))}[kind]
     return found-{None,group.uid}
 
 
-def linked(scene,selection):
-    """Bodies linked to the selection in either direction, without the selection itself."""
+def linked(scene,selection,kind="reference"):
+    """Bodies linked to the selection in either direction by one kind of link, without the selection itself."""
     chosen = {g.uid for g in selection}
     found = set()
     for group in scene.groups:
-        own = links(group)
+        own = links(group,kind)
         if group.uid in chosen:found |= own
         elif own & chosen:found.add(group.uid)
     hidden = {l.name for l in scene.layers if not l.visible}
@@ -56,7 +61,7 @@ def hull(xy):
     return half(xy)+half(reversed(xy))
 
 
-def rim(vp,painter,scene,group,colour):
+def rim(vp,painter,scene,group,colour,dashed=False,overlay=False):
     world = points(scene,group)
     if not world:return
     xs,ys,front = vp.world_to_pixels(world)
@@ -66,13 +71,16 @@ def rim(vp,painter,scene,group,colour):
     halo = QColor(colour);halo.setAlpha(70)
     fill = QColor(colour);fill.setAlpha(30)
     painter.setBrush(Qt.NoBrush)
-    painter.setPen(QPen(halo,9,Qt.SolidLine,Qt.RoundCap,Qt.RoundJoin));painter.drawPolygon(polygon)
-    painter.setBrush(fill)
-    painter.setPen(QPen(colour,2,Qt.SolidLine,Qt.RoundCap,Qt.RoundJoin));painter.drawPolygon(polygon)
+    if not overlay:
+        painter.setPen(QPen(halo,9,Qt.SolidLine,Qt.RoundCap,Qt.RoundJoin));painter.drawPolygon(polygon)
+    painter.setBrush(Qt.NoBrush if overlay else fill)
+    pen = QPen(colour,3 if dashed else 2,Qt.SolidLine,Qt.RoundCap,Qt.RoundJoin)
+    if dashed:pen.setStyle(Qt.DashLine);pen.setCapStyle(Qt.FlatCap)
+    painter.setPen(pen);painter.drawPolygon(polygon)
 
 
 def draw(panel,vp,painter):
-    """The pick candidate in the accent colour, the bodies linked to the selection in the connection colour."""
+    """The pick candidate in the accent colour, the bodies linked to the selection in their link's colour."""
     if panel.session.workspace or vp is not panel.app.viewport:return
     from views.theme import accent_color
     from .axis_guides import COLOURS
@@ -80,10 +88,17 @@ def draw(panel,vp,painter):
     candidate = getattr(panel,"glow_candidate",None) or getattr(vp.active_tool,"glow_group",None)
     if candidate not in scene.groups:candidate = None
     # The linked rims are guides like the axes and hide with their layer; a pick always shows its candidate.
-    others = [g for g in linked(scene,panel.selected()) if g is not candidate] if axes_visible(scene) else []
-    if not others and candidate is None:return
+    selection = panel.selected()
+    others = {kind:[g for g in linked(scene,selection,kind) if g is not candidate] for kind in KINDS} if axes_visible(scene) else {}
+    if not any(others.values()) and candidate is None:return
     painter.save();painter.setRenderHint(QPainter.Antialiasing,True)
-    for group in others:rim(vp,painter,scene,group,QColor(*COLOURS["actual"]))
+    drawn = set()
+    for kind in KINDS:
+        for group in others.get(kind,[]):
+            # A connection wins over a reference; an exemption stays visible as a dashed rim over either.
+            if kind=="exemption" or group.uid not in drawn:
+                rim(vp,painter,scene,group,QColor(*COLOURS[KINDS[kind]]),dashed=kind=="exemption",overlay=group.uid in drawn)
+                drawn.add(group.uid)
     if candidate is not None:rim(vp,painter,scene,candidate,accent_color())
     painter.restore()
 

@@ -16,7 +16,7 @@ Alle Parameter stehen bei der gewählten Gruppe in der Sidebar. Sie ist wie die 
 
 Wo die Sidebar auf einen anderen Körper verweist (Bezugskörper, Gegenkörper einer Verbindung, Endbefestigung, Leitachse einer Kopplung, Kollisionsausnahmen), steht er als eigene Zeile mit kleinem Vorschaubild und Namen. Das Trennsymbol dahinter entfernt den Verweis; beide Körper bleiben erhalten, und der Schritt ist rückgängig machbar.
 
-Im Modell sind solche Beziehungen umrandet: Ist ein Körper ausgewählt, tragen alle mit ihm verbundenen Körper einen gelben Rand, in beide Richtungen (Bezugskörper und abhängige Körper, Verbindungen, Seilenden, Kopplungen). Beim Auswählen eines Körpers, etwa des Bezugskörpers, des Gegenkörpers einer Verbindung oder im Menü **Wählen…**, trägt der Körper unter dem Mauszeiger einen Rand in der Akzentfarbe, sofern er dafür in Frage kommt.
+Im Modell sind solche Beziehungen umrandet: Ist ein Körper ausgewählt, tragen die mit ihm verbundenen Körper einen Rand, in beide Richtungen: gelb für Bezugskörper, abhängige Körper und Kopplungen, magenta für Gegenkörper mechanischer Verbindungen und Seilenden, cyan gestrichelt für Kollisionsausnahmen. Beim Auswählen eines Körpers, etwa des Bezugskörpers, des Gegenkörpers einer Verbindung oder im Menü **Wählen…**, trägt der Körper unter dem Mauszeiger einen Rand in der Akzentfarbe, sofern er dafür in Frage kommt.
 
 | Einstellung | Bedeutung |
 |---|---|

@@ -1,4 +1,4 @@
-"""Pick pairwise contact exceptions in the model; one undoable command."""
+"""Pick pairwise contact exemptions in the model; one undoable command."""
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QWidget,QVBoxLayout,QPushButton
 from core.history import CompoundCommand
@@ -31,7 +31,7 @@ class CollisionPairs(QWidget):
         self.panel = panel
         layout = QVBoxLayout(self);layout.setContentsMargins(0,0,0,0)
         self.table = ReferenceTable(self.restore)
-        self.add = QPushButton(tr("Exclude body…"))
+        self.add = QPushButton(tr("Exempt body…"))
         self.add.clicked.connect(self.pick)
         layout.addWidget(self.table);layout.addWidget(self.add)
 

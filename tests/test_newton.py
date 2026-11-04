@@ -117,7 +117,7 @@ def test_thirty_dominoes_fall_then_settle_without_persistent_rocking(world):
     assert np.max(np.ptp(np.asarray(orientations),axis=0))<.02
 
 
-def test_collision_demo_pair_exceptions_and_restore_change_real_contacts(world):
+def test_collision_demo_pair_exemptions_and_restore_change_real_contacts(world):
     from scripts.collision_demo import build
     from newton.collision_ui import pair_command
     scene = build()

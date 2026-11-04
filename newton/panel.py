@@ -217,10 +217,10 @@ class NewtonPanel(QWidget):
         self.show_collider.toggled.connect(self.show_body_collider)
         self.collision_view.changed.connect(self.refresh_collider_check)
         form.addRow(self.show_collider)
-        # Exceptions are a contact setting of this body, so they live in the same section.
+        # Exemptions are a contact setting of this body, so they live in the same section.
         self.collision_box = QWidget()
         box_layout = QVBoxLayout(self.collision_box);box_layout.setContentsMargins(0,8,0,0)
-        heading = QLabel(tr("Collision exceptions"));heading.setStyleSheet("font-weight: bold")
+        heading = QLabel(tr("Collision exemptions"));heading.setStyleSheet("font-weight: bold")
         explanation = QLabel(tr(help.COLLISIONS));explanation.setWordWrap(True);explanation.setTextFormat(Qt.PlainText)
         from .collision_ui import CollisionPairs
         self.collision_pairs = CollisionPairs(self)

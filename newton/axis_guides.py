@@ -8,7 +8,8 @@ from .i18n import tr
 
 
 COLOURS = {"axis":(160,150,130),"range":(50,175,140),"minimum":(70,155,240),
-           "maximum":(235,110,75),"actual":(235,180,40),"target":(180,105,235),"zero":(150,150,150)}
+           "maximum":(235,110,75),"actual":(235,180,40),"target":(180,105,235),"zero":(150,150,150),
+           "connected":(225,85,175),"exemption":(60,200,215)}
 
 
 def place_caption(x,y,width,height,viewport_width,viewport_height,obstacles,occupied):

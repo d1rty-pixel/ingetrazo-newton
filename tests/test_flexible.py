@@ -116,7 +116,7 @@ def test_cable_start_modes(start):
     finally:world.close()
 
 
-def test_collision_exception_applies_to_every_segment_of_flexible_body():
+def test_collision_exemption_applies_to_every_segment_of_flexible_body():
     from newton.model import box
     obstacle = box("enclosure",(.3,0,2),(1,1,1),mode="static")
     cable = make("lead",[[i*.1,0,2] for i in range(7)])

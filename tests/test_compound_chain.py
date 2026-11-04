@@ -35,7 +35,7 @@ def test_energy_chain_links_are_single_rigid_open_frames():
         assert all(world.model.body_geomnum[world.bodies[g.uid]]==4 for g in links)
         assert all(world.collider_lines()[g.uid]["kind"]=="Compound" for g in links)
         assert sum(world.model.body_mass[world.bodies[g.uid]] for g in links) == pytest.approx(22*.048)
-        # No artificial collision exceptions between non-neighbouring links.
+        # No artificial collision exemptions between non-neighbouring links.
         assert all(not g.ext[KEY].get("no_collision") for g in links)
         for _ in range(60):world.step(8)
         chain_ids = {world.bodies[g.uid] for g in links}

@@ -1069,7 +1069,7 @@ def test_collision_pairs_restore_and_undo_preserve_body_mode_and_native_file(pan
     groups[2].ext = None
     panel.app.viewport.history.execute(pair_command(groups[1],groups[2],False))
     assert groups[2].ext[KEY]["mode"]=="static"
-    path = tmp_path/"exceptions.igz";igz.save_scene(panel.app.scene,path)
+    path = tmp_path/"exemptions.igz";igz.save_scene(panel.app.scene,path)
     loaded = Scene();igz.load_into(loaded,path)
     assert excludes(next(g for g in loaded.groups if g.uid==groups[1].uid),next(g for g in loaded.groups if g.uid==groups[2].uid))
     assert len(prepare(loaded)[1])==6
@@ -1680,7 +1680,7 @@ def test_folded_sidebar_sections_stack_instead_of_sharing_the_spare_height(panel
         assert lower.y()-(upper.y()+upper.height())==layout.spacing(),(upper.header.text(),lower.header.text())
 
 
-def test_collision_exceptions_live_in_the_body_and_contact_section(panel):
+def test_collision_exemptions_live_in_the_body_and_contact_section(panel):
     assert panel.body_section.isAncestorOf(panel.collision_pairs)
     assert not hasattr(panel,"collision_section")
 
@@ -1770,6 +1770,28 @@ def test_small_connection_glyphs_keep_a_readable_size_on_screen(panel,qtapp):
     assert screen_size(vp,value,2.)==2.,"large glyphs keep the body's size"
 
 
+def test_collision_exemptions_and_connections_get_their_own_rim_colours(panel):
+    from PySide6.QtGui import QImage,QPainter,QColor
+    from newton.model import box,AddDemo
+    from newton.connections import apply_connection
+    from newton.collision_ui import pair_command
+    from newton.axis_guides import COLOURS
+    from newton import glow
+    scene,vp = panel.app.scene,panel.app.viewport
+    a,b,c = box("a",(0,0,2),(1,1,1)),box("b",(3,0,2),(1,1,1),mode="static"),box("c",(-3,0,2),(1,1,1))
+    vp.history.execute(AddDemo([a,b,c]))
+    apply_connection(panel,a,dict(target=b.uid,point=[1,0,2],type="ball"))
+    vp.history.execute(pair_command(a,c,False))
+    assert [g.name for g in glow.linked(scene,[c],"exemption")]==["a"]
+    scene.select([a])
+    image = QImage(vp.width(),vp.height(),QImage.Format_ARGB32);image.fill(QColor(0,0,0,0))
+    painter = QPainter(image);glow.draw(panel,vp,painter);painter.end()
+    colours = {image.pixelColor(x,y).rgb()&0xffffff for x in range(image.width()) for y in range(image.height()) if image.pixelColor(x,y).alpha()==255}
+    assert QColor(*COLOURS["connected"]).rgb()&0xffffff in colours
+    assert QColor(*COLOURS["exemption"]).rgb()&0xffffff in colours
+    assert QColor(*COLOURS["actual"]).rgb()&0xffffff not in colours
+
+
 def test_selection_outlines_linked_bodies_and_picks_outline_their_candidate(panel):
     from PySide6.QtGui import QImage,QPainter,QColor
     from newton.model import box,AddDemo
@@ -1782,9 +1804,10 @@ def test_selection_outlines_linked_bodies_and_picks_outline_their_candidate(pane
     c.ext[KEY]["reference"] = a.uid
     vp.history.execute(AddDemo([a,b,c,d]))
     apply_connection(panel,a,dict(target=b.uid,point=[1,0,2],type="ball"))
-    assert {g.name for g in glow.linked(scene,[a])}=={"b","c"},"connection target and dependent body"
-    assert [g.name for g in glow.linked(scene,[b])]==["a"],"links count in both directions"
-    assert glow.linked(scene,[d])==[]
+    assert [g.name for g in glow.linked(scene,[a])]==["c"],"dependent body"
+    assert [g.name for g in glow.linked(scene,[a],"connection")]==["b"],"connection target"
+    assert [g.name for g in glow.linked(scene,[b],"connection")]==["a"],"links count in both directions"
+    assert glow.linked(scene,[d])==[] and glow.linked(scene,[d],"connection")==[]
     scene.select([a])
     def painted():
         image = QImage(vp.width(),vp.height(),QImage.Format_ARGB32);image.fill(QColor(0,0,0,0))

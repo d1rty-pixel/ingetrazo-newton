@@ -75,7 +75,9 @@ Useful scripts: `scripts/preview.py` (open a demo in a test window), `scripts/be
 - Adding an icon: write the SVG with the header and both groups, reference it by name (`icon()`, `attach()`, `CHOICES` or a physical pictogram), run `scripts/icons.py --sheet` and compare it with its neighbours at 22 px in light and dark, then run `tests/test_icons.py`.
 - Model overlays (axes, connection objects, rims) draw like the pictograms and share one colour language, defined in `axis_guides.COLOURS`:
   - sand (`axis`): the shape of an axis or connection; a connection object is drawn like its type's pictogram;
-  - yellow (`actual`): current position, connection point and the rims of bodies linked to the selection;
+  - yellow (`actual`): current position, connection point and the rims of reference bodies, dependent bodies and coupling leaders linked to the selection;
+  - magenta (`connected`): rims of connection targets and rope ends linked to the selection;
+  - cyan, dashed (`exemption`): rims of bodies with a collision exemption to the selection;
   - violet (`target`): the servo target only; green, blue and orange: range, minimum and maximum; dotted grey: zero;
   - red: the object a click or the eraser would hit; grey: locked;
   - host accent: the body a pick would take (`newton/glow.py`).
