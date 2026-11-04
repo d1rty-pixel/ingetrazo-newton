@@ -129,6 +129,9 @@ class NewtonPreferences(QWidget):
         row = QWidget();box = QHBoxLayout(row);box.setContentsMargins(0,0,0,0)
         box.addWidget(self.python,1);box.addWidget(browse)
         page.setting(None,tr("Python with MuJoCo"),row,tr(help.RUNTIME))
+        from .runtime_ui import RuntimeSetupBox
+        page.category(tr("Set up automatically"))
+        page.setting(None,None,RuntimeSetupBox(self.python),tr(help.RUNTIME_SETUP))
         page.finish()
 
     def commit(self):

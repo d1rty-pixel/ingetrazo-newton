@@ -12,6 +12,16 @@ from core.history import History
 from .worker import joint_settings
 
 
+def worker_environment():
+    """The bundle's LD_LIBRARY_PATH must not reach the runtime's own interpreter."""
+    from PySide6.QtCore import QProcessEnvironment
+    from .runtime_setup import clean_env
+    env = QProcessEnvironment()
+    for key,value in clean_env().items():
+        env.insert(key,value)
+    return env
+
+
 class Workspace:
     allowed_tools = {"select"}  # navigation/selection, no modelling tools
 
@@ -83,7 +93,7 @@ class Session(QObject):
         if self.workspace or self.app.workspace() is not None:
             raise ValueError(tr("Close the current workspace first."))
         if not Path(python).is_file():
-            raise ValueError(tr("Choose Python with MuJoCo installed."))
+            raise ValueError(tr("No runtime found. Set it up under Preferences > Newton > Runtime."))
         self.movers = movers
         self.specs = {s["uid"]:s for s in specs}
         self.targets = {s["uid"]: joint_settings(s["joint"])["target"]
@@ -97,6 +107,7 @@ class Session(QObject):
         self.buffer, self.stderr = b"", ""
         process = self.process = QProcess(self)
         process.setProgram(python)
+        process.setProcessEnvironment(worker_environment())
         # -E: the host's PYTHONPATH (e.g. Flatpak's /app site-packages) must not leak into the worker's interpreter.
         process.setArguments(["-E", "-u", str(Path(__file__).with_name("worker.py"))])
         process.setWorkingDirectory(str(Path(__file__).parent))

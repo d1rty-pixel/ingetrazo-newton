@@ -415,17 +415,11 @@ class NewtonPanel(QWidget):
         return dict(type=tr("Newton")+" · "+kind,props=props)
 
     def default_python(self):
+        from . import runtime_setup
         saved = QSettings().value("newton/python","")
         if saved and Path(saved).is_file():
             return saved
-        config = Path(__file__).with_name("runtime.json")
-        if config.is_file():
-            try:
-                return json.loads(config.read_text(encoding="utf-8-sig"))["python"]
-            except (ValueError,KeyError):
-                pass
-        local = Path(__file__).parent.parent/".venv"/"Scripts"/"python.exe"
-        return str(local) if local.is_file() else ""
+        return runtime_setup.resolve()
 
     def browse(self):
         path,_ = QFileDialog.getOpenFileName(self,tr("Choose Python with MuJoCo"),self.python.text(),tr("Python (python.exe python);;All files (*)"))

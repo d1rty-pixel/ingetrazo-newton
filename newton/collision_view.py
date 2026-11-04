@@ -79,6 +79,8 @@ class CollisionView(QObject):
             process = self.process = QProcess(self)
             self.buffer = b""
             process.setProgram(python)
+            from .session import worker_environment
+            process.setProcessEnvironment(worker_environment())
             process.setArguments(["-E","-u",str(Path(__file__).with_name("worker.py"))])
             process.started.connect(lambda:process.write((json.dumps(dict(op="init",bodies=specs,gravity=0,floor=False))+"\n").encode()))
             process.readyReadStandardOutput.connect(lambda:self.read(process))
