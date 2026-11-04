@@ -159,6 +159,8 @@ class Controls(QDialog):
         content = self.scroll.widget()
         if content is None:
             return
+        # setWidget() does not invalidate the layout's cached hint of the scroll area.
+        self.scroll.updateGeometry()
         chrome = self.layout.sizeHint().height()-self.scroll.sizeHint().height()
         wanted = chrome+content.sizeHint().height()+2*self.scroll.frameWidth()
         width = max(self.width(),self.minimumSizeHint().width())

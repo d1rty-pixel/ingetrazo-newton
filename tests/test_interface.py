@@ -1666,6 +1666,14 @@ def test_control_panel_opens_at_the_view_corner_and_fits_its_cards(panel):
     assert controls.scroll.verticalScrollBar().maximum()>0 or not controls.isVisible()
 
 
+def test_control_panel_opens_tall_enough_for_its_cards(qtapp,panel):
+    seed_demo(panel,"Servo-Tür")
+    panel.show_controls()
+    qtapp.processEvents()
+    scroll = panel.controls.scroll
+    assert scroll.height()>=scroll.widget().sizeHint().height()
+
+
 def squashed_widgets(root):
     """Visible controls the layout gave less height than they need; a spin box's inner line edit is always smaller."""
     from PySide6.QtWidgets import QWidget,QAbstractSpinBox,QComboBox,QPushButton,QCheckBox,QLabel,QLineEdit

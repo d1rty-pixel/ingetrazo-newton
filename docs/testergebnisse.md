@@ -1,5 +1,19 @@
 # Prüfprotokoll
 
+## Steuerpult-Höhe (Linux)
+
+Geprüft am 4. November 2026 unter Linux x86_64 (Ubuntu, GNOME/Wayland), IngeTrazo-0.6.0-Flatpak, Toolbar-Icons 40 px, mit Python 3.12.14 und PySide6 6.11.3.
+
+```text
+.venv/bin/python -m pytest tests -q --basetemp=.test-state/pytest
+246 passed, 13 warnings in 51.41s
+```
+
+- Ursache des zu kleinen Steuerpults: `QScrollArea.setWidget()` erneuert den im Layout zwischengespeicherten Größenhinweis der Scroll-Fläche nicht. `fit_height()` rechnete deshalb mit einer negativen Rahmenhöhe (−8 px) und gab den Karten 88 statt 180 px. Wayland respektiert `resize()`; die Fenstergröße war nicht das Problem.
+- Live im Flatpak gemessen (Demo mit zwei Antrieben): vorher 520 × 190, Kartenfläche 88 px; nach `updateGeometry()` und `fit_height()` 520 × 282, Kartenfläche 180 px.
+- Neuer Test `test_control_panel_opens_tall_enough_for_its_cards` stellt den Fehler offscreen nach (70 statt 94 px) und besteht mit dem Fix.
+- Im Flatpak mit der installierten Fassung: Nach dem Start der Simulation öffnet das Steuerpult mit 520 × 300, die Kartenfläche (198 px) zeigt beide Karten (178 px) ohne Scrollbalken; visuell bestätigt.
+
 ## Unveröffentlichter Stand nach 0.14.0 (Linux)
 
 Geprüft am 4. November 2026 unter Linux x86_64 (Ubuntu, GNOME/Wayland) mit Python 3.12.14 (uv), PySide6 6.11.3, numpy 2.5.4 und MuJoCo 3.3.7; Host-Referenz unverändert IngeTrazo v0.6.0, Commit `e61132a7`, zusätzlich manuell im IngeTrazo-0.6.0-Flatpak.
