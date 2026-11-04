@@ -24,6 +24,7 @@ class Controls(QDialog):
         self.hint = QLabel()
         self.hint.setWordWrap(True)
         self.layout.addWidget(self.hint)
+        self.hint.hide()
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
         self.layout.addWidget(self.scroll)
@@ -109,7 +110,6 @@ class Controls(QDialog):
             if old:
                 old.deleteLater()
             self.align_values()
-        self.hint.hide()
         self.start_button.setText(tr("Pause") if active and self.panel.session.running else tr("Resume") if active else tr("Start"))
         self.start_button.setEnabled(not active or self.panel.session.ready)
         self.reset_button.setEnabled(active)
@@ -128,8 +128,6 @@ class Controls(QDialog):
 
     def start(self):
         self.panel.start_or_pause()
-        if not self.panel.session.workspace:
-            self.message(self.panel.app.window.statusBar().currentMessage())
 
     def message(self,text):
         self.hint.setText(tr(text))

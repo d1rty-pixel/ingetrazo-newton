@@ -307,7 +307,8 @@ def test_toolbar_places_axis_without_dialog_and_sidebar_sets_drive(panel,qtapp):
     assert panel.app.viewport.active_tool is panel.placement
     panel.placement.on_click(SimpleNamespace(world=QVector3D(2,0,2),viewport=panel.app.viewport))
     panel.placement.on_key(panel.app.viewport,Qt.Key_Z,Qt.NoModifier)
-    qtapp.processEvents()
+    qtapp.processEvents();qtapp.processEvents()
+    assert panel.app.window.statusBar().currentMessage()=="Axis placed.","the select tool hint must not hide the result"
     panel.name_edit.setText("Greifer schließen")
     panel.name_edit.editingFinished.emit()
     panel.drive.setCurrentIndex(panel.drive.findData("position"))
@@ -414,13 +415,14 @@ def test_changing_one_field_preserves_other_fields_full_precision(panel):
     assert group.ext[KEY]["mass"]==2.5
 
 
-def test_invalid_live_limits_keep_valid_model_and_can_be_corrected(panel):
+def test_invalid_live_limits_keep_valid_model_and_can_be_corrected(panel,qtapp):
     group = select_demo_axis(panel)
     hist = panel.app.viewport.history
     before = len(hist.undo_stack)
     panel.upper.setValue(0)
     assert group.ext[KEY]["joint"]["upper"]==pytest.approx(math.pi/2)
     assert len(hist.undo_stack)==before
+    qtapp.processEvents()
     assert "Invalid" in panel.app.window.statusBar().currentMessage()
     panel.upper.setValue(45)
     assert group.ext[KEY]["joint"]["upper"]==pytest.approx(math.pi/4)

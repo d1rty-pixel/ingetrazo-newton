@@ -218,7 +218,6 @@ class NewtonPanel(QWidget):
         self.selection_widgets = (intro,scroll)
         self.controls = Controls(self)
         self.session.changed.connect(self.refresh)
-        self.session.message.connect(self.status_message)
         self.session.telemetry.connect(self.controls.telemetry)
         app.add_overlay(self.draw_joints)
         app.add_context_menu(self.context_menu)
@@ -407,7 +406,8 @@ class NewtonPanel(QWidget):
             self.collision_view.request()
 
     def status_message(self,text):
-        self.app.window.statusBar().showMessage(tr(text))
+        # Timed, because the host replaces an untimed message with the active tool's hint.
+        self.app.window.statusBar().showMessage(tr(text),8000)
 
     def selected(self):
         return [g for g in self.app.scene.groups if g in self.app.scene.selection]
@@ -507,7 +507,7 @@ class NewtonPanel(QWidget):
     def refresh_widgets(self,*args):
         active = self.session.workspace is not None
         if getattr(self,"was_active",False) and not active:
-            self.status_message(tr("Original model restored."))
+            self.controls.message(tr("Original model restored."))
         self.was_active = active
         for w in (self.editor,self.joint_box,self.advanced,self.profile_box,self.advanced_toggle):
             w.setEnabled(not active)
@@ -816,10 +816,10 @@ class NewtonPanel(QWidget):
             linear,angular = global_damping()
             quality = QSettings().value("newton/quality","balanced")
             self.session.start(python,scene,specs,movers,self.gravity.value(),self.floor.isChecked(),linear,angular,quality)
-            self.status_message(tr("Drag passive bodies. Use controls for actuators."))
-            self.show_controls()
+            self.controls.message(tr("Drag passive bodies. Use controls for actuators."))
         except Exception as exc:
-            self.status_message(str(exc))
+            self.controls.message(str(exc))
+        self.show_controls()
 
     def shutdown(self,*args):
         self.collision_view.stop()
