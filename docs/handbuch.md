@@ -152,7 +152,7 @@ In Sidebar und Profil-Editor zeigen Auswahllisten mit festen Werten (Verhalten, 
 
 Die Extension ergänzt den nativen Preferences-Dialog über einen lokalen Adapter: Die Extension-API 2 besitzt dafür keinen offiziellen Registrierungspunkt. IngeTrazo-Dateien bleiben unverändert; bestehende Seiten und ihre Navigation bleiben erhalten. Dieser Adapter ist gegen den unten genannten Hoststand geprüft.
 
-Die Oberfläche folgt IngeTrazos Spracheinstellung. Englisch und Deutsch sind enthalten. **`newton/i18n/en.json`** ist die englische Masterdatei; eine fehlende Sprache oder Übersetzung fällt auf Englisch zurück. Selbst vergebene Objekt-, Regler- und Profilnamen werden nicht übersetzt. Nach einer Änderung der Hostsprache gilt deren üblicher Neustartablauf.
+Die Oberfläche folgt IngeTrazos Spracheinstellung. Englisch und Deutsch sind enthalten. Englisch ist die Ausgangssprache; **`newton/i18n/en.json`** ist die Masterdatei, jede weitere Sprache liegt daneben als eigene Datei (etwa `de.json`) mit genau denselben Einträgen. Eine fehlende Sprache fällt auf Englisch zurück. Selbst vergebene Objekt-, Regler- und Profilnamen werden nicht übersetzt. Nach einer Änderung der Hostsprache gilt deren üblicher Neustartablauf.
 
 ## Technische Hinweise
 

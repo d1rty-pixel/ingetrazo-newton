@@ -1,6 +1,5 @@
 import json
 import math
-from pathlib import Path
 import pytest
 from PySide6.QtCore import QSettings
 from newton import profiles
@@ -68,14 +67,9 @@ def test_corrupt_custom_profiles_do_not_break_loading(profile_store):
     assert profiles.custom_profiles()==[]
 
 
-def test_english_master_and_fallback_follow_host_language(qtapp):
+def test_translation_and_english_fallback_follow_host_language(qtapp):
     from core.i18n import current_language,set_language
     from newton.i18n import tr
-    root = Path(__file__).resolve().parents[1]/"newton"/"i18n"
-    master = json.loads((root/"en.json").read_text(encoding="utf-8"))
-    german = json.loads((root/"de.json").read_text(encoding="utf-8"))
-    assert master and all(key==value for key,value in master.items())
-    assert set(german)<=set(master)
     old = current_language()
     try:
         set_language("de")

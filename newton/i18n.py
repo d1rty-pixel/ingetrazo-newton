@@ -1,4 +1,4 @@
-"""Extension catalogues follow the host language; English is authoritative."""
+"""Extension catalogues follow the host language; en.json is the master catalogue."""
 import json
 from pathlib import Path
 from core.i18n import current_language
@@ -18,12 +18,11 @@ def catalogue(language):
 
 
 def tr(source,**values):
-    master = catalogue("en")
     language = current_language() or "en"
     translated = catalogue(language)
     if not translated and "-" in language:
         translated = catalogue(language.split("-")[0])
-    text = translated.get(source) or master.get(source) or source
+    text = translated.get(source) or source
     try:
         return text.format(**values) if values else text
     except (KeyError,ValueError,IndexError):

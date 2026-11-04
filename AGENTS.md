@@ -51,7 +51,9 @@ Useful scripts: `scripts/preview.py` (open a demo in a test window), `scripts/be
 
 - Every user-visible string goes through `tr("English source")` from `newton/i18n.py`. English is the master; missing translations fall back to English.
 - Longer explanations live in `newton/help_texts.py` (English).
-- `newton/i18n/en.json` and `de.json` are **generated**. Do not edit them by hand. Add or change German text in `scripts/update-translations.py` (`EXTRA_DE`, `HELP_DE` and the inline update block in `generate()`), then run `python scripts/update-translations.py`.
+- `newton/i18n/en.json` is the master catalogue: every English source string mapped to itself, sorted by key. Help texts are keyed by their full English text. Many strings reach `tr()` as data (worker errors, list labels), so the master cannot be derived from `tr()` calls alone; maintain it by hand.
+- Every other `newton/i18n/<language>.json` (named after the host language code, e.g. `de`, `fr`) has exactly the master's keys, no more, no fewer. To add a language, copy `en.json` and translate the values. `tests/test_i18n.py` covers every language file automatically.
+- `tests/test_i18n.py` fails on a static `tr()` string or help text missing from the master, on a master key no longer used as a string literal in `newton/`, on missing or extra keys in a translation, on empty values and on mismatched `{placeholders}`. Changing an English source string changes its key: update it in `en.json` and in every translation.
 - German UI terminology: Körper (simulated body), Achse (user-placed axis), Anschläge (limits), Antrieb (actuator), Steuerpult (control panel), Bezugskörper (reference body), Kollisionsform (collision shape). "Runtime" stays untranslated on purpose.
 
 ## Installing into IngeTrazo for manual testing
