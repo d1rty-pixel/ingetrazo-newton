@@ -1,0 +1,3 @@
+# Exact versions of the Newton runtime, installed by runtime_setup.py.
+mujoco==3.3.7
+numpy==2.5.4
