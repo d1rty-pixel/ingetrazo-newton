@@ -1,0 +1,53 @@
+# Example models
+
+The models are in [`models/`](../models). They can be opened directly in IngeTrazo. The scripts under `scripts/` regenerate some of them and open them in a test window of the development environment (see [AGENTS.md](../AGENTS.md)).
+
+| Model | Shows |
+|---|---|
+| `domino-30.igz`, `domino-30-with-pendulum.igz` | Surface contacts, dominoes come to rest |
+| `joint-chain.igz` | Twelve rigid links with passive revolute joints |
+| `industrial-robot-3-axis.igz`, `industrial-robot-rotary-gripper.igz`, `industrial-robot-synchronous-gripper.igz` | Rotation servos, control panel, axis coupling |
+| `collision-test.igz` | Collision exemptions and convex hull |
+| `crank-drive-energy-chain.igz`, `crank-drive-drag-chain.igz` | Motor, crank drive, cable in a chain |
+| `drag-chain-with-cable.igz`, `rope-and-cable.igz` | Ropes and cables |
+| `sun-and-planet.igz` | Attraction and initial velocity |
+
+## Crank drive with energy chain
+
+The revised version **models/crank-drive-energy-chain.igz** replaces the overlapping closed channel pieces with 22 open links. Each link consists of two rounded side plates with hinge collars and two short crossbars; the plates alternate their lateral mounting plane. A link is a single rigid body with four collision shapes. Only directly connected bearing partners are exempt from mutual contact; contacts between non-adjacent links stay active. This follows the basic design of side plates and crossbars: [igus energy chain wiki](https://www.igus.eu/energy-chain/wiki).
+
+The new collision shape **Child components** computes every directly subordinate group/component as its own convex sub-body. The openings between the parts stay free; no common hull is laid over the whole frame opening. The total mass is distributed over the sub-bodies. The collision display draws all sub-shapes. Without subordinate groups the selection is rejected with an understandable message.
+
+The connecting rod now lies in a plane offset by 105 mm in front of the wheel on a lengthened crank pin with a retainer. Between the actual wheel body including the hub and the connecting rod there is 40 mm of axial clearance. The crank/piston geometry and the 300 mm stroke are kept. The force transmission still uses real joint and connection constraints.
+
+In the four-second contact comparison the mean contact count drops from 78 to 47.6; the former chain-against-chain contacts disappear. The connecting rod/wheel pair already had a bearing collision exemption before and produced no active solver contacts, although its display overlapped. The new geometry removes this visible overlap. The comparison run needs 5.72 instead of 7.82 seconds for four simulated seconds on this machine; the 24-second check still confirms stroke and cable routing. The earlier model version is kept for comparison under its previous file name.
+
+The two-second Newton comparison on the crank drive gave about **0.28× real time before**, **0.54× with Balanced** and **0.91× with Quick** on this machine. These are pure worker measurements; display, machine load and other models change the speed actually reached. `scripts/benchmark_newton.py --quality=balanced` repeats the test. The full 24-second test with Balanced preserves the 300 mm stroke and the cable routing.
+
+## Crank drive with drag chain
+
+The additional model **crank-drive-drag-chain.igz** connects a fixed-mounted electric motor through its shaft to a spoked wheel. An outer crank pin and a passive connecting rod drive the crosshead with piston rod. The 300 mm stroke moves the upper run of the drag chain, which is held at the bottom. A continuous orange power cable runs from the socket through the chain and then back to the stationary motor via a free reserve loop. It is attached to the socket and the motor; the movable chain guide acts through contacts. The control panel contains **Drive shaft · Motor speed**; the piston has no drive of its own. The speed reacts to the mechanical load.
+
+The 24-second check confirms at least one full wheel revolution, a stroke of about −136.6 to +163.4 mm and less than 0.1 mm deviation from the geometric crank equation. The axes are hidden at first. Version 0.10.1 transfers collision exemptions of a rope/cable to all its segments, for example for idealised plugs and bearing housings. Contacts in the actual drag chain channel stay active.
+
+## Ropes, cables and joint chains
+
+The three new models are in `models`:
+
+- **rope-and-cable.igz**: two strands, each 2 m long and clamped at one end, with equal end weights. Orange shows the soft rope, blue the stiffer cable; both collide with the support.
+- **joint-chain.igz**: twelve rigid links with passive revolute joints. This first joint chain moves in one plane; it does not compute freely interlocking metal rings.
+- **drag-chain-with-cable.igz**: 22 rigid guide links with angle limits and a carriage with the position drive **Travel**. The orange cable is separately flexible and collides with the overlapping channel faces. Sides and webs are transparent so that it stays visible. The carriage connects both ends mechanically; the cable is not bound to every link. The model limits allow −150 to +250 mm, forward/backward travel between −100 and +200 mm is verified. Small load deviations of the real carriage value remain possible. The axes are on the initially hidden layer **Newton Axes**.
+
+Opening a test window: `.venv\Scripts\python.exe scripts/flexible_demos.py carrier --existing --open` (instead of `carrier` also `rope` or `chain`). The test windows use normal gravity −9.81 m/s² and the modelled support. In regular IngeTrazo, check these values under **Preferences → Newton → Simulation** if the sun model with zero gravity ran before.
+
+## Collisions test model
+
+**`models/collision-test.igz`** shows three cases: a blue cube lands on a plate, an orange cube falls through its exempted plate down to the support. On a part with an opening, the convex hull shows the filled opening. Open with `python scripts/collision_demo.py --existing --open`.
+
+## Sun and planet
+
+The test model [Sun and planet](../models/sun-and-planet.igz) contains two freely movable spheres with masses of 100 and 5 kg, a distance of 4 m and a deliberately enlarged G = 0.16 m³/(kg·s²). The orbital period is about 12.26 s. Both orbit their common centre of mass; the sun is not held in place. Gravity vector, ground and damping are switched off. `scripts/solar_system.py --existing --open` opens the model with these global defaults in its own test window. Both bodies additionally store zero gravity and switched-off ground as overrides, so the model also works with other global defaults.
+
+## Industrial robot with synchronous gripper
+
+The model **`models/industrial-robot-synchronous-gripper.igz`** has four rotation servos and a shared control **Gripper opening**. It shows the distance of the jaws in millimetres: 105 mm open to 5 mm closed. Both jaws move symmetrically. Generate and open separately: `python scripts/robot_arm.py --gripper --open`.

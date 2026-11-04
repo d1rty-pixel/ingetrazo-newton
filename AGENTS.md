@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for coding agents and contributors working on Newton, a physics extension for the 3D modeller IngeTrazo. User documentation is German ([README](README.md), [docs/handbuch.md](docs/handbuch.md)); this file and [docs/known-issues.md](docs/known-issues.md) are English.
+Guidance for coding agents and contributors working on Newton, a physics extension for the 3D modeller IngeTrazo. All documentation is English ([README](README.md), [docs/manual.md](docs/manual.md), this file); only the UI has German translations.
 
 ## Architecture
 
@@ -44,7 +44,7 @@ Canonical full suite (about 45 s, 160 tests):
 - Tests run Qt offscreen (`tests/conftest.py`) and use IngeTrazo's real loader and `MainWindow`. Settings and autosave go to `.test-state/`, never to the user's profile.
 - Run focused tests during development (`pytest tests/test_interface.py -k <name>`), the full suite once before a commit.
 - `tests/test_newton.py` runs the worker as a subprocess with `sys.executable`; keep the worker importable without IngeTrazo.
-- Record notable verification runs in [docs/testergebnisse.md](docs/testergebnisse.md).
+- Record notable verification runs in [docs/test-results.md](docs/test-results.md).
 
 Useful scripts: `scripts/preview.py` (open a demo in a test window), `scripts/benchmark_newton.py`, `scripts/audit_contacts.py`, `scripts/package.py` (builds `dist/newton-<version>.zip`: one `newton/` folder, as the IngeTrazo catalog requires, reproducible hash).
 
