@@ -1,0 +1,170 @@
+"""Named, live controls in a reusable non-modal window."""
+import math
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (QDialog, QVBoxLayout, QLabel, QScrollArea,
+    QWidget, QGroupBox, QHBoxLayout, QDoubleSpinBox,QPushButton)
+from .i18n import tr
+from .toolbar import icon
+
+
+def display_units(joint):
+    if joint["type"] == "hinge":
+        return 180/math.pi, "°" if joint["drive"] != "velocity" else "°/s"
+    return 1000, "mm" if joint["drive"] != "velocity" else "mm/s"
+
+
+class Controls(QDialog):
+    def __init__(self, panel):
+        super().__init__(panel.app.window)
+        self.panel = panel
+        self.setWindowTitle(tr("Newton controls"))
+        self.setMinimumWidth(520)
+        self.resize(420, 440)
+        self.layout = QVBoxLayout(self)
+        self.hint = QLabel()
+        self.hint.setWordWrap(True)
+        self.layout.addWidget(self.hint)
+        self.scroll = QScrollArea()
+        self.scroll.setWidgetResizable(True)
+        self.layout.addWidget(self.scroll)
+        row = QHBoxLayout()
+        self.start_button = QPushButton(icon("play"),tr("Start"))
+        self.reset_button = QPushButton(icon("reset"),tr("Reset"))
+        self.start_button.clicked.connect(self.start)
+        self.reset_button.clicked.connect(panel.session.reset)
+        row.addWidget(self.start_button)
+        row.addWidget(self.reset_button)
+        self.layout.addLayout(row)
+        self.time_label = QLabel()
+        self.layout.addWidget(self.time_label)
+        self.performance_label = QLabel();self.performance_label.setWordWrap(True)
+        self.layout.addWidget(self.performance_label);self.performance_label.hide()
+        panel.session.metrics.connect(self.show_performance)
+        panel.session.frame.connect(lambda seconds:self.time_label.setText(tr("Time: {seconds:.2f} s",seconds=seconds)))
+        panel.session.message.connect(self.message)
+        self.rows = {}
+        self.actual_columns = []
+        self.range_controls = []
+        self.signature = None
+
+    def refresh(self, joints, active):
+        joints = [j for j in joints if j["drive"]!="free" and not j.get("coupling")]
+        signature = (repr(joints), active)
+        if signature != self.signature:
+            self.signature = signature
+            widget = QWidget()
+            layout = QVBoxLayout(widget)
+            self.rows = {}
+            self.actual_columns = []
+            self.range_controls = []
+            if not joints:
+                label = QLabel(tr("No actuators"))
+                label.setWordWrap(True)
+                layout.addWidget(label)
+            for joint in joints:
+                group = QGroupBox(joint["body"]+" "+joint["name"])
+                gl = QVBoxLayout(group)
+                actual = QLabel(tr("Actual: —"))
+                actual.setTextFormat(Qt.PlainText)
+                actual.setAlignment(Qt.AlignLeft|Qt.AlignVCenter)
+                factor, unit = display_units(joint)
+                mapping = (joint.get("display") or {})
+                scale,offset = mapping.get("scale",1),mapping.get("offset",0)
+                if joint["drive"] != "free":
+                    if joint["drive"] == "position":
+                        low, high = joint["lower"]*factor, joint["upper"]*factor
+                        if not joint["limited"]:
+                            low, high = (-180,180) if joint["type"] == "hinge" else (-1000,1000)
+                    else:
+                        extent = joint["max_speed"]*factor
+                        low, high = -extent, extent
+                    low,high = sorted((low*scale+offset*factor,high*scale+offset*factor))
+                    row = QHBoxLayout()
+                    row.setSpacing(10)
+                    value = QDoubleSpinBox()
+                    value.setRange(low, high)
+                    value.setDecimals(1)
+                    value.setSuffix(" " + unit)
+                    target = (self.panel.session.targets.get(joint["uid"], joint["target"])*scale+offset)*factor
+                    value.setValue(target)
+                    from .range_control import RangeControl
+                    control = RangeControl(value,low,high)
+                    control.set_span(low,high,expand=False)
+                    slider = control.slider
+                    value.valueChanged.connect(lambda n, uid=joint["uid"], f=factor,s=scale,o=offset: self.panel.session.set_target(uid, (n/f-o)/s))
+                    value.valueChanged.connect(lambda n,uid=joint["uid"]:self.highlight_axis(uid))
+                    slider.sliderPressed.connect(lambda uid=joint["uid"]:self.highlight_axis(uid))
+                    self.actual_columns.append(actual)
+                    self.range_controls.append(control)
+                    row.addWidget(actual)
+                    row.addWidget(control,1)
+                    gl.addLayout(row)
+                    slider.setEnabled(active)
+                    value.setEnabled(active)
+                self.rows[joint["uid"]] = (actual, joint, factor)
+                layout.addWidget(group)
+            layout.addStretch()
+            old = self.scroll.takeWidget()
+            self.scroll.setWidget(widget)
+            if old:
+                old.deleteLater()
+            self.align_values()
+        self.hint.hide()
+        self.start_button.setText(tr("Pause") if active and self.panel.session.running else tr("Resume") if active else tr("Start"))
+        self.start_button.setEnabled(not active or self.panel.session.ready)
+        self.reset_button.setEnabled(active)
+        if not active:
+            self.time_label.setText(tr("Time: {seconds:.2f} s",seconds=0))
+        self.refresh_icons()
+
+    def refresh_icons(self):
+        self.start_button.setIcon(icon("pause" if self.panel.session.running else "play"))
+        self.reset_button.setIcon(icon("reset"))
+        for control in self.range_controls:control.refresh_style()
+
+    def highlight_axis(self,uid):
+        self.panel.detail_uid = uid
+        self.panel.app.viewport.update()
+
+    def start(self):
+        self.panel.start_or_pause()
+        if not self.panel.session.workspace:
+            self.message(self.panel.status.text())
+
+    def message(self,text):
+        self.hint.setText(tr(text))
+        self.hint.show()
+
+    def telemetry(self, data):
+        for uid, state in data.items():
+            if uid in self.rows:
+                label, joint, factor = self.rows[uid]
+                value = state["velocity"] if joint["drive"] == "velocity" else state["position"]
+                mapping = (joint.get("display") or {})
+                value = value*mapping.get("scale",1)+mapping.get("offset",0)
+                label.setText(tr("Actual: {value:.1f} {unit}",value=value*factor,unit=display_units(joint)[1]))
+                target = (state.get("target",joint["target"])*mapping.get("scale",1)+mapping.get("offset",0))*factor
+                command = (state.get("command",state.get("target",joint["target"]))*mapping.get("scale",1)+mapping.get("offset",0))*factor
+                label.setToolTip(tr("Target: {target:.1f} · Ramp: {command:.1f} · Load: {load:.0f}%",target=target,command=command,load=state.get("load",0)*100))
+                label.setStyleSheet("color: #e79b38" if state.get("at_limit") else "")
+                if state.get("at_limit"):label.setText(label.text()+" · "+tr("Limit"))
+        self.align_values()
+
+    def show_performance(self,metrics):
+        self.performance_label.setVisible(bool(metrics))
+        if not metrics:return
+        speed = metrics.get("speed")
+        text = tr("Paused") if metrics.get("paused") else tr("{speed:.2f}× real time",speed=speed) if speed is not None else tr("Measuring…")
+        self.performance_label.setText(text)
+        self.performance_label.setToolTip(tr("Newton: {newton:.1f} ms\nDisplay preparation: {ui:.1f} ms\nRound trip: {roundtrip:.1f} ms\nBodies: {bodies} · Contacts: {contacts}\nSolver iterations: {iterations} · Substeps: {substeps}",
+            newton=metrics.get("newton_ms",0),ui=metrics.get("ui_ms",0),roundtrip=metrics.get("roundtrip_ms",0),
+            bodies=metrics.get("bodies",0),contacts=metrics.get("contacts",0),iterations=metrics.get("iterations",0),substeps=metrics.get("substeps",1)))
+
+    def align_values(self):
+        # Equal actual-value columns keep every fader aligned; RangeControl
+        # supplies the same 104 px right-hand input and styling as the sidebar.
+        if not self.actual_columns:
+            return
+        width = max(max(label.minimumWidth(),label.sizeHint().width()) for label in self.actual_columns)
+        for label in self.actual_columns:label.setFixedWidth(width)
+        self.setMinimumWidth(max(520,width+370))
