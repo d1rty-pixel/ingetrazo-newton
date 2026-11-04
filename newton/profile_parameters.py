@@ -7,6 +7,7 @@ from PySide6.QtWidgets import QWidget,QVBoxLayout,QFormLayout,QTabWidget,QScroll
 from .i18n import tr
 from . import profiles,help_texts as help
 from .environment_ui import number,global_damping
+from .toolbar import decorate,physical_label,physical_check
 
 
 class ProfileParameters(QWidget):
@@ -22,31 +23,33 @@ class ProfileParameters(QWidget):
             box = QVBoxLayout(content);note = QLabel(tr(description));note.setWordWrap(True);box.addWidget(note)
             form = QFormLayout();form.setRowWrapPolicy(QFormLayout.WrapLongRows);box.addLayout(form);box.addStretch()
             self.tabs.addTab(area,tr(title).replace('&','&&'));return form
-        def choice(form,title,values,callback):
+        def choice(form,title,values,callback,pictograms):
             field = QComboBox()
             for text,key in values:field.addItem(tr(text),key)
+            decorate(field,pictograms)
             form.addRow(tr(title),field);self.choices.append(field)
             field.currentIndexChanged.connect(callback);return field
-        def numeric(form,title,low,high,callback):
-            field = number(low,high);form.addRow(tr(title),field);self.numbers.append(field)
+        def numeric(form,title,low,high,callback,art):
+            field = number(low,high);form.addRow(physical_label(tr(title),art),field);self.numbers.append(field)
             field.valueChanged.connect(callback);return field
         body = page("Body & contact",help.BODY)
-        self.mode = choice(body,"Behaviour",[("Movable","dynamic"),("Fixed","static"),("Exclude from simulation","ignore")],lambda:self.edit("body","mode",self.mode.currentData()))
-        self.shape = choice(body,"Collision shape",[("Box","box"),("Sphere","sphere"),("Convex hull","hull"),("Child components","compound")],lambda:self.edit("body","shape",self.shape.currentData()))
-        self.mass = numeric(body,"Mass (kg)",.001,1e12,lambda v:self.edit("body","mass",v))
-        self.friction = numeric(body,"Friction",0,1e6,lambda v:self.edit("body","friction",v))
-        self.bounce = numeric(body,"Bounce (approx.)",0,1,lambda v:self.edit("body","restitution",v))
+        self.mode = choice(body,"Behaviour",[("Movable","dynamic"),("Fixed","static"),("Exclude from simulation","ignore")],lambda:self.edit("body","mode",self.mode.currentData()),"mode")
+        self.shape = choice(body,"Collision shape",[("Box","box"),("Sphere","sphere"),("Convex hull","hull"),("Child components","compound")],lambda:self.edit("body","shape",self.shape.currentData()),"shape")
+        self.mass = numeric(body,"Mass (kg)",.001,1e12,lambda v:self.edit("body","mass",v),"mass")
+        self.friction = numeric(body,"Friction",0,1e6,lambda v:self.edit("body","friction",v),"friction")
+        self.bounce = numeric(body,"Bounce (approx.)",0,1,lambda v:self.edit("body","restitution",v),"bounce")
         motion = page("Motion",help.MOTION)
-        self.axis_type = choice(motion,"Axis",[("No axis",None),("Rotation axis","hinge"),("Linear axis","slide")],self.change_axis)
+        self.axis_type = choice(motion,"Axis",[("No axis",None),("Rotation axis","hinge"),("Linear axis","slide")],self.change_axis,"axis")
         self.motion_fields = QWidget();self.motion_form = mf = QFormLayout(self.motion_fields);mf.setContentsMargins(0,0,0,0)
         motion.addRow(self.motion_fields)
-        self.drive = choice(mf,"Actuator",[("Free / passive","free"),("Servo / position","position"),("Motor / speed","velocity")],lambda:self.edit("joint","drive",self.drive.currentData()))
+        self.drive = choice(mf,"Actuator",[("Free / passive","free"),("Servo / position","position"),("Motor / speed","velocity")],lambda:self.edit("joint","drive",self.drive.currentData()),"drive")
         self.limited = QCheckBox(tr("Use limits"));mf.addRow(self.limited);self.choices.append(self.limited)
         self.limited.toggled.connect(lambda v:self.edit("joint","limited",v))
         self.motion = {}
-        for key,title,low in (("lower","Minimum",-1e12),("upper","Maximum",-1e12),("target","Initial target",-1e12),
-                              ("max_speed","Speed",.000001),("acceleration","Acceleration",.000001),("deceleration","Deceleration",.000001),("force","Max. force",0)):
-            self.motion[key] = numeric(mf,title,low,1e12,lambda v,k=key:self.edit("joint",k,v/self.factor(k)))
+        for key,title,low,art in (("lower","Minimum",-1e12,"limit_min"),("upper","Maximum",-1e12,"limit_max"),("target","Initial target",-1e12,"target"),
+                              ("max_speed","Speed",.000001,"speed"),("acceleration","Acceleration",.000001,"acceleration"),
+                              ("deceleration","Deceleration",.000001,"deceleration"),("force","Max. force",0,"force")):
+            self.motion[key] = numeric(mf,title,low,1e12,lambda v,k=key:self.edit("joint",k,v/self.factor(k)),art)
         self.sync = QCheckBox(tr("Synchronize acceleration and deceleration"));mf.addRow(self.sync);self.choices.append(self.sync)
         self.sync.toggled.connect(lambda v:self.edit("joint","deceleration_sync",v))
         overrides = page("Simulation overrides",help.PROFILE_OVERRIDES)
@@ -55,15 +58,15 @@ class ProfileParameters(QWidget):
         self.override_fields = QWidget();of = QFormLayout(self.override_fields);of.setContentsMargins(0,0,0,0);overrides.addRow(self.override_fields)
         self.gravity = [];self.velocity = []
         for i,axis in enumerate("XYZ"):
-            field = numeric(of,tr("Gravity {axis}",axis=axis),-1e6,1e6,lambda v,n=i:self.edit_vector("gravity",n,v));field.setSuffix(" m/s²");self.gravity.append(field)
+            field = numeric(of,tr("Gravity {axis}",axis=axis),-1e6,1e6,lambda v,n=i:self.edit_vector("gravity",n,v),"gravity");field.setSuffix(" m/s²");self.gravity.append(field)
         self.override_numbers = {}
         for key,title,high,suffix in (("linear_damping","Linear damping",100," /s"),("angular_damping","Angular damping",100," /s"),
                                      ("attraction","Attraction",1e12," m³/s²"),("softening","Softening radius",1e6," m")):
-            field = numeric(of,title,0,high,lambda v,k=key:self.edit("override",k,v));field.setSuffix(suffix);self.override_numbers[key] = field
-        self.floor = QCheckBox(tr("Ground contact at Z = 0"));of.addRow(self.floor);self.choices.append(self.floor)
+            field = numeric(of,title,0,high,lambda v,k=key:self.edit("override",k,v),key);field.setSuffix(suffix);self.override_numbers[key] = field
+        self.floor = physical_check(QCheckBox(tr("Ground contact at Z = 0")),"ground");of.addRow(self.floor);self.choices.append(self.floor)
         self.floor.toggled.connect(lambda v:self.edit("override","floor",v))
         for i,axis in enumerate("XYZ"):
-            field = numeric(of,tr("Initial velocity {axis}",axis=axis),-1e6,1e6,lambda v,n=i:self.edit_vector("initial_velocity",n,v));field.setSuffix(" m/s");self.velocity.append(field)
+            field = numeric(of,tr("Initial velocity {axis}",axis=axis),-1e6,1e6,lambda v,n=i:self.edit_vector("initial_velocity",n,v),"velocity");field.setSuffix(" m/s");self.velocity.append(field)
         self.name.editingFinished.connect(lambda:self.edit("name",None,self.name.text()))
 
     def factor(self,key):

@@ -4,6 +4,7 @@ from PySide6.QtGui import QVector3D
 from .model import settings,joint_rows
 from .worker import joint_settings,resolve_couplings
 from .i18n import tr
+from .toolbar import decorate,physical_label
 from . import help_texts as help
 
 
@@ -19,6 +20,7 @@ class CouplingEditor(QWidget):
         self.direction = QComboBox()
         self.direction.addItem(tr("Same direction"),1)
         self.direction.addItem(tr("Opposite direction"),-1)
+        decorate(self.direction,"direction")
         self.ratio = QDoubleSpinBox()
         self.ratio.setRange(.001,100)
         self.ratio.setDecimals(3)
@@ -26,7 +28,7 @@ class CouplingEditor(QWidget):
         self.ratio.setKeyboardTracking(False)
         form.addRow(tr("Follow axis"),self.master)
         form.addRow(tr("Direction"),self.direction)
-        form.addRow(tr("Ratio"),self.ratio)
+        form.addRow(physical_label(tr("Ratio"),"ratio"),self.ratio)
         self.master.activated.connect(self.change)
         self.direction.activated.connect(self.change)
         self.ratio.valueChanged.connect(self.change)

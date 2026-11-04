@@ -81,7 +81,7 @@ def test_english_master_and_fallback_follow_host_language(qtapp):
         set_language("de")
         assert tr("Newton profiles")=="Newton-Profile"
         set_language("de-DE")
-        assert tr("Icon set")=="Icon-Set"
+        assert tr("Quality")=="Qualität"
         set_language("fr")
         assert tr("Newton profiles")=="Newton profiles"
         assert tr("Actual: {value:.1f} {unit}",value=4,unit="mm")=="Actual: 4.0 mm"

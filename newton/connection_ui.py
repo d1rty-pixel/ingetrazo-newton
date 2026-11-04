@@ -5,6 +5,7 @@ from .environment_ui import number
 from .model import settings
 from .connections import KINDS,apply_connection,begin
 from .i18n import tr
+from .toolbar import decorate
 
 
 class ConnectionEditor(QWidget):
@@ -13,6 +14,7 @@ class ConnectionEditor(QWidget):
         form = QFormLayout(self);form.setContentsMargins(0,0,0,0)
         self.kind = QComboBox()
         for key,title in KINDS.items():self.kind.addItem(tr(title),key)
+        decorate(self.kind,"connection")
         form.addRow(tr("Type"),self.kind)
         row = QHBoxLayout();self.add = QPushButton(tr("Connect…"));self.remove = QPushButton(tr("Remove connection"))
         row.addWidget(self.add);row.addWidget(self.remove);form.addRow(row)

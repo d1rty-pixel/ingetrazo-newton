@@ -23,7 +23,8 @@ class RangeControl(QWidget):
         self.slider.setRange(0,self.STEPS)
         style_slider(self.slider)
         self.slider.setMinimumHeight(32)
-        self.slider.setMinimumWidth(160)
+        # Narrow enough that a narrow sidebar does not scroll sideways; the slider still stays usable.
+        self.slider.setMinimumWidth(80)
         number.setButtonSymbols(QAbstractSpinBox.NoButtons)
         number.setFixedWidth(104)
         number.setAlignment(Qt.AlignRight)

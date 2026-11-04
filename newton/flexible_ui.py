@@ -3,6 +3,7 @@ from PySide6.QtWidgets import QWidget,QFormLayout,QComboBox
 from .environment_ui import number
 from .model import settings,reference_id
 from .i18n import tr
+from .toolbar import decorate,physical_label
 from .flexible import validate,centre_line
 
 
@@ -12,15 +13,18 @@ class FlexibleEditor(QWidget):
         form = QFormLayout(self);form.setContentsMargins(0,0,0,0)
         self.kind = QComboBox()
         for title,key in (("Rigid","rigid"),("Rope","rope"),("Cable","cable")):self.kind.addItem(tr(title),key)
+        decorate(self.kind,"flexible")
         form.addRow(tr("Material"),self.kind)
         self.fields = QWidget();detail = QFormLayout(self.fields);detail.setContentsMargins(0,0,0,0)
         self.radius = number(.001,10,.015);self.radius.setSuffix(" m")
         self.bend,self.twist,self.damping = number(0,1e10,2e4),number(0,1e10,1e4),number(0,100,.002)
-        for title,widget in (("Radius",self.radius),("Bending modulus",self.bend),("Torsion modulus",self.twist),("Joint damping",self.damping)):
-            detail.addRow(tr(title),widget)
+        for title,widget,art in (("Radius",self.radius,"radius"),("Bending modulus",self.bend,"bending"),
+                                 ("Torsion modulus",self.twist,"torsion"),("Joint damping",self.damping,"angular_damping")):
+            detail.addRow(physical_label(tr(title),art),widget)
         self.bend.setSuffix(" Pa");self.twist.setSuffix(" Pa")
         self.start = QComboBox()
         for title,key in (("Clamped","fixed"),("Pinned","pinned"),("Free","free")):self.start.addItem(tr(title),key)
+        decorate(self.start,"attachment")
         detail.addRow(tr("Start"),self.start)
         self.end = QComboBox();detail.addRow(tr("End attachment"),self.end)
         form.addRow(self.fields)

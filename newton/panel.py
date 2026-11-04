@@ -16,7 +16,7 @@ from .joints import PlacementTool
 from .interaction import ReferencePickTool
 from .references import install,validate_reference
 from .worker import joint_settings,resolve_couplings
-from .toolbar import build,icon
+from .toolbar import build,icon,decorate,redecorate,physical_label,compact
 from .i18n import tr
 from . import profiles
 from . import help_texts as help
@@ -77,7 +77,7 @@ class NewtonPanel(QWidget):
         self.profile_box = QGroupBox(tr("Profile"))
         profile_outer = QVBoxLayout(self.profile_box)
         profile_layout = QHBoxLayout();profile_outer.addLayout(profile_layout)
-        self.profile_combo = QComboBox()
+        self.profile_combo = compact(QComboBox())
         self.profile_combo.activated.connect(self.apply_profile_index)
         profile_layout.addWidget(self.profile_combo,1)
         self.profile_save = QPushButton(tr("Save as…"))
@@ -97,6 +97,7 @@ class NewtonPanel(QWidget):
         self.mode = QComboBox()
         for label,value in [(tr("Movable"),"dynamic"),(tr("Fixed"),"static"),(tr("Exclude from simulation"),"ignore")]:
             self.mode.addItem(label,value)
+        decorate(self.mode,"mode")
         form.addRow(tr("Behaviour"),self.mode)
         self.reference_label = QLabel(tr("None"))
         self.reference_label.setWordWrap(True)
@@ -125,6 +126,7 @@ class NewtonPanel(QWidget):
         self.drive = QComboBox()
         for label,value in [(tr("Free / passive"),"free"),(tr("Servo / position"),"position"),(tr("Motor / speed"),"velocity")]:
             self.drive.addItem(label,value)
+        decorate(self.drive,"drive")
         form.addRow(tr("Actuator"),self.drive)
         self.limited = QCheckBox(tr("Use limits"))
         form.addRow(self.limited)
@@ -142,13 +144,13 @@ class NewtonPanel(QWidget):
         brake_layout = QHBoxLayout(self.deceleration_row);brake_layout.setContentsMargins(0,0,0,0)
         brake_layout.addWidget(self.deceleration,1);brake_layout.addWidget(self.deceleration_sync)
         self.force = spin(0,1e6,100)
-        form.addRow(tr("Minimum"),self.range_field("lower",self.lower,-180,0))
-        form.addRow(tr("Maximum"),self.range_field("upper",self.upper,0,180))
-        form.addRow(tr("Initial target"),self.range_field("target",self.target,-180,180))
-        form.addRow(tr("Speed"),self.max_speed)
-        form.addRow(tr("Acceleration"),self.acceleration)
-        form.addRow(tr("Deceleration"),self.deceleration_row)
-        form.addRow(tr("Max. force"),self.force)
+        form.addRow(physical_label(tr("Minimum"),"limit_min"),self.range_field("lower",self.lower,-180,0))
+        form.addRow(physical_label(tr("Maximum"),"limit_max"),self.range_field("upper",self.upper,0,180))
+        form.addRow(physical_label(tr("Initial target"),"target"),self.range_field("target",self.target,-180,180))
+        form.addRow(physical_label(tr("Speed"),"speed"),self.max_speed)
+        form.addRow(physical_label(tr("Acceleration"),"acceleration"),self.acceleration)
+        form.addRow(physical_label(tr("Deceleration"),"deceleration"),self.deceleration_row)
+        form.addRow(physical_label(tr("Max. force"),"force"),self.force)
         clear = QPushButton(tr("Remove axis"))
         clear.clicked.connect(self.remove_axes)
         form.addRow(clear)
@@ -178,11 +180,12 @@ class NewtonPanel(QWidget):
         self.shape = QComboBox()
         for label,value in [(tr("Box"),"box"),(tr("Sphere"),"sphere"),(tr("Convex hull"),"hull"),(tr("Child components"),"compound")]:
             self.shape.addItem(label,value)
+        decorate(self.shape,"shape")
         self.mass,self.friction,self.bounce = spin(.001,1e6,1),spin(0,10,.5),spin(0,.95,.1)
         form.addRow(tr("Collision shape"),self.shape)
-        form.addRow(tr("Mass (kg)"),self.mass)
-        form.addRow(tr("Friction"),self.range_field("friction",self.friction,0,10))
-        form.addRow(tr("Bounce (approx.)"),self.range_field("bounce",self.bounce,0,.95))
+        form.addRow(physical_label(tr("Mass (kg)"),"mass"),self.mass)
+        form.addRow(physical_label(tr("Friction"),"friction"),self.range_field("friction",self.friction,0,10))
+        form.addRow(physical_label(tr("Bounce (approx.)"),"bounce"),self.range_field("bounce",self.bounce,0,.95))
         self.show_colliders = QCheckBox(tr("Show collision shapes"))
         self.show_colliders.setParent(self)
         self.show_colliders.hide()
@@ -374,6 +377,7 @@ class NewtonPanel(QWidget):
         self.start_button.setIcon(icon("pause" if self.session.running else "play"))
         self.reset_button.setIcon(icon("reset"))
         self.controls.refresh_icons()
+        redecorate()
 
     def browser_kind(self,group):
         if KEY not in (group.ext or {}):

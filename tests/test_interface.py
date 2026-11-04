@@ -150,6 +150,10 @@ def test_preferences_organize_and_stage_global_simulation(panel):
     try:
         page = NewtonPreferences(panel)
         assert page.tabs.count() == 4
+        explained = [page.colliders,page.shortcuts_button,page.quality,page.gravity.parentWidget(),
+                     page.floor,page.linear,page.angular,page.python.parentWidget()]
+        texts = [w.toolTip() for w in explained]
+        assert all(texts) and len(set(texts)) == len(texts)
         assert panel.gravity.isHidden() and panel.floor.isHidden() and panel.python.isHidden()
         old = panel.gravity.value()
         page.gravity.setValue(-3);page.linear.setValue(1.5)
@@ -611,27 +615,17 @@ def test_extension_ui_uses_host_language_and_english_fallback(panel,selection,pr
     assert panel.profile_manager.windowTitle()==profiles_title
 
 
-def test_toolbar_groups_and_icon_sets_follow_palette(panel):
-    from PySide6.QtCore import QSettings
-    from PySide6.QtGui import QPalette,QColor
+def test_toolbar_groups_and_icons_follow_palette_and_state(panel):
+    from PySide6.QtGui import QPalette,QColor,QIcon
     from PySide6.QtWidgets import QApplication
-    settings = QSettings()
-    old_style = settings.value("newton/icon_set","native")
     palette = QApplication.palette()
     assert len([a for a in panel.toolbar.actions() if a.isSeparator()])==4
     assert "profiles" not in panel.actions and "settings" not in panel.actions
     assert len(panel.actions)==12
     try:
-        from views.preferences_dialog import PreferencesDialog
-        dialog = PreferencesDialog(panel.app.window)
-        for key in ("native","outline","accent"):
-            dialog.newton_page.icons.setCurrentIndex(dialog.newton_page.icons.findData(key))
-            dialog.newton_page.commit()
-            assert settings.value("newton/icon_set")==key
-            assert all(not a.icon().isNull() for a in panel.actions.values())
-        dialog.reject()
-        dialog.deleteLater()
-        settings.setValue("newton/icon_set","native")
+        assert all(not a.icon().isNull() for a in panel.actions.values())
+        rotate = panel.actions["rotate"].icon()
+        assert rotate.pixmap(24,QIcon.Disabled).toImage()!=rotate.pixmap(24,QIcon.Normal).toImage()
         dark = QPalette(palette)
         dark.setColor(QPalette.WindowText,QColor("white"))
         QApplication.setPalette(dark)
@@ -643,7 +637,6 @@ def test_toolbar_groups_and_icon_sets_follow_palette(panel):
         panel.refresh_icons()
         assert panel.actions["rotate"].icon().cacheKey()!=white
     finally:
-        settings.setValue("newton/icon_set",old_style)
         QApplication.setPalette(palette)
 
 
@@ -653,36 +646,37 @@ def test_native_preferences_stage_icons_and_profiles_until_ok(panel,monkeypatch)
     from views.preferences_dialog import PreferencesDialog
     from newton import profiles
     st = QSettings()
-    old_profiles,old_icons = st.value(profiles.STORE),st.value("newton/icon_set","native")
+    key = "newton/show_colliders_by_default"
+    old_profiles,old_colliders = st.value(profiles.STORE),st.value(key)
     st.remove(profiles.STORE)
-    st.setValue("newton/icon_set","native")
+    st.setValue(key,False)
     group = select_demo_axis(panel)
     try:
         dialog = PreferencesDialog(panel.app.window)
         page = dialog.newton_page
         assert dialog._tabs.tabText(dialog._tabs.indexOf(page))=="Newton"
         assert page.profiles.apply_button.isHidden()
-        page.icons.setCurrentIndex(page.icons.findData("accent"))
+        page.colliders.setChecked(True)
         monkeypatch.setattr(QInputDialog,"getText",lambda *a,**kw:("Draft profile",True))
         page.profiles.save_selection()
         assert profiles.custom_profiles()==[]
-        assert st.value("newton/icon_set")=="native"
+        assert str(st.value(key)).lower()=="false"
         dialog.reject()
         dialog.deleteLater()
         assert profiles.custom_profiles()==[]
-        assert st.value("newton/icon_set")=="native"
+        assert str(st.value(key)).lower()=="false"
 
         dialog = PreferencesDialog(panel.app.window)
         page = dialog.newton_page
         assert len(page.profiles.values)==8
-        page.icons.setCurrentIndex(page.icons.findData("outline"))
+        page.colliders.setChecked(True)
         page.profiles.save_selection()
         page.profiles.list.setCurrentRow(8)
         monkeypatch.setattr(QInputDialog,"getText",lambda *a,**kw:("Saved profile",True))
         page.profiles.rename()
         page.profiles.replace()
         dialog.accept()
-        assert st.value("newton/icon_set")=="outline"
+        assert str(st.value(key)).lower()=="true"
         assert profiles.custom_profiles()[0]["name"]=="Saved profile"
         assert profiles.custom_profiles()[0]["body"]["mass"]==group.ext[KEY]["mass"]
         assert panel.profile_combo.findText("Saved profile")>=0
@@ -696,7 +690,8 @@ def test_native_preferences_stage_icons_and_profiles_until_ok(panel,monkeypatch)
         assert profiles.custom_profiles()==[]
         dialog.deleteLater()
     finally:
-        st.setValue("newton/icon_set",old_icons)
+        if old_colliders is None:st.remove(key)
+        else:st.setValue(key,old_colliders)
         if old_profiles is None:
             st.remove(profiles.STORE)
         else:

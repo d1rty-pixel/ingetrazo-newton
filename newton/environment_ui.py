@@ -3,6 +3,7 @@ from PySide6.QtCore import QSettings
 from PySide6.QtWidgets import QWidget,QVBoxLayout,QFormLayout,QCheckBox,QDoubleSpinBox,QLabel
 from .model import KEY,settings
 from .i18n import tr
+from .toolbar import physical_label,physical_check
 from . import help_texts as help
 
 
@@ -23,8 +24,11 @@ class EnvironmentOverrides(QWidget):
         self.panel = panel;self.updating = False;self.group = None
         layout = QVBoxLayout(self);layout.setContentsMargins(0,0,0,0)
         self.enabled = QCheckBox(tr("Use own simulation settings"));layout.addWidget(self.enabled)
-        self.fields = QWidget();form = QFormLayout(self.fields)
-        form.setContentsMargins(0,0,0,0);form.setRowWrapPolicy(QFormLayout.WrapLongRows)
+        # The field note sits between two forms: a word-wrapped label inside a QFormLayout
+        # gets too little height and is overlapped by the following rows.
+        self.fields = QWidget();fields = QVBoxLayout(self.fields);fields.setContentsMargins(0,0,0,0)
+        form = QFormLayout();form.setContentsMargins(0,0,0,0);form.setRowWrapPolicy(QFormLayout.WrapLongRows)
+        fields.addLayout(form)
         self.gravity = [number(-1e6,1e6) for _ in range(3)]
         from .range_control import RangeControl
         for axis,widget in zip(("X","Y","Z"),self.gravity):
@@ -32,19 +36,23 @@ class EnvironmentOverrides(QWidget):
             control = RangeControl(widget,-100,100)
             control.gestureStarted.connect(panel.begin_slider_edit);control.gestureFinished.connect(panel.end_slider_edit)
             panel.ranges["override_gravity_"+axis] = control
-            form.addRow(tr("Gravity {axis}",axis=axis),control)
+            form.addRow(physical_label(tr("Gravity {axis}",axis=axis),"gravity"),control)
         self.linear,self.angular = number(0,100),number(0,100)
         self.linear.setSuffix(" /s");self.angular.setSuffix(" /s")
-        form.addRow(tr("Linear damping"),self.linear);form.addRow(tr("Angular damping"),self.angular)
-        self.floor = QCheckBox(tr("Ground contact at Z = 0"));form.addRow(self.floor)
+        form.addRow(physical_label(tr("Linear damping"),"linear_damping"),self.linear)
+        form.addRow(physical_label(tr("Angular damping"),"angular_damping"),self.angular)
+        self.floor = physical_check(QCheckBox(tr("Ground contact at Z = 0")),"ground");form.addRow(self.floor)
         note = QLabel(tr(help.FIELDS))
-        note.setWordWrap(True);form.addRow(note)
+        note.setWordWrap(True);fields.addWidget(note)
+        form = QFormLayout();form.setContentsMargins(0,0,0,0);form.setRowWrapPolicy(QFormLayout.WrapLongRows)
+        fields.addLayout(form)
         self.attraction = number(0,1e12);self.attraction.setSuffix(" m³/s²")
         self.softening = number(0,1e6,.01);self.softening.setSuffix(" m")
-        form.addRow(tr("Attraction"),self.attraction);form.addRow(tr("Softening radius"),self.softening)
+        form.addRow(physical_label(tr("Attraction"),"attraction"),self.attraction)
+        form.addRow(physical_label(tr("Softening radius"),"softening"),self.softening)
         self.velocity = [number(-1e6,1e6) for _ in range(3)]
         for axis,widget in zip(("X","Y","Z"),self.velocity):
-            widget.setSuffix(" m/s");form.addRow(tr("Initial velocity {axis}",axis=axis),widget)
+            widget.setSuffix(" m/s");form.addRow(physical_label(tr("Initial velocity {axis}",axis=axis),"velocity"),widget)
         layout.addWidget(self.fields)
         for field in [*self.gravity,self.linear,self.angular,self.attraction,self.softening,*self.velocity]:field.valueChanged.connect(self.write)
         self.enabled.toggled.connect(self.write);self.floor.toggled.connect(self.write)

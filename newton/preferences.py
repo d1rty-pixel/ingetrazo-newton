@@ -3,8 +3,10 @@ import copy
 import json
 import uuid
 from weakref import WeakKeyDictionary,ref
-from PySide6.QtCore import QObject,QEvent,QSettings,QTimer
-from PySide6.QtWidgets import QWidget,QFormLayout,QComboBox,QVBoxLayout,QCheckBox,QPushButton,QLabel,QTabWidget,QScrollArea,QLineEdit,QFileDialog
+from PySide6.QtCore import QObject,QEvent,QSettings,QTimer,Qt
+from PySide6.QtGui import QPalette
+from PySide6.QtWidgets import (QWidget,QComboBox,QVBoxLayout,QHBoxLayout,QGridLayout,QFrame,QCheckBox,QPushButton,
+                               QLabel,QTabWidget,QScrollArea,QLineEdit,QFileDialog)
 from .i18n import tr
 from . import profiles
 from . import help_texts as help
@@ -29,6 +31,50 @@ class ProfileDraft:
         self.values = [v for v in self.values if v["id"]!=identifier]
 
 
+class SettingsPage:
+    """One preferences tab: headed categories separated by a line; every setting explains itself."""
+    def __init__(self,tabs,title,intro=None,pictograms=False):
+        self.pictograms = pictograms
+        area = QScrollArea();area.setWidgetResizable(True);area.setFrameShape(QFrame.NoFrame)
+        content = QWidget();area.setWidget(content)
+        self.box = QVBoxLayout(content);self.box.setSpacing(10)
+        self.categories = 0
+        if intro:
+            note = QLabel(intro);note.setWordWrap(True);self.box.addWidget(note)
+        tabs.addTab(area,title)
+
+    def category(self,title):
+        if self.categories or self.box.count():
+            line = QFrame();line.setFrameShape(QFrame.HLine);line.setFrameShadow(QFrame.Sunken)
+            self.box.addSpacing(4);self.box.addWidget(line)
+        self.categories += 1
+        heading = QLabel(title)
+        font = heading.font();font.setBold(True);font.setPointSizeF(font.pointSizeF()*1.1);heading.setFont(font)
+        self.box.addWidget(heading)
+
+    def setting(self,art,label,control,description):
+        from .toolbar import pictogram
+        row = QWidget();grid = QGridLayout(row);grid.setContentsMargins(0,2,0,2)
+        grid.setHorizontalSpacing(12);grid.setVerticalSpacing(3);grid.setColumnStretch(2,1)
+        if self.pictograms:
+            image = QLabel();image.setFixedWidth(44);image.setAlignment(Qt.AlignTop|Qt.AlignHCenter)
+            if art:image.setPixmap(pictogram(art))
+            grid.addWidget(image,0,0,2,1)
+        if label:
+            name = QLabel(label);name.setMinimumWidth(150);name.setBuddy(control)
+            grid.addWidget(name,0,1);grid.addWidget(control,0,2)
+        else:
+            grid.addWidget(control,0,1,1,2,Qt.AlignLeft)
+        text = QLabel(description);text.setWordWrap(True)
+        palette = text.palette();palette.setColor(QPalette.WindowText,palette.color(QPalette.PlaceholderText));text.setPalette(palette)
+        grid.addWidget(text,1,1,1,2)
+        control.setToolTip(description)
+        self.box.addWidget(row)
+
+    def finish(self):
+        self.box.addStretch()
+
+
 class NewtonPreferences(QWidget):
     def __init__(self,panel):
         super().__init__()
@@ -37,58 +83,58 @@ class NewtonPreferences(QWidget):
         self.draft = ProfileDraft()
         layout = QVBoxLayout(self)
         self.tabs = QTabWidget();layout.addWidget(self.tabs)
-        def page(title,description):
-            area = QScrollArea();area.setWidgetResizable(True)
-            content = QWidget();area.setWidget(content)
-            box = QVBoxLayout(content)
-            if description:
-                note = QLabel(description);note.setWordWrap(True);box.addWidget(note)
-            form = QFormLayout();form.setRowWrapPolicy(QFormLayout.WrapLongRows)
-            box.addLayout(form);box.addStretch()
-            self.tabs.addTab(area,tr(title))
-            return form
-        form = page("Appearance",tr(help.APPEARANCE))
-        self.icons = QComboBox()
-        for label,key in (("IngeTrazo","native"),("Outline","outline"),("Accent","accent")):
-            self.icons.addItem(tr(label),key)
-        self.icons.setCurrentIndex(max(0,self.icons.findData(QSettings().value("newton/icon_set","native"))))
-        form.addRow(tr("Icon set"),self.icons)
-        self.colliders = QCheckBox(tr("Show collision shapes at startup"))
+
+        page = SettingsPage(self.tabs,tr("Appearance"))
+        page.category(tr("Collision display"))
+        self.colliders = QCheckBox(tr("Show collision shapes in new windows"))
         self.colliders.setChecked(str(QSettings().value("newton/show_colliders_by_default",False)).lower() in ("true","1"))
-        form.addRow(self.colliders)
+        page.setting(None,None,self.colliders,tr(help.SHOW_COLLIDERS))
         self.shortcuts_button = QPushButton(tr("Configure collision display shortcut…"))
         self.shortcuts_button.setEnabled(getattr(panel,"collision_action",None) is not None)
         self.shortcuts_button.clicked.connect(self.configure_shortcut)
-        form.addRow(self.shortcuts_button)
-        form = page("Simulation",tr(help.SIMULATION))
+        page.setting(None,None,self.shortcuts_button,tr(help.COLLIDER_SHORTCUT))
+        page.finish()
+
+        page = SettingsPage(self.tabs,tr("Simulation"),tr(help.SIMULATION),pictograms=True)
+        page.category(tr("Accuracy"))
         self.quality = QComboBox()
         for label,key in (("Quick","quick"),("Balanced","balanced"),("Precise","precise")):self.quality.addItem(tr(label),key)
         self.quality.setCurrentIndex(max(0,self.quality.findData(QSettings().value("newton/quality","balanced"))))
-        self.quality.setToolTip(tr(help.QUALITY))
-        form.addRow(tr("Quality"),self.quality)
+        page.setting(None,tr("Quality"),self.quality,tr(help.QUALITY))
         from .environment_ui import number,global_damping
         from .range_control import RangeControl
+        page.category(tr("Gravity and ground"))
         self.gravity = number(-100,100,panel.gravity.value());self.gravity.setSuffix(" m/s²")
-        form.addRow(tr("Gravity Z"),RangeControl(self.gravity,-100,100))
-        self.floor = QCheckBox(tr("Ground at Z = 0"));self.floor.setChecked(panel.floor.isChecked());form.addRow(self.floor)
+        page.setting("gravity",tr("Gravity Z"),RangeControl(self.gravity,-100,100),tr(help.GRAVITY))
+        self.floor = QCheckBox(tr("Ground at Z = 0"));self.floor.setChecked(panel.floor.isChecked())
+        page.setting("ground",None,self.floor,tr(help.GROUND))
+        page.category(tr("Damping"))
         linear,angular = global_damping()
         self.linear,self.angular = number(0,100,linear),number(0,100,angular)
         self.linear.setSuffix(" /s");self.angular.setSuffix(" /s")
-        form.addRow(tr("Linear damping"),self.linear);form.addRow(tr("Angular damping"),self.angular)
+        page.setting("linear_damping",tr("Linear damping"),self.linear,tr(help.LINEAR_DAMPING))
+        page.setting("angular_damping",tr("Angular damping"),self.angular,tr(help.ANGULAR_DAMPING))
+        page.finish()
+
         from .profile_ui import ProfileEditor
         self.profiles = ProfileEditor(panel,repository=self.draft)
         # Preferences manage presets; applying them stays in the model sidebar.
         self.profiles.apply_button.hide()
         self.tabs.addTab(self.profiles,tr("Profiles"))
-        form = page("Runtime",tr(help.RUNTIME))
-        self.python = QLineEdit(panel.python.text());form.addRow(tr("Python with MuJoCo"),self.python)
-        browse = QPushButton(tr("Choose runtime…"));browse.clicked.connect(self.browse);form.addRow(browse)
+
+        page = SettingsPage(self.tabs,tr("Runtime"))
+        page.category(tr("Python environment"))
+        self.python = QLineEdit(panel.python.text())
+        browse = QPushButton(tr("Choose runtime…"));browse.clicked.connect(self.browse)
+        row = QWidget();box = QHBoxLayout(row);box.setContentsMargins(0,0,0,0)
+        box.addWidget(self.python,1);box.addWidget(browse)
+        page.setting(None,tr("Python with MuJoCo"),row,tr(help.RUNTIME))
+        page.finish()
 
     def commit(self):
         from .profile_sync import execute
         command = self.profiles.prepare_sync()
         st = QSettings()
-        st.setValue("newton/icon_set",self.icons.currentData())
         st.setValue("newton/show_colliders_by_default",self.colliders.isChecked())
         st.setValue("newton/gravity_z",self.gravity.value())
         st.setValue("newton/floor",self.floor.isChecked())
