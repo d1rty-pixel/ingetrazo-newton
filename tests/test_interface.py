@@ -1544,3 +1544,14 @@ def test_hinge_placement_sets_the_zero_direction_and_start_angle(panel,qtapp):
     vp.history.execute(RotateGroupCommand(group,QVector3D(2,0,2),QVector3D(0,0,1),90))
     joint = group.ext[KEY]["joint"]
     assert joint["zero"]==pytest.approx([0,-1,0],abs=1e-5) and joint["start"]==pytest.approx(math.pi,abs=1e-5)
+
+
+def test_control_panel_marks_errors_and_warnings_but_not_hints(panel):
+    controls = panel.controls
+    panel.session.message.emit("Newton process timed out (15 seconds).","error")
+    assert not controls.hint_row.isHidden() and not controls.hint_mark.isHidden()
+    assert controls.hint_mark.accessibleName()=="Error"
+    panel.session.message.emit("Reset before saving the model.","warning")
+    assert not controls.hint_mark.isHidden() and controls.hint_mark.accessibleName()=="Warning"
+    controls.message("Original model restored.")
+    assert controls.hint_mark.isHidden() and controls.hint.text()=="Original model restored."

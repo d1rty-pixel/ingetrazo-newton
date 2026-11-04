@@ -857,7 +857,7 @@ class NewtonPanel(QWidget):
             self.session.start(python,scene,specs,movers,self.gravity.value(),self.floor.isChecked(),linear,angular,quality)
             self.controls.message(tr("Drag passive bodies. Use controls for actuators."))
         except Exception as exc:
-            self.controls.message(str(exc))
+            self.controls.message(str(exc),"error")
         self.show_controls()
 
     def shutdown(self,*args):

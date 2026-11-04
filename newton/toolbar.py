@@ -117,6 +117,21 @@ def redecorate():
     repaint_pictograms()
 
 
+# Signal colours stay fixed in both themes so an error never reads as a plain hint.
+MARKS = {"error":"#d93025","warning":"#e79b38"}
+
+
+def status_mark(level,size=18):
+    """A filled circle with an exclamation mark, red for errors and amber for warnings."""
+    svg = ('<svg xmlns="http://www.w3.org/2000/svg" width="'+str(size*2)+'" height="'+str(size*2)+'" viewBox="0 0 24 24">'
+           '<circle cx="12" cy="12" r="11" fill="'+MARKS[level]+'"/>'
+           '<path d="M12 6v8" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="12" cy="18" r="1.7" fill="#fff"/></svg>')
+    pix = QPixmap()
+    pix.loadFromData(svg.encode(),"SVG")
+    pix.setDevicePixelRatio(2)
+    return pix
+
+
 def render(paths,colour,size=48):
     svg = ('<svg xmlns="http://www.w3.org/2000/svg" width="'+str(size)+'" height="'+str(size)+'" viewBox="0 0 24 24">'
            '<g fill="none" stroke="'+colour+'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">'

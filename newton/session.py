@@ -27,7 +27,7 @@ class Workspace:
         return False
 
     def save(self):
-        self.session.message.emit(tr("Reset before saving the model."))
+        self.session.message.emit(tr("Reset before saving the model."),"warning")
         return False
 
     save_as = save
@@ -46,7 +46,7 @@ class Workspace:
 
 class Session(QObject):
     changed = Signal()
-    message = Signal(str)
+    message = Signal(str,str)  # text, level: info, warning or error
     frame = Signal(float)
     telemetry = Signal(object)
     metrics = Signal(object)
@@ -258,4 +258,4 @@ class Session(QObject):
 
     def fail(self, text):
         self.reset()
-        self.message.emit(text)
+        self.message.emit(text,"error")

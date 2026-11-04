@@ -48,7 +48,7 @@ class DragTool(Tool):
     def on_click(self, ctx):
         s = self.session
         if not s.ready or not s.running:
-            s.message.emit(tr("Resume to drag a body."))
+            s.message.emit(tr("Resume to drag a body."),"info")
             return
         group = ctx.viewport.pick_group(ctx.screen.x(),ctx.screen.y())
         uid = next((uid for uid,g in s.movers.items() if g is group),None)
@@ -56,7 +56,7 @@ class DragTool(Tool):
             return
         if not s.can_drag(uid):
             ctx.viewport.setCursor(Qt.ForbiddenCursor)
-            s.message.emit(tr("Fixed or actuated body. Use the controls."))
+            s.message.emit(tr("Fixed or actuated body. Use the controls."),"info")
             return
         point = ctx.viewport._world_under_cursor(ctx.screen.x(),ctx.screen.y())
         if point is None:
@@ -100,6 +100,6 @@ class DragTool(Tool):
 
     def on_key(self,vp,key,modifiers):
         if self.claims_key(key,modifiers):
-            self.session.message.emit(tr("Reset before deleting model geometry."))
+            self.session.message.emit(tr("Reset before deleting model geometry."),"warning")
             return True
         return False

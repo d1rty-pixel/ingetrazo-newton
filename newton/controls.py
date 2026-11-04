@@ -4,7 +4,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QLabel, QScrollArea,
     QWidget, QGroupBox, QHBoxLayout, QDoubleSpinBox,QPushButton)
 from .i18n import tr
-from .toolbar import icon
+from .toolbar import icon,status_mark
 
 
 def display_units(joint):
@@ -21,10 +21,15 @@ class Controls(QDialog):
         self.setMinimumWidth(520)
         self.resize(420, 440)
         self.layout = QVBoxLayout(self)
+        self.hint_row = QWidget()
+        hint_layout = QHBoxLayout(self.hint_row);hint_layout.setContentsMargins(0,0,0,0)
+        self.hint_mark = QLabel();self.hint_mark.setAlignment(Qt.AlignTop)
         self.hint = QLabel()
         self.hint.setWordWrap(True)
-        self.layout.addWidget(self.hint)
-        self.hint.hide()
+        self.hint.setTextFormat(Qt.PlainText)
+        hint_layout.addWidget(self.hint_mark);hint_layout.addWidget(self.hint,1)
+        self.layout.addWidget(self.hint_row)
+        self.hint_row.hide()
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
         self.layout.addWidget(self.scroll)
@@ -129,9 +134,13 @@ class Controls(QDialog):
     def start(self):
         self.panel.start_or_pause()
 
-    def message(self,text):
+    def message(self,text,level="info"):
         self.hint.setText(tr(text))
-        self.hint.show()
+        self.hint_mark.setVisible(level in ("error","warning"))
+        if level in ("error","warning"):
+            self.hint_mark.setPixmap(status_mark(level))
+            self.hint_mark.setAccessibleName(tr("Error") if level=="error" else tr("Warning"))
+        self.hint_row.show()
 
     def telemetry(self, data):
         for uid, state in data.items():
