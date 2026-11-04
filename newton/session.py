@@ -97,7 +97,8 @@ class Session(QObject):
         self.buffer, self.stderr = b"", ""
         process = self.process = QProcess(self)
         process.setProgram(python)
-        process.setArguments(["-u", str(Path(__file__).with_name("worker.py"))])
+        # -E: the host's PYTHONPATH (e.g. Flatpak's /app site-packages) must not leak into the worker's interpreter.
+        process.setArguments(["-E", "-u", str(Path(__file__).with_name("worker.py"))])
         process.setWorkingDirectory(str(Path(__file__).parent))
         process.started.connect(lambda: self.send(dict(op="init", bodies=specs,
                                                        gravity=gravity, floor=floor,
