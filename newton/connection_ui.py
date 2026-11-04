@@ -1,6 +1,6 @@
 """One compact editor for point, pin and rigid connections."""
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QWidget,QFormLayout,QHBoxLayout,QPushButton,QComboBox,QLabel
+from PySide6.QtWidgets import QWidget,QFormLayout,QHBoxLayout,QPushButton,QComboBox,QLabel,QCheckBox
 from .environment_ui import number
 from .model import settings
 from .connections import KINDS,apply_connection,begin
@@ -26,6 +26,10 @@ class ConnectionEditor(QWidget):
         self.axis_fields = QWidget();axes = QHBoxLayout(self.axis_fields);axes.setContentsMargins(0,0,0,0)
         for label,field in zip("XYZ",self.axis):axes.addWidget(QLabel(label));axes.addWidget(field)
         detail.addRow(tr("Pin axis"),self.axis_fields);form.addRow(self.fields)
+        self.lock = QCheckBox(tr("Lock connection object"))
+        self.lock.setToolTip(tr("Locks the connection object in the model so that no tool moves or rotates it by accident. It still follows its body."))
+        self.lock.toggled.connect(lambda on:panel.lock_marker("connection_of",on))
+        form.addRow(self.lock)
         self.kind.currentIndexChanged.connect(lambda:self.write("type"))
         for index,field in enumerate(self.point):field.valueChanged.connect(lambda _,i=index:self.write("point",i))
         for index,field in enumerate(self.axis):field.valueChanged.connect(lambda _,i=index:self.write("axis",i))
@@ -44,6 +48,10 @@ class ConnectionEditor(QWidget):
                 for field,v in zip(self.point,value["point"]):field.setValue(v*1000)
                 for field,v in zip(self.axis,value.get("axis",[0,1,0])):field.setValue(v)
             self.detail.setRowVisible(self.axis_fields,self.kind.currentData()=="hinge")
+            self.lock.setVisible(bool(value))
+            self.panel.refresh_lock(self.lock,group,"connection_of")
+            # A locked object keeps its place; the number fields would move it all the same.
+            self.fields.setEnabled(not self.lock.isChecked())
         finally:self.updating = False
 
     def write(self,key,index=None):

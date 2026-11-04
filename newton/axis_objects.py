@@ -125,6 +125,28 @@ class AddMarker(Command):
         scene.version += 1
 
 
+def marker_of(scene,body,key):
+    return next((m for m in markers(scene,key) if owner_id(m)==body.uid),None)
+
+
+class LockMarker(Command):
+    """The host's object lock: no tool picks or moves the object, it still follows its body."""
+    keeps_paint = True
+
+    def __init__(self,group,locked):
+        self.group,self.locked = group,bool(locked)
+        self.before = bool(getattr(group,"locked",False))
+
+    def apply(self,scene,locked):
+        self.group.locked = locked
+        if locked:
+            scene.selection.discard(self.group)
+        scene.version += 1
+
+    def do(self,scene):self.apply(scene,self.locked)
+    def undo(self,scene):self.apply(scene,self.before)
+
+
 class MoveMarker(Command):
     keeps_paint = True
 

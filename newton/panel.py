@@ -177,6 +177,10 @@ class NewtonPanel(QWidget):
         form.addRow(physical_label(tr("Acceleration"),"acceleration"),self.acceleration)
         form.addRow(physical_label(tr("Deceleration"),"deceleration"),self.deceleration_row)
         form.addRow(physical_label(tr("Max. force"),"force"),self.force)
+        self.axis_lock = QCheckBox(tr("Lock axis object"))
+        self.axis_lock.setToolTip(tr("Locks the axis object in the model so that no tool moves or rotates it by accident. It still follows its body."))
+        self.axis_lock.toggled.connect(lambda on:self.lock_marker("axis_of",on))
+        form.addRow(self.axis_lock)
         clear = QPushButton(tr("Remove axis"))
         clear.clicked.connect(self.remove_axes)
         form.addRow(clear)
@@ -546,6 +550,26 @@ class NewtonPanel(QWidget):
                 return
             self.patch({key:value})
 
+    def marker(self,group,key):
+        from .axis_objects import marker_of
+        return marker_of(self.app.scene,group,key) if group is not None else None
+
+    def refresh_lock(self,check,group,key):
+        marker = self.marker(group,key)
+        previous = check.blockSignals(True)
+        check.setChecked(bool(getattr(marker,"locked",False)))
+        check.setEnabled(marker is not None)
+        check.blockSignals(previous)
+
+    def lock_marker(self,key,on):
+        groups = self.selected()
+        marker = self.marker(groups[0],key) if len(groups)==1 and not self.session.workspace else None
+        if marker is None or bool(getattr(marker,"locked",False))==on:
+            return
+        from .axis_objects import LockMarker
+        self.app.viewport.history.execute(LockMarker(marker,on))
+        self.app.viewport.notify_scene_changed()
+
     def usable_settings(self,groups):
         """Which settings act on at least one selected body: a fixed body has no motion, an excluded one nothing."""
         modes = {body_mode(g) for g in groups} or {"dynamic"}
@@ -607,7 +631,7 @@ class NewtonPanel(QWidget):
         from .axis_edit import install as install_axis_edit
         install_axis_edit(self)
         signature = (id(self.app.scene),tuple(g.uid for g in groups),
-            tuple((g.uid,g.name,repr((g.ext or {}).get(KEY))) for g in self.app.scene.groups))
+            tuple((g.uid,g.name,repr((g.ext or {}).get(KEY)),bool(getattr(g,"locked",False))) for g in self.app.scene.groups))
         if signature==self.selection_signature:
             self.controls.refresh(self.control_rows,False)
             return
@@ -637,6 +661,7 @@ class NewtonPanel(QWidget):
         self.flexible_editor.refresh(groups[0] if len(groups)==1 else None)
         self.connection_section.setVisible(len(groups)==1 and not settings(groups[0]).get("flexible"))
         self.connection_editor.refresh(groups[0] if len(groups)==1 else None)
+        self.refresh_lock(self.axis_lock,groups[0] if len(groups)==1 else None,"axis_of")
         if not groups:
             self.reference_label.setText(tr("None"))
             return
@@ -836,7 +861,7 @@ class NewtonPanel(QWidget):
             for key,text,name in ((AXIS,"Select axis object","rotate"),(CONNECTION,"Select connection object","connect")):
                 marker = None if owner_id(body) else next((m for m in markers(self.app.scene,key) if owner_id(m)==body.uid),None)
                 action = menu.addAction(icon(name),tr(text),lambda *_,m=marker:QTimer.singleShot(0,lambda:self.select_object(m)))
-                action.setEnabled(marker is not None)
+                action.setEnabled(marker is not None and not getattr(marker,"locked",False))
         if groups:
             menu.addAction(icon("unlink"),tr("Detach reference body"),lambda:QTimer.singleShot(0,self.detach_reference))
 

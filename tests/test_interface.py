@@ -1606,3 +1606,32 @@ def test_fixed_and_excluded_bodies_disable_settings_without_effect(panel):
     assert not enabled[panel.body_section] and not enabled[panel.connection_section] and not enabled[panel.environment_section]
     assert enabled[panel.editor] and enabled[panel.profile_box] and panel.mode.isEnabled()
     assert not any(b.isEnabled() for b in panel.reference_buttons)
+
+
+def test_locked_axis_and_connection_objects_follow_their_body_only(panel,qtapp):
+    from PySide6.QtWidgets import QMenu
+    from core.history import MoveGroupCommand
+    from newton.model import box,AddDemo
+    from newton.connections import apply_connection
+    from newton.axis_objects import AXIS,CONNECTION,marker_of,placement
+    group = select_demo_axis(panel)
+    scene,history = panel.app.scene,panel.app.viewport.history
+    anchor = box("Anchor",(9,9,2),(.1,.1,.1),mode="static");history.execute(AddDemo([anchor]))
+    apply_connection(panel,group,dict(target=anchor.uid,point=[0,0,2],type="ball"))
+    scene.select([group]);panel.app.viewport.notify_scene_changed();panel.refresh()
+    axis,connection = marker_of(scene,group,AXIS),marker_of(scene,group,CONNECTION)
+    assert panel.axis_lock.isEnabled() and not panel.axis_lock.isChecked()
+    steps = len(history.undo_stack)
+    panel.axis_lock.setChecked(True);panel.connection_editor.lock.setChecked(True)
+    assert axis.locked and connection.locked and len(history.undo_stack)==steps+2
+    panel.refresh()
+    assert not panel.connection_editor.fields.isEnabled()
+    menu = QMenu();panel.context_menu(menu,[group])
+    assert not any(a.isEnabled() for a in menu.actions() if a.text() in ("Select axis object","Select connection object"))
+    pivot = placement(axis)[0]
+    history.execute(MoveGroupCommand(group,QVector3D(0,.5,0)))
+    assert placement(axis)[0]==pytest.approx([pivot[0],pivot[1]+.5,pivot[2]],abs=1e-5),"a locked object still follows its body"
+    history.undo();history.undo()
+    assert axis.locked and not connection.locked
+    history.undo()
+    assert not axis.locked
