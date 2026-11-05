@@ -4,6 +4,20 @@ Bugs and observations that are known but not yet fixed. Each entry states what i
 
 Status values: **open** (confirmed, not fixed), **observation** (reported, cause unknown), **fixed** (kept until the fix is released).
 
+## Starting a large model copies all geometry
+
+- **Status:** open
+- **Reported:** 2026-11-05, CR10 sliding electronics compartment model (about 250 000 vertices)
+- **Symptom:** Pressing Start takes about 10 s before the simulation runs; the simulation itself is fast.
+- **Checked:** `prepare()` (`newton/model.py`) copies every included group for the temporary simulation with `transformed_mesh`, which welds the whole mesh again. On this model the copies of plain groups take 6.3 s; groups with children or a component transform are copied twice (2.8 s). Sharing the document's meshes instead would remove most of it, but the temporary simulation only restricts tools, not edit commands, so a shared mesh could be changed outside the document's undo history. Not yet solved.
+
+## Every simulation frame rebuilds the viewport caches
+
+- **Status:** open
+- **Reported:** 2026-11-05, performance audit
+- **Symptom:** On models with many moving bodies the display reaches only about 30 frames per second, although the worker is faster.
+- **Checked:** `Session.apply()` raises `scene.version` on each frame so that the host redraws the moved groups. The host then rebuilds its consolidated buffers (`_sync_edges`): 31 ms per frame for the crank drive with 121 bodies, 17 ms for the CR10 model, against 0.2 ms for an unchanged frame. The host's own groups preview moves all groups by one shared offset only and is not part of Extension API 2, so a fix needs a host extension point.
+
 ## Floating toolbar icons jump while a simulation runs
 
 - **Status:** observation
