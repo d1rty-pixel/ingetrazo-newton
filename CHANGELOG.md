@@ -19,6 +19,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ### Fixed
 
+- Axis and connection objects follow their body when it is hidden or unhidden and when it is renamed (a renamed object is overwritten); both steps undo together with the body's change.
 - The "unknown collision shape" error has a translatable English text.
 - Render flags of the document's meshes that were still pending at Start are restored after Reset, so the model view does not keep old paint.
 

@@ -92,5 +92,5 @@ Status values: **open** (confirmed, not fixed), **observation** (reported, cause
 
 - **Status:** open
 - **Reported:** 2026-11-04, with the introduction of axis objects (`newton/axis_objects.py`)
-- **Symptom:** An axis object stays visible when its body is hidden (the axis glyph hides). Its name (`Axis · <body>`) does not follow a body rename. Connection objects (`Connection · <body>`, since 2026-11-04) share these gaps. While a group is open for editing, no sync runs; it catches up with the next command after leaving the group. Grouping an axis object together with other objects (Make Group) removes it from the top level; Newton then creates a new one and keeps the axis.
+- **Symptom:** While a group is open for editing, no sync runs; axis and connection objects catch up with the next command after leaving the group (hiding or renaming a body in that time is not mirrored until then). Grouping an axis or connection object together with other objects (Make Group) removes it from the top level; Newton then creates a new one and keeps the axis.
 - **Checked:** unit tests cover move, rotate, undo/redo, body move, copy/paste, delete and loading documents without axis objects. Not checked in a live IngeTrazo session yet.

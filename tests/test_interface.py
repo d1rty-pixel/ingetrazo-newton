@@ -1971,3 +1971,27 @@ def test_render_flags_of_shared_meshes_survive_the_simulation(panel,qtapp):
     mesh._chunk_dirty = mesh._attrs_dirty = False  # What drawing the clone does.
     panel.session.reset()
     assert mesh._chunk_dirty and mesh._attrs_dirty
+
+
+def test_axis_object_follows_hiding_and_renaming_of_its_body(panel):
+    from core.history import HideCommand,RenameGroupCommand
+    from newton.axis_objects import markers,owner_id
+    group = select_demo_axis(panel)
+    scene,history = panel.app.scene,panel.app.viewport.history
+    [marker] = [m for m in markers(scene) if owner_id(m)==group.uid]
+    steps = len(history.undo_stack)
+    history.execute(HideCommand([group]))
+    assert marker.hidden and len(history.undo_stack)==steps+1
+    history.undo()
+    assert not marker.hidden and not group.hidden
+    history.redo()
+    assert marker.hidden
+    history.execute(HideCommand([group],False))
+    assert not marker.hidden
+    old = marker.name
+    history.execute(RenameGroupCommand(group,"Renamed"))
+    assert marker.name.endswith("· Renamed") and marker.name!=old
+    history.undo()
+    assert marker.name==old
+    history.redo()
+    assert marker.name.endswith("· Renamed")
