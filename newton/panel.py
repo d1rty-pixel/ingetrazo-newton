@@ -956,6 +956,27 @@ class NewtonPanel(QWidget):
         self.controls.raise_()
         self.controls.activateWindow()
 
+    def virtual_controls(self):
+        """The controls the control panel shows; during a simulation the ones it started with."""
+        if self.session.workspace:
+            return list(self.session.virtual.values())
+        from .virtual_controls import resolve,stored
+        try:
+            return resolve(stored(self.app.document_data()),joint_rows(self.app.scene))
+        except ValueError:
+            return []  # Start reports the problem; the panel still shows the joints.
+
+    def edit_virtual_controls(self,select=None):
+        if self.session.workspace:
+            return  # The simulation's history refuses the change; the button is disabled then.
+        from .virtual_editor import VirtualControlEditor
+        try:
+            editor = VirtualControlEditor(self,select)
+        except ValueError as exc:
+            self.controls.message(str(exc),"error")
+            return
+        editor.exec()
+
     def start_or_pause(self):
         if self.session.workspace:
             self.session.toggle()
@@ -966,13 +987,15 @@ class NewtonPanel(QWidget):
             self.controls.kept = None
             self.app.viewport.end_group_edit()
             self.refresh()
+            from .virtual_controls import resolve,stored
+            controls = resolve(stored(self.app.document_data()),joint_rows(self.app.scene))
             scene,specs,movers = prepare(self.app.scene,hidden=hidden_mode())
             python = self.python.text().strip()
             QSettings().setValue("newton/python",python)
             from .environment_ui import global_damping
             linear,angular = global_damping()
             quality = QSettings().value("newton/quality","balanced")
-            self.session.start(python,scene,specs,movers,self.gravity.value(),self.floor.isChecked(),linear,angular,quality)
+            self.session.start(python,scene,specs,movers,self.gravity.value(),self.floor.isChecked(),linear,angular,quality,controls)
             self.controls.message(tr("Drag passive bodies with the mouse. Move actuators with the controls."))
             self.warn_ground_contact(specs,movers)
         except Exception as exc:

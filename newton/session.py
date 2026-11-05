@@ -126,6 +126,8 @@ class Session(QObject):
         self.movers = {}
         self.elapsed = 0.0
         self.targets = {}
+        self.virtual = {}
+        self.virtual_values = {}
         self.joint_states = {}
         self.colliders = {}
         self.drag = None
@@ -141,7 +143,7 @@ class Session(QObject):
         self.watchdog.setSingleShot(True)
         self.watchdog.timeout.connect(lambda: self.fail(tr("The Newton process did not answer within 15 seconds. The simulation was reset.")))
 
-    def start(self, python, scene, specs, movers, gravity, floor,linear_damping=0,angular_damping=0,quality="balanced"):
+    def start(self, python, scene, specs, movers, gravity, floor,linear_damping=0,angular_damping=0,quality="balanced",controls=()):
         if self.workspace or self.app.workspace() is not None:
             raise ValueError(tr("The simulation cannot start while another workspace is open. Close that workspace first."))
         if not Path(python).is_file():
@@ -150,6 +152,10 @@ class Session(QObject):
         self.specs = {s["uid"]:s for s in specs}
         self.targets = {s["uid"]: joint_settings(s["joint"])["target"]
                           for s in specs if s.get("joint") and not s["joint"].get("coupling")}
+        self.virtual = {c["id"]: c for c in controls}
+        self.virtual_values = {}
+        for control in controls:
+            self.set_virtual(control["id"], control["initial"])
         self.workspace = Workspace(self, scene)
         if not self.app.enter_workspace(self.workspace):
             self.workspace = None
@@ -286,6 +292,15 @@ class Session(QObject):
         if uid in self.targets and math.isfinite(float(value)):
             self.targets[uid] = float(value)
 
+    def set_virtual(self, control_id, value):
+        from .virtual_controls import clamp, targets
+        control = self.virtual.get(control_id)
+        if control is None or not math.isfinite(float(value)):
+            return
+        self.virtual_values[control_id] = clamp(control, value)
+        for uid, target in targets(control, value).items():
+            self.set_target(uid, target)
+
     def toggle(self):
         if self.ready:
             self.running = not self.running
@@ -315,6 +330,8 @@ class Session(QObject):
         self.running = self.ready = self.pending = False
         self.movers = {}
         self.targets = {}
+        self.virtual = {}
+        self.virtual_values = {}
         self.joint_states = {}
         self.colliders = {}
         self.drag = None

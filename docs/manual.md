@@ -138,6 +138,20 @@ Under **Preferences → Newton → Simulation → Quality** there are **Quick**,
 
 Speed motors use PI control with acceleration feed-forward and protection against integrator wind-up at the force limit. The motor thereby compensates loads without exceeding its set force/torque limit. In the control panel **Limit** marks a limit that has been reached; the actual-value tooltip contains setpoint, current ramp value and utilisation. Blocked or too weak motors stay physically limited.
 
+## Virtual controls
+
+A virtual control moves several axes with one switch or slider, for example a flap that is "closed" or "open", or a gripper whose jaws and wrist move together. **Virtual controls…** in the control panel opens the editor; it is available only while no simulation runs.
+
+- **Add switch** or **Add slider** creates a control; its name is what the control panel shows.
+- **Add axis** takes an axis with a control of its own into the control. Passive axes and following axes of a coupling cannot be added; a coupling's leading axis can, and its followers move with it. An axis belongs to at most one virtual control.
+- The table has one column per **state** and one row per axis. The first row holds the state names, the other rows the target of each axis in that state, in the axis's unit. **Add state** copies the last state; a control keeps at least two.
+- **At start** chooses the state (switch) or position (slider) the control takes when the simulation starts. It replaces the start targets of its axes.
+- **OK** stores all changes as one undo step; **Cancel** discards them.
+
+In the control panel a switch shows one button per state; a click moves every axis to that state's targets. A slider runs from 0 % (first state) to 100 % (last state) and moves smoothly from state to state in between. The axes of a virtual control have no control of their own in the control panel. They still move at their own speed and acceleration and stop at their limits.
+
+Virtual controls are saved in the `.igz`. If a body of a control is deleted, the control keeps working with the remaining axes; the editor lists the missing body until it is removed from the control. A copied body is not part of the original's control.
+
 ## Profiles
 
 The insertable example models were removed from the interface. Instead there are eight predefined profiles: free rotation axis, rotation motor, rotation servo, free linear axis, linear motor, linear positioning, and free and fixed body.

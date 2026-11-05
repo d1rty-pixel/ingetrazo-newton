@@ -2,7 +2,7 @@
 import math
 from PySide6.QtCore import Qt,QPoint,QSettings
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QLabel, QScrollArea,
-    QWidget, QGroupBox, QHBoxLayout, QDoubleSpinBox,QPushButton,QCheckBox)
+    QWidget, QGroupBox, QHBoxLayout, QDoubleSpinBox,QPushButton,QCheckBox,QButtonGroup)
 from .i18n import tr
 from . import help_texts as help
 from .icons import icon,pixmap
@@ -60,6 +60,10 @@ class Controls(QDialog):
         self.reset_button.clicked.connect(panel.session.reset)
         row.addWidget(self.start_button)
         row.addWidget(self.reset_button)
+        self.edit_button = QPushButton(tr("Virtual controls…"))
+        self.edit_button.setToolTip(tr(help.VIRTUAL_CONTROLS))
+        self.edit_button.clicked.connect(lambda:panel.edit_virtual_controls())
+        row.addWidget(self.edit_button)
         self.keep = pictogram_check(QCheckBox(tr("Keep warnings and errors on reset")),"keep_warnings")
         self.keep.setToolTip(tr(help.KEEP_WARNINGS))
         self.keep.setChecked(keep_on_reset())
@@ -74,25 +78,32 @@ class Controls(QDialog):
         panel.session.frame.connect(lambda seconds:self.time_label.setText(tr("Time: {seconds:.2f} s",seconds=seconds)))
         panel.session.message.connect(self.message)
         self.rows = {}
+        self.virtual_cards = {}
         self.actual_columns = []
         self.range_controls = []
         self.signature = None
         self.kept = None
 
     def refresh(self, joints, active):
-        joints = [j for j in joints if j["drive"]!="free" and not j.get("coupling")]
-        signature = (repr(joints), active, units_signature())
+        from .virtual_controls import managed
+        virtual = self.panel.virtual_controls()
+        taken = managed(virtual)
+        joints = [j for j in joints if j["drive"]!="free" and not j.get("coupling") and j["uid"] not in taken]
+        signature = (repr(joints), repr(virtual), active, units_signature())
         if signature != self.signature:
             self.signature = signature
             widget = QWidget()
             layout = QVBoxLayout(widget)
             self.rows = {}
+            self.virtual_cards = {}
             self.actual_columns = []
             self.range_controls = []
-            if not joints:
+            if not joints and not virtual:
                 label = QLabel(tr("No actuators"))
                 label.setWordWrap(True)
                 layout.addWidget(label)
+            for control in virtual:
+                layout.addWidget(self.virtual_card(control,active))
             for joint in joints:
                 group = QGroupBox(joint["body"]+" "+joint["name"])
                 gl = QVBoxLayout(group)
@@ -146,9 +157,44 @@ class Controls(QDialog):
         self.start_button.setText(tr("Pause") if active and self.panel.session.running else tr("Resume") if active else tr("Start"))
         self.start_button.setEnabled(not active or self.panel.session.ready)
         self.reset_button.setEnabled(active)
+        self.edit_button.setEnabled(not active)
         if not active:
             self.time_label.setText(tr("Time: {seconds:.2f} s",seconds=0))
         self.refresh_icons()
+
+    def virtual_card(self, control, active):
+        from .virtual_controls import clamp
+        from .range_control import RangeControl
+        group = QGroupBox(control["name"])
+        row = QHBoxLayout(group)
+        value = clamp(control,self.panel.session.virtual_values.get(control["id"],control["initial"]))
+        def change(v,control_id=control["id"]):
+            self.panel.session.set_virtual(control_id,v)
+        if control["kind"] == "switch":
+            buttons = QButtonGroup(group)
+            for index,state in enumerate(control["states"]):
+                button = QPushButton(state["name"])
+                button.setCheckable(True)
+                button.setChecked(index == value)
+                button.setEnabled(active)
+                buttons.addButton(button,index)
+                row.addWidget(button)
+            buttons.idClicked.connect(change)
+        else:
+            number = QDoubleSpinBox()
+            number.setRange(0,100)
+            number.setDecimals(0)
+            number.setSuffix(" %")
+            number.setValue(value*100)
+            slider = RangeControl(number,0,100)
+            slider.set_span(0,100,expand=False)
+            number.valueChanged.connect(lambda n:change(n/100))
+            slider.slider.setEnabled(active)
+            number.setEnabled(active)
+            self.range_controls.append(slider)
+            row.addWidget(slider,1)
+        self.virtual_cards[control["id"]] = group
+        return group
 
     def refresh_icons(self):
         self.start_button.setIcon(icon("pause" if self.panel.session.running else "play"))
