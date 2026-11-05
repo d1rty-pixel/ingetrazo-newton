@@ -65,6 +65,13 @@ class CouplingEditor(QWidget):
         finally:
             self.updating = False
 
+    def engaged(self):
+        """Following an axis or leading at least one."""
+        if self.group is None:
+            return False
+        return self.leader is not None or any((row.get("coupling") or {}).get("master")==self.group.uid
+                                              for row in self.axes.values())
+
     def description(self):
         followers = [row["body"] for row in self.axes.values()
                      if self.group and (row.get("coupling") or {}).get("master")==self.group.uid]

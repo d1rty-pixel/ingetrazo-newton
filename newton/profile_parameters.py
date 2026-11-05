@@ -5,7 +5,7 @@ from PySide6.QtGui import QPalette
 from PySide6.QtWidgets import QWidget,QVBoxLayout,QFormLayout,QTabWidget,QScrollArea,QLineEdit,QLabel,QComboBox,QCheckBox
 from .i18n import tr
 from . import profiles,units,help_texts as help
-from .environment_ui import number,global_damping
+from .environment_ui import number,EnvironmentOverrides
 from .toolbar import decorate,physical_label,pictogram_check
 
 
@@ -31,12 +31,13 @@ class ProfileParameters(QWidget):
         def numeric(form,title,low,high,callback,art):
             field = number(low,high);form.addRow(physical_label(tr(title),art),field);self.numbers.append(field)
             field.valueChanged.connect(callback);return field
-        body = page("Body & contact",help.BODY)
+        body = page("Body",help.BODY)
         self.mode = choice(body,"Behaviour",[("Movable","dynamic"),("Fixed","static"),("Exclude from simulation","ignore")],lambda:self.edit("body","mode",self.mode.currentData()),"mode")
-        self.shape = choice(body,"Collision shape",[("Box","box"),("Sphere","sphere"),("Convex hull","hull"),("Child components","compound")],lambda:self.edit("body","shape",self.shape.currentData()),"shape")
         self.mass = numeric(body,"Mass (kg)",.001,1e12,lambda v:self.edit("body","mass",v),"mass")
         self.friction = numeric(body,"Friction",0,1e6,lambda v:self.edit("body","friction",v),"friction")
         self.bounce = numeric(body,"Bounce (approx.)",0,1,lambda v:self.edit("body","restitution",v),"bounce")
+        collisions = page("Collisions",help.COLLISION_SHAPE)
+        self.shape = choice(collisions,"Collision shape",[("Box","box"),("Sphere","sphere"),("Convex hull","hull"),("Child components","compound")],lambda:self.edit("body","shape",self.shape.currentData()),"shape")
         motion = page("Motion",help.MOTION)
         self.axis_type = choice(motion,"Axis",[("No axis",None),("Rotation axis","hinge"),("Linear axis","slide")],self.change_axis,"axis")
         self.motion_fields = QWidget();self.motion_form = mf = QFormLayout(self.motion_fields);mf.setContentsMargins(0,0,0,0)
@@ -55,31 +56,14 @@ class ProfileParameters(QWidget):
         self.sync = pictogram_check(QCheckBox(tr("Synchronize acceleration and deceleration")),"sync");mf.addRow(self.sync);self.choices.append(self.sync)
         self.sync.toggled.connect(lambda v:self.edit("joint","deceleration_sync",v))
         overrides = page("Simulation overrides",help.PROFILE_OVERRIDES)
-        self.own = pictogram_check(QCheckBox(tr("Use own simulation settings")),"own_settings");overrides.addRow(self.own);self.choices.append(self.own)
-        self.own.toggled.connect(self.enable_overrides)
-        self.override_fields = QWidget();of = QFormLayout(self.override_fields);of.setContentsMargins(0,0,0,0);overrides.addRow(self.override_fields)
-        self.gravity = [];self.velocity = []
-        for i,axis in enumerate("XYZ"):
-            field = numeric(of,tr("Gravity {axis}",axis=axis),-1e6,1e6,lambda v,n=i:self.edit_vector("gravity",n,v),"gravity");field.setSuffix(" m/s²");self.gravity.append(field)
-        self.override_numbers = {}
-        for key,title,high,suffix in (("linear_damping","Linear damping",100," /s"),("angular_damping","Angular damping",100," /s"),
-                                     ("attraction","Attraction",1e12," m³/s²"),("softening","Softening radius",1e6,"")):
-            field = numeric(of,title,0,high,lambda v,k=key:self.edit("override",k,v),key);field.setSuffix(suffix);self.override_numbers[key] = field
-        self.floor = pictogram_check(QCheckBox(tr("Ground contact at Z = 0")),"ground");of.addRow(self.floor);self.choices.append(self.floor)
-        self.floor.toggled.connect(lambda v:self.edit("override","floor",v))
-        for i,axis in enumerate("XYZ"):
-            field = numeric(of,tr("Initial velocity {axis}",axis=axis),-1e6,1e6,lambda v,n=i:self.edit_vector("initial_velocity",n,v),"velocity");self.velocity.append(field)
+        self.overrides = ProfileOverrides(panel,self);overrides.addRow(self.overrides)
+        for _,_,widget,_,_ in self.overrides.rows:(self.choices if isinstance(widget,QCheckBox) else self.numbers).append(widget)
         self.name.editingFinished.connect(lambda:self.edit("name",None,self.name.text()))
 
     def factor(self,key):
         joint = (self.profile or {}).get("joint") or {}
         if key in ("force","limit_hardness"):return 1 if key=="force" else 100
         return self.panel.joint_scales(joint.get("type"),key).factor
-
-    def defaults(self):
-        linear,angular = global_damping()
-        return dict(gravity=[0,0,self.panel.gravity.value()],linear_damping=linear,angular_damping=angular,
-            floor=self.panel.floor.isChecked(),attraction=0,softening=.01,initial_velocity=[0,0,0])
 
     def follow_units(self):
         if self.profile and self.shown_units!=units.signature():self.load(self.profile)
@@ -111,14 +95,7 @@ class ProfileParameters(QWidget):
                     scale = self.panel.joint_scales(joint["type"],"max_speed" if key=="target" and joint["drive"]=="velocity" else key)
                     units.apply(field,scale);field.setValue(joint[key]*scale.factor)
                 self.motion["deceleration"].setReadOnly(builtin or joint["deceleration_sync"])
-            own = body.get("simulation_override");self.own.setChecked(own is not None);self.override_fields.setVisible(own is not None)
-            values = {**self.defaults(),**(own or {})}
-            for field,value in zip(self.gravity,values["gravity"]):field.setValue(value)
-            speed = units.speed()
-            for field,value in zip(self.velocity,values["initial_velocity"]):units.apply(field,speed);units.show(field,value)
-            units.apply(self.override_numbers["softening"],units.length())
-            for key,field in self.override_numbers.items():units.show(field,values[key])
-            self.floor.setChecked(values["floor"])
+            self.overrides.refresh(profile)
         finally:self.updating = False
 
     def accept(self,value):
@@ -135,23 +112,9 @@ class ProfileParameters(QWidget):
         if self.updating or not self.profile or self.profile["builtin"]:return
         p = copy.deepcopy(self.profile)
         if section=="name":p["name"] = value
-        elif section=="override":
-            if p["body"]["simulation_override"] is None:return
-            if key=="softening":value = units.length().si(value)
-            p["body"]["simulation_override"][key] = value
         elif section=="joint" and p["joint"] is None:return
         else:p[section][key] = value
         self.accept(p)
-
-    def edit_vector(self,key,index,value):
-        if self.updating or not self.profile or self.profile["builtin"]:return
-        p = copy.deepcopy(self.profile);override = p["body"]["simulation_override"]
-        if override is None:return
-        if key=="initial_velocity":value = units.speed().si(value)
-        override[key] = list(override.get(key,self.defaults()[key]));override[key][index] = value;self.accept(p)
-
-    def enable_overrides(self,enabled):
-        self.edit("body","simulation_override",self.defaults() if enabled else None)
 
     def change_axis(self):
         if self.updating or not self.profile or self.profile["builtin"]:return
@@ -161,3 +124,23 @@ class ProfileParameters(QWidget):
             drive = (p.get("joint") or {}).get("drive","free")
             p["joint"] = next(copy.deepcopy(v["joint"]) for v in profiles.builtins() if v["id"]==f"builtin_{kind}_{drive}")
         self.accept(p)
+
+
+class ProfileOverrides(EnvironmentOverrides):
+    """The sidebar's override rows, reading and writing the profile's stored override."""
+    sliders = False
+
+    def __init__(self,panel,parameters):
+        self.parameters = parameters
+        super().__init__(panel)
+
+    def stored(self,profile):
+        return profile["body"]["simulation_override"] if profile else None
+
+    def velocity_editable(self,profile):
+        return True
+
+    def save(self,value):
+        p = self.parameters
+        if p.updating or not p.profile or p.profile["builtin"]:return
+        q = copy.deepcopy(p.profile);q["body"]["simulation_override"] = value;p.accept(q)

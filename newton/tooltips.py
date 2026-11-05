@@ -50,8 +50,8 @@ def apply(panel):
                        (flexible.start,help.TIP_FLEX_START),(flexible.end,help.TIP_FLEX_END)):
         row(detail,field,text)
 
+    row(panel.collision_form,panel.shape,help.TIP_SHAPE)
     body = panel.body_form
-    row(body,panel.shape,help.TIP_SHAPE)
     row(body,panel.mass,help.TIP_MASS)
     for key,field,text in (("friction",panel.friction,help.TIP_FRICTION),("bounce",panel.bounce,help.TIP_BOUNCE)):
         row(body,panel.ranges[key],text,field)

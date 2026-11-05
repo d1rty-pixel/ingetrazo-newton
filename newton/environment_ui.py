@@ -43,6 +43,9 @@ class EnvironmentOverrides(QWidget):
     VECTORS = ("gravity","initial_velocity")
     KEYS = ("gravity","linear_damping","angular_damping","floor","attraction","softening","initial_velocity")
 
+    # The profile editor reuses this widget without the sliders, which belong to the sidebar's undo handling.
+    sliders = True
+
     def __init__(self,panel):
         super().__init__()
         self.panel = panel;self.updating = False;self.group = None;self.rows = []
@@ -55,10 +58,12 @@ class EnvironmentOverrides(QWidget):
         from .range_control import RangeControl
         for i,(axis,widget) in enumerate(zip(("X","Y","Z"),self.gravity)):
             widget.setSuffix(" m/s²")
-            control = RangeControl(widget,-100,100)
-            control.slider.setMinimumWidth(60)  # the reset button must still fit a 260 px sidebar
-            control.gestureStarted.connect(panel.begin_slider_edit);control.gestureFinished.connect(panel.end_slider_edit)
-            panel.ranges["override_gravity_"+axis] = control
+            control = None
+            if self.sliders:
+                control = RangeControl(widget,-100,100)
+                control.slider.setMinimumWidth(60)  # the reset button must still fit a 260 px sidebar
+                control.gestureStarted.connect(panel.begin_slider_edit);control.gestureFinished.connect(panel.end_slider_edit)
+                panel.ranges["override_gravity_"+axis] = control
             self.add(form,tr("Gravity {axis}",axis=axis),"gravity",widget,"gravity",i,control)
         self.linear,self.angular = number(0,100),number(0,100)
         self.linear.setSuffix(" /s");self.angular.setSuffix(" /s")
@@ -116,17 +121,22 @@ class EnvironmentOverrides(QWidget):
             at_default = same(self.current(widget),default,units.tolerance(widget))
             dim(dimmed,at_default);button.setEnabled(not at_default and widget.isEnabled())
 
+    def stored(self,group):
+        return settings(group).get("simulation_override") if group else None
+
+    def velocity_editable(self,group):
+        return not settings(group).get("joint") and not settings(group).get("reference") and settings(group)["mode"]=="dynamic" if group else False
+
     def refresh(self,group):
         self.updating = True;self.group = group
         try:
-            cfg = settings(group).get("simulation_override") if group else None
+            cfg = self.stored(group)
             values = {**self.defaults(),**(cfg or {})}
             self.apply_units()
             for key,index,widget,button,dimmed in self.rows:
                 value = values[key][index] if key in self.VECTORS else values[key]
                 widget.setChecked(value) if isinstance(widget,QCheckBox) else units.show(widget,value)
-            free = not settings(group).get("joint") and not settings(group).get("reference") and settings(group)["mode"]=="dynamic" if group else False
-            for field in self.velocity:field.setEnabled(free)
+            for field in self.velocity:field.setEnabled(self.velocity_editable(group))
         finally:self.updating = False
         self.restyle()
 
@@ -137,7 +147,7 @@ class EnvironmentOverrides(QWidget):
         widget.setChecked(default) if isinstance(widget,QCheckBox) else units.show(widget,default)
 
     def write(self,*args):
-        if self.updating or self.group is None or self.panel.session.workspace:return
+        if self.updating or self.group is None:return
         defaults = self.defaults();values = {}
         for key,index,widget,_,_ in self.rows:
             if key in self.VECTORS:values.setdefault(key,[0,0,0])[index] = units.stored(widget)
@@ -146,7 +156,11 @@ class EnvironmentOverrides(QWidget):
         # A value equal to the default is left out, so the body inherits it again.
         value = {key:values[key] for key in self.KEYS if not (
             all(same(a,b,tolerance[key]) for a,b in zip(values[key],defaults[key])) if key in self.VECTORS else same(values[key],defaults[key],tolerance.get(key,TOLERANCE)))}
-        patch = dict(simulation_override=value or None)
+        self.save(value or None)
+        self.restyle()
+
+    def save(self,value):
+        if self.panel.session.workspace:return
+        patch = dict(simulation_override=value)
         if KEY not in (self.group.ext or {}):patch["mode"] = "ignore" if self.group.billboard else "static"
         self.panel.patch(patch,[self.group])
-        self.restyle()

@@ -12,13 +12,13 @@ Newton turns the top-level groups and components of an IngeTrazo model into rigi
 | Object | Set in | Effect |
 |---|---|---|
 | **Body** | sidebar → Generic | Every top-level group/component. **Movable** (dynamic), **Fixed** (anchored to the world, or bolted to its reference body) or **Exclude from simulation** (shown, never collides). Unconfigured groups are **fixed colliders**; face-me figures are ignored. |
-| **Collision shape** | Body & contact | **Box** and **sphere** enclose the body's world bounding box at setup. **Hull** is the convex hull of all vertices (fills openings). **Child components** builds one hull per child group (max. 256), so openings stay open. Hulls with eight cuboid corners become exact boxes. |
+| **Collision shape** | Collisions | **Box** and **sphere** enclose the body's world bounding box at setup. **Hull** is the convex hull of all vertices (fills openings). **Child components** builds one hull per child group (max. 256), so openings stay open. Hulls with eight cuboid corners become exact boxes. |
 | **Axis** | toolbar Rotation/Linear axis | One hinge or slide joint per body, relative to its reference body or the world. Drive: **Free**, **Servo/Position** (target, holds it) or **Motor/Speed**; limits with a limit hardness (0–100 %, default 100 % = hard stop), start target, speed, acceleration, deceleration, force limit. Angles count from the axis's 0° direction (set when placing); a used limit range must contain the modelled pose. Also an object **Axis · <body>** on layer `Newton Axes`: move/rotate it with IngeTrazo's tools to move the axis. |
 | **Reference body** | chain icon | Parent of a body. Without an axis the child is **rigidly attached** (no extra degree of freedom); with an axis it moves only along that axis. Directly linked bodies never collide with each other. At most one parent; loops are rejected. |
 | **Connection** | Ball / Pin / Fixed connection | Extra constraint between two bodies that closes a loop (crank, four-bar) without changing the reference tree. Shown as **Connection · <body>** on `Newton Axes`. |
 | **Axis coupling** | Axis coupling → Follow axis | A position axis follows a leader of the same type with ratio and direction (gripper jaws). One level only. |
-| **Rope / Cable** | Flexible material | A group made of an open polyline becomes an inextensible strand (MuJoCo `elasticity.cable`); start clamped/hinged/free, end attachable to a body. |
-| **Collision exemption** | Body & contact | A pair of bodies may penetrate each other. |
+| **Rope / Cable** | Material | A group made of an open polyline becomes an inextensible strand (MuJoCo `elasticity.cable`); start clamped/hinged/free, end attachable to a body. |
+| **Collision exemption** | Collisions | A pair of bodies may penetrate each other. |
 | **Simulation overrides** | Simulation overrides | Per-body gravity vector, damping, ground on/off, attraction field (μ = G·m), initial velocity. |
 | **Profiles** | Profile / Preferences → Profiles | Reusable body and drive values; bodies remember the profile and show sync state. |
 | **Controls** | control panel | One card per actuated axis (named by the control name). Passive bodies are dragged with the left mouse button during the simulation; actuated ones only through their control. |

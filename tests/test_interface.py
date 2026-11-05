@@ -1363,12 +1363,12 @@ def test_sidebar_sections_fold_and_remember_their_state(panel):
     folds = panel.findChildren(FoldSection)
     assert set(folds)==set(panel.sections)
     assert not any(isinstance(w,QCheckBox) and w.text()=="More settings" for w in panel.findChildren(QCheckBox))
-    panel.coupling_section.set_open(True)
-    assert not panel.coupling_section.body.isHidden()
-    assert QSettings().value("newton/open_coupling")=="1"
-    panel.coupling_section.set_open(False)
-    assert panel.coupling_section.body.isHidden()
-    assert QSettings().value("newton/open_coupling")=="0"
+    panel.body_section.set_open(True)
+    assert not panel.body_section.body.isHidden()
+    assert QSettings().value("newton/open_body")=="1"
+    panel.body_section.set_open(False)
+    assert panel.body_section.body.isHidden()
+    assert QSettings().value("newton/open_body")=="0"
 
 
 def test_deceleration_sync_custom_value_undo_and_native_save(panel,tmp_path):
@@ -1472,7 +1472,7 @@ def test_profile_values_inspect_builtin_and_edit_custom_without_precision_loss(p
         p.mass.setValue(4.25)
         assert profiles.custom_profiles()[0]['body']['mass']==4.25
         assert profiles.custom_profiles()[0]['joint']['max_speed']==original_speed
-        p.own.setChecked(True);p.gravity[2].setValue(0)
+        p.overrides.gravity[2].setValue(0)
         assert profiles.custom_profiles()[0]['body']['simulation_override']['gravity']==[0,0,0]
         assert profiles.builtins()[0]['body']['mass']==1
     finally:
@@ -1824,7 +1824,7 @@ def test_folded_sidebar_sections_stack_instead_of_sharing_the_spare_height(panel
 
 
 def test_collision_exemptions_live_in_the_body_and_contact_section(panel):
-    assert panel.body_section.isAncestorOf(panel.collision_pairs)
+    assert panel.collisions_section.isAncestorOf(panel.collision_pairs)
     assert not hasattr(panel,"collision_section")
 
 
@@ -2379,12 +2379,12 @@ def test_shutdown_does_not_reset_the_session_again(panel,qtapp,monkeypatch):
 
 def test_axis_sidebar_rows_explain_themselves_on_label_and_input(panel):
     select_demo_axis(panel)
-    joint,body = panel.joint_form,panel.body_form
+    joint,body,collisions = panel.joint_form,panel.body_form,panel.collision_form
     generic = panel.editor.body.layout()
     rows = [(generic,panel.mode),(generic,panel.reference_buttons[0]),(joint,panel.name_edit),(joint,panel.drive),
             (joint,panel.ranges["lower"]),(joint,panel.ranges["upper"]),(joint,panel.ranges["target"]),
             (joint,panel.max_speed),(joint,panel.acceleration),(joint,panel.deceleration_row),(joint,panel.force),
-            (body,panel.shape),(body,panel.mass),(body,panel.ranges["friction"]),(body,panel.ranges["bounce"])]
+            (collisions,panel.shape),(body,panel.mass),(body,panel.ranges["friction"]),(body,panel.ranges["bounce"])]
     for form,field in rows:
         assert field.toolTip(),field
         assert form.labelForField(field).toolTip(),field
@@ -2528,12 +2528,12 @@ def test_profile_editor_shows_slide_values_in_the_document_unit_and_follows_chan
     parameters = panel.profile_manager.editor.parameters
     value = next(v for v in profiles.builtins() if v["id"]=="builtin_slide_position")
     parameters.load(value)
-    assert parameters.motion["upper"].suffix()==" m" and parameters.override_numbers["softening"].suffix()==" m"
+    assert parameters.motion["upper"].suffix()==" m" and parameters.overrides.softening.suffix()==" m"
     assert parameters.motion["upper"].value()==pytest.approx(value["joint"]["upper"],abs=1e-3)
     set_units(panel,"mm")
     assert parameters.motion["upper"].suffix()==" mm" and parameters.motion["max_speed"].suffix()==" mm/s"
     assert parameters.motion["upper"].value()==pytest.approx(value["joint"]["upper"]*1000,abs=.1)
-    assert parameters.velocity[0].suffix()==" mm/s" and parameters.factor("max_speed")==1000
+    assert parameters.overrides.velocity[0].suffix()==" mm/s" and parameters.factor("max_speed")==1000
     assert parameters.motion["force"].suffix()==" N"
 
 
@@ -2545,3 +2545,129 @@ def test_axis_plate_labels_of_a_slide_axis_use_the_document_unit(panel):
     assert all(t.endswith(" m") for t in texts()) and texts()
     set_units(panel,"mm")
     assert all(t.endswith(" mm") for t in texts())
+
+
+def folded(fold):
+    return fold.body.isHidden()
+
+
+def pick(panel,group):
+    panel.app.scene.select([group]);panel.app.viewport.notify_scene_changed();panel.refresh()
+
+
+def test_material_section_is_titled_material(panel):
+    assert panel.flexible_section.header.text()=="Material"
+
+
+def test_sidebar_sections_without_content_fold_and_with_content_open(panel):
+    from newton.model import box,AddDemo,Configure
+    from newton.connections import apply_connection
+    from newton.flexible import make
+    left,right = seed_coupled_robot(panel)[-2:]
+    vp = panel.app.viewport
+    plain = box("Plain",(9,9,2),(.1,.1,.1),mode="static")
+    anchor = box("Anchor",(8,9,2),(.1,.1,.1),mode="static")
+    rope = make("Rope",[[i*.1,3,2] for i in range(12)])
+    vp.history.execute(AddDemo([plain,anchor,rope]))
+    pick(panel,plain)
+    assert all(folded(f) for f in (panel.coupling_section,panel.connection_section,panel.flexible_section,panel.environment_section))
+    pick(panel,rope)
+    assert not folded(panel.flexible_section)
+    pick(panel,right)
+    assert not folded(panel.coupling_section)
+    pick(panel,left)
+    assert not folded(panel.coupling_section)
+    # Content that appears opens the section; undo folds it again.
+    pick(panel,plain)
+    vp.history.execute(Configure([plain],dict(simulation_override=dict(gravity=[0,0,-1])),partial=True));panel.refresh()
+    assert not folded(panel.environment_section)
+    vp.history.undo();vp.notify_scene_changed();panel.refresh()
+    assert folded(panel.environment_section)
+    apply_connection(panel,plain,dict(target=anchor.uid,point=[0,0,2],type="hinge",axis=[0,0,1]));panel.refresh()
+    assert not folded(panel.connection_section)
+    vp.history.undo();vp.notify_scene_changed();panel.refresh()
+    assert folded(panel.connection_section)
+
+
+def test_manual_fold_holds_until_the_selection_changes_and_is_not_stored(panel):
+    from newton.model import box,AddDemo
+    a,b = box("A",(9,9,2),(.1,.1,.1),mode="static"),box("B",(8,9,2),(.1,.1,.1),mode="static")
+    panel.app.viewport.history.execute(AddDemo([a,b]))
+    pick(panel,a)
+    section = panel.environment_section
+    section.set_open(True)
+    panel.refresh();panel.refresh()
+    assert not folded(section)
+    assert QSettings().value("newton/open_overrides") is None
+    pick(panel,b)
+    assert folded(section)
+
+
+def test_sidebar_sections_follow_the_agreed_order(panel):
+    select_demo_axis(panel)
+    titles = [f.header.text() for f in panel.sections]
+    assert titles==["Generic","Profile","Material","Body","Collisions","Motion","Mechanical connection","Axis coupling","Simulation overrides"]
+    layout = panel.sections[0].parentWidget().layout()
+    assert [layout.itemAt(i).widget() for i in range(len(titles))]==list(panel.sections)
+
+
+def test_collision_controls_live_in_collisions_not_in_body(panel):
+    for widget in (panel.shape,panel.show_collider,panel.collision_pairs):
+        assert panel.collisions_section.isAncestorOf(widget) and not panel.body_section.isAncestorOf(widget)
+    for widget in (panel.mass,panel.friction,panel.bounce):
+        assert panel.body_section.isAncestorOf(widget) and not panel.collisions_section.isAncestorOf(widget)
+
+
+@pytest.fixture
+def custom_profile_editor(panel):
+    from PySide6.QtCore import QSettings
+    from newton import profiles
+    st = QSettings();old = st.value(profiles.STORE);st.remove(profiles.STORE)
+    group = select_demo_axis(panel)
+    full = dict(gravity=[0,0,-9.81],linear_damping=0.,angular_damping=0.,floor=True,attraction=0.,softening=.01,initial_velocity=[0,0,0])
+    legacy = profiles.save_custom(dict(profiles.from_group(group,"Legacy"),id="legacy",body=dict(profiles.from_group(group,"x")["body"],simulation_override=dict(full,gravity=[0,0,-1]))))
+    plain = profiles.save_custom(dict(profiles.from_group(group,"Plain"),id="plain"))
+    panel.show_profiles()
+    yield panel.profile_manager.editor.parameters,legacy,plain,group
+    if old is None:st.remove(profiles.STORE)
+    else:st.setValue(profiles.STORE,old)
+
+
+def show_profile(panel,identifier):
+    editor = panel.profile_manager.editor
+    editor.list.setCurrentRow(next(i for i,v in enumerate(editor.values) if v["id"]==identifier))
+    return editor.parameters
+
+
+def test_profile_editor_pages_follow_the_sidebar_order(custom_profile_editor):
+    p = custom_profile_editor[0]
+    assert [p.tabs.tabText(i) for i in range(p.tabs.count())]==["Body","Collisions","Motion","Simulation overrides"]
+    collisions = p.tabs.widget(1);body = p.tabs.widget(0)
+    assert collisions.isAncestorOf(p.shape) and not body.isAncestorOf(p.shape)
+    assert body.isAncestorOf(p.mass) and body.isAncestorOf(p.mode)
+
+
+def test_profile_overrides_grey_default_store_only_differences_and_reset(custom_profile_editor,panel):
+    from newton import profiles
+    p,legacy,plain,_ = custom_profile_editor
+    o = p.overrides
+    show_profile(panel,"plain")
+    assert plain["body"]["simulation_override"] is None
+    assert all(not b.isEnabled() for *_,b,_ in o.rows) and not hasattr(p,"own")
+    o.gravity[2].setValue(-2)
+    assert p.profile["body"]["simulation_override"]=={"gravity":[0,0,-2.0]}
+    row = next(r for r in o.rows if r[0]=="gravity" and r[1]==2)
+    assert row[3].isEnabled()
+    row[3].click()
+    assert p.profile["body"]["simulation_override"] is None
+
+
+def test_profile_with_stored_override_loads_and_applies_the_same(custom_profile_editor,panel):
+    from newton import profiles
+    p,legacy,plain,group = custom_profile_editor
+    show_profile(panel,"legacy")
+    assert p.overrides.gravity[2].value()==-1
+    assert p.profile["body"]["simulation_override"]==legacy["body"]["simulation_override"]
+    panel.app.scene.select([group]);panel.app.viewport.notify_scene_changed()
+    panel.apply_profile(legacy)
+    assert group.ext[KEY]["simulation_override"]==legacy["body"]["simulation_override"]
