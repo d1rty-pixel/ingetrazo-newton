@@ -1,13 +1,20 @@
 """Named, live controls in a reusable non-modal window."""
 import math
-from PySide6.QtCore import Qt,QPoint
+from PySide6.QtCore import Qt,QPoint,QSettings
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QLabel, QScrollArea,
-    QWidget, QGroupBox, QHBoxLayout, QDoubleSpinBox,QPushButton)
+    QWidget, QGroupBox, QHBoxLayout, QDoubleSpinBox,QPushButton,QCheckBox)
 from .i18n import tr
+from . import help_texts as help
 from .icons import icon,pixmap
 from .reference_table import ReferenceTable
+from .toolbar import pictogram_check
 
 MAX_BODY_ROWS = 6
+KEEP_KEY = "newton/keep_warnings_on_reset"
+
+
+def keep_on_reset():
+    return str(QSettings().value(KEEP_KEY,False)).lower() in ("true","1")
 
 
 def display_units(joint):
@@ -47,6 +54,11 @@ class Controls(QDialog):
         self.reset_button.clicked.connect(panel.session.reset)
         row.addWidget(self.start_button)
         row.addWidget(self.reset_button)
+        self.keep = pictogram_check(QCheckBox(tr("Keep warnings and errors on reset")),"keep_warnings")
+        self.keep.setToolTip(tr(help.KEEP_WARNINGS))
+        self.keep.setChecked(keep_on_reset())
+        self.keep.toggled.connect(lambda on:QSettings().setValue(KEEP_KEY,on))
+        row.addWidget(self.keep,1)
         self.layout.addLayout(row)
         self.time_label = QLabel()
         self.layout.addWidget(self.time_label)
@@ -59,6 +71,7 @@ class Controls(QDialog):
         self.actual_columns = []
         self.range_controls = []
         self.signature = None
+        self.kept = None
 
     def refresh(self, joints, active):
         joints = [j for j in joints if j["drive"]!="free" and not j.get("coupling")]
@@ -144,6 +157,8 @@ class Controls(QDialog):
 
     def message(self,text,level="info",bodies=()):
         """``bodies``: ``(group, name, role)`` rows listed below the text, so a long list stays readable."""
+        if level in ("error","warning"):
+            self.kept = (text,level,[(getattr(group,"uid",None),name,role) for group,name,role in bodies])
         self.hint.setText(tr(text))
         rows = [(i,group,name,role) for i,(group,name,role) in enumerate(bodies[:MAX_BODY_ROWS])]
         if len(bodies)>MAX_BODY_ROWS:
@@ -156,6 +171,13 @@ class Controls(QDialog):
             self.hint_mark.setAccessibleName(tr("Error") if level=="error" else tr("Warning"))
         self.hint_row.show()
         self.fit_height()
+
+    def restore_kept(self,scene):
+        """Show the last warning again after Reset; the rows then point at the restored document's groups, not at clones."""
+        text,level,rows = self.kept
+        groups = {g.uid:g for g in scene.groups}
+        self.message(text,level,[(groups[uid] if uid is not None else None,name,role)
+                                 for uid,name,role in rows if uid is None or uid in groups])
 
     MARGIN = 12
 

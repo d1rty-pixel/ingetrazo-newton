@@ -590,7 +590,11 @@ class NewtonPanel(QWidget):
     def refresh_widgets(self,*args):
         active = self.session.workspace is not None
         if getattr(self,"was_active",False) and not active:
-            self.controls.message(tr("The simulation was reset and the original model is restored."))
+            # One hint area: the notice would hide the warning the user asked to keep.
+            if self.controls.keep.isChecked() and self.controls.kept:
+                self.controls.restore_kept(self.app.scene)
+            else:
+                self.controls.message(tr("The simulation was reset and the original model is restored."))
         self.was_active = active
         groups = self.selected()
         if active:
@@ -922,6 +926,7 @@ class NewtonPanel(QWidget):
         if self.placement:
             self.app.window._activate_tool("select")
         try:
+            self.controls.kept = None
             self.app.viewport.end_group_edit()
             self.refresh()
             scene,specs,movers = prepare(self.app.scene,hidden=hidden_mode())

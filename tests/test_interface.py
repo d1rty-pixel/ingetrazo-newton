@@ -5,7 +5,7 @@ import time
 from pathlib import Path
 
 import pytest
-from PySide6.QtWidgets import QCheckBox, QDoubleSpinBox
+from PySide6.QtWidgets import QCheckBox, QDoubleSpinBox, QWidget
 from PySide6.QtCore import QEvent, QSettings, Qt
 from PySide6.QtGui import QKeyEvent, QMatrix4x4, QVector3D
 from PySide6.QtWidgets import QApplication
@@ -2030,6 +2030,105 @@ def test_ground_warning_lists_the_bodies_in_a_table_that_goes_with_the_message(p
     controls.message("Original model restored.")
     assert controls.bodies.isHidden() and controls.bodies.names()==[]
     QSettings().remove("newton/warn_ground_contact")
+
+
+def body_rows(controls):
+    # The plugin module is loaded under another name than the tests import, so isinstance would not match.
+    lines = controls.bodies.lines
+    return [w for w in (lines.itemAt(i).widget() for i in range(lines.count())) if type(w).__name__=="Row"]
+
+
+def z0_simulation(panel,qtapp):
+    from formats import igz
+    igz.load_into(panel.app.scene,Path(__file__).resolve().parents[1]/"models/z0-contact-test.igz")
+    panel.floor.setChecked(True)
+    QSettings().setValue("newton/warn_ground_contact",True)
+    panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+    assert not panel.controls.bodies.isHidden()
+
+
+def test_reset_keeps_the_ground_warning_and_its_table_when_asked_to(panel,qtapp):
+    controls = panel.controls
+    try:
+        z0_simulation(panel,qtapp)
+        text,names = controls.hint.text(),controls.bodies.names()
+        controls.keep.setChecked(True)
+        panel.session.reset()
+        assert controls.hint.text()==text and "reset" not in text
+        assert not controls.hint_mark.isHidden() and controls.bodies.names()==names
+        document = {g.uid:g for g in panel.app.scene.groups}
+        rows = [r for r in body_rows(controls) if r.group is not None]
+        assert rows and all(r.group is document[r.group.uid] for r in rows)
+        panel.app.scene.select([])
+        rows[0].mousePressEvent(SimpleNamespace(button=lambda:Qt.LeftButton))
+        assert document[rows[0].group.uid] in panel.app.scene.selection
+    finally:
+        QSettings().remove("newton/warn_ground_contact");QSettings().remove("newton/keep_warnings_on_reset")
+
+
+def test_kept_rows_stay_simulation_clones_while_running_and_vanish_with_their_bodies(panel,qtapp):
+    controls = panel.controls
+    try:
+        z0_simulation(panel,qtapp)
+        clones = {id(g) for g in panel.session.workspace.scene.groups}
+        assert all(id(r.group) in clones for r in body_rows(controls) if r.group is not None)
+        controls.keep.setChecked(True)
+        panel.session.toggle();panel.session.toggle()
+        assert controls.kept and not controls.bodies.isHidden()
+        gone = controls.kept[2][0][0]
+        controls.restore_kept(SimpleNamespace(groups=[]))
+        assert controls.bodies.isHidden() and controls.hint.text()==controls.kept[0]
+        assert gone is not None
+    finally:
+        QSettings().remove("newton/warn_ground_contact");QSettings().remove("newton/keep_warnings_on_reset")
+
+
+def test_reset_replaces_the_warning_with_the_notice_unless_kept(panel,qtapp):
+    try:
+        z0_simulation(panel,qtapp)
+        assert not panel.controls.keep.isChecked()
+        panel.session.reset()
+        assert panel.controls.hint.text()=="The simulation was reset and the original model is restored."
+        assert panel.controls.bodies.isHidden() and panel.controls.hint_mark.isHidden()
+    finally:
+        QSettings().remove("newton/warn_ground_contact")
+
+
+def test_start_clears_every_message_and_checks_again(panel,qtapp):
+    controls = panel.controls
+    try:
+        controls.keep.setChecked(True)
+        controls.message("Old problem.","error")
+        seed_demo(panel,"Servo door")
+        panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+        assert controls.kept is None and controls.hint.text()=="Drag passive bodies with the mouse. Move actuators with the controls."
+        panel.session.reset()
+        assert controls.hint.text()=="The simulation was reset and the original model is restored."
+        panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+        panel.session.reset()
+        QSettings().setValue("newton/warn_ground_contact",True)
+        panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+        assert controls.kept is None
+    finally:
+        QSettings().remove("newton/warn_ground_contact");QSettings().remove("newton/keep_warnings_on_reset")
+
+
+def test_keep_warnings_setting_persists_and_defaults_off(panel):
+    from newton.controls import Controls
+    assert not panel.controls.keep.isChecked()
+    try:
+        panel.controls.keep.setChecked(True)
+        assert Controls(panel).keep.isChecked()
+        panel.controls.keep.setChecked(False)
+        assert not Controls(panel).keep.isChecked()
+    finally:
+        QSettings().remove("newton/keep_warnings_on_reset")
+
+
+def test_keep_checkbox_does_not_widen_the_control_panel(panel,qtapp):
+    controls = panel.controls
+    panel.show_controls();qtapp.processEvents()
+    assert controls.minimumSizeHint().width()<=controls.width()==520
 
 
 def test_body_table_in_the_control_panel_is_capped_with_a_count_row(panel):
