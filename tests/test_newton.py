@@ -285,7 +285,7 @@ def test_worker_protocol_recovers_from_invalid_command():
                             capture_output=True, text=True, timeout=20)
     assert result.returncode == 0, result.stderr
     replies = [json.loads(s.split(":",1)[1]) for s in result.stdout.splitlines()
-               if s.startswith("IGPHYSICS:")]
+               if s.startswith("NEWTON:")]
     assert [r["ok"] for r in replies] == [True, False, True]
     assert replies[2]["time"] == pytest.approx(8/240)
 

@@ -57,12 +57,6 @@ Status values: **open** (confirmed, not fixed), **observation** (reported, cause
 - **Unverified:** whether an integral term (as the speed motor has) keeps the drive stable with couplings and stiff mechanisms.
 - **Next step:** add an anti-windup integral term to the position drive, then tighten the carrier test again.
 
-## Narrow sidebar shows a small horizontal scrollbar
-
-- **Status:** observation
-- **Symptom:** Below roughly 280 px dock width the sidebar content (minimum about 232 px plus margins and the vertical scrollbar) is a few pixels wider than the viewport, so a horizontal scrollbar appears. Nothing is cut off.
-- **Checked:** offscreen only (dock widths 260–560 px).
-
 ## Worker inherited the host's `PYTHONPATH` (Flatpak)
 
 - **Status:** fixed (unreleased)
@@ -83,11 +77,6 @@ Status values: **open** (confirmed, not fixed), **observation** (reported, cause
 - **Where:** `scripts/setup-runtime.ps1`, `scripts/install-local.ps1`
 - **Symptom:** Linux installation is a manual sequence of commands (see README). There is no update/backup path on Linux.
 
-## Worker protocol prefix still uses the old name
-
-- **Status:** observation
-- **Where:** `newton/worker.py` (`PREFIX = "IGPHYSICS:"`), `newton/session.py`
-- **Note:** Version 0.14.0 renamed everything to Newton, but the line prefix of the worker protocol kept `IGPHYSICS:`. It is internal and harmless; unknown whether it was kept on purpose.
 
 ## Axis and connection objects: known gaps
 

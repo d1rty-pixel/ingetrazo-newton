@@ -7,7 +7,7 @@ import time
 import sys
 import xml.etree.ElementTree as ET
 
-PREFIX = "IGPHYSICS:"
+PREFIX = "NEWTON:"
 DT = 1.0 / 240.0
 
 
