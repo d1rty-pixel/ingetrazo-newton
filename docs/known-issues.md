@@ -23,6 +23,14 @@ Status values: **open** (confirmed, not fixed), **observation** (reported, cause
   - The check after the simulation misses changes that keep the serial and the counts: reversed faces (`FlipFacesCommand` reverses the loops in place) and face attributes (`f.attrs`, colour, material, texture).
   - Simplify Mesh in the simulation, with loose faces present, raises an `IndexError` in the host: `_on_simplify_mesh` reads `history.undo_stack[-1]` after a refused command. Nothing is changed.
 
+## Cable tests fail after `test_newton.py` in the same process
+
+- **Status:** open
+- **Reported:** 2026-11-05, focused test run
+- **Symptom:** `pytest tests/test_newton.py tests/test_flexible.py` fails 7 tests in `test_flexible.py` (every test that loads a rope or cable) with `mj_initPlugin: plugin->init failed for plugin id 0` / `Invalid parameter specification in cable plugin`. Each test passes alone and the canonical full suite passes, where `test_flexible.py` runs first.
+- **Checked:** Also happens without the shared-mesh change (same 7 failures on the previous commit). Likely state left by a `test_newton.py` test in the process (MuJoCo plugin registry or worker module state).
+- **Unverified:** which `test_newton.py` test causes it, and whether the same can happen in a long IngeTrazo session that simulates a cable after other models.
+
 ## Every simulation frame rebuilds the viewport caches
 
 - **Status:** open
