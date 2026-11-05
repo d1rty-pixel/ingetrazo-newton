@@ -2250,3 +2250,38 @@ def test_axis_plate_values_are_lighter_than_the_name(panel):
     from PySide6.QtGui import QFontMetrics
     need = QFontMetrics(name).height()+3*QFontMetrics(value).height()+10
     assert panel.axis_label_hits[0][0].height()==need
+
+
+def _runtime_box(qtapp,monkeypatch,tmp_path,marker):
+    from newton import runtime_setup
+    from newton.runtime_ui import RuntimeSetupBox
+    from PySide6.QtWidgets import QLineEdit
+    folder = tmp_path/"newton-runtime";folder.mkdir()
+    if marker:(folder/runtime_setup.MARKER).write_text("")
+    monkeypatch.setattr(runtime_setup,"runtime_dir",lambda data_dir=None:folder)
+    return RuntimeSetupBox(QLineEdit())
+
+
+def test_remove_runtime_is_enabled_only_for_a_runtime_newton_created(qtapp,monkeypatch,tmp_path):
+    (tmp_path/"a").mkdir();(tmp_path/"b").mkdir()
+    assert not _runtime_box(qtapp,monkeypatch,tmp_path/"a",False).remove.isEnabled()
+    assert _runtime_box(qtapp,monkeypatch,tmp_path/"b",True).remove.isEnabled()
+
+
+def test_check_runtime_stays_available_without_automatic_setup(qtapp,monkeypatch,tmp_path):
+    from newton import runtime_setup
+    monkeypatch.setattr(runtime_setup,"RUNTIME_SETUP_ENABLED",False)
+    box = _runtime_box(qtapp,monkeypatch,tmp_path,False)
+    assert box.verify.isEnabled() and not hasattr(box,"remove")
+    box.busy(True);assert not box.verify.isEnabled()
+    box.busy(False);assert box.verify.isEnabled()
+
+
+def test_check_runtime_sits_with_the_python_field_and_the_log_below_it(panel):
+    from PySide6.QtWidgets import QPushButton
+    from newton.preferences import NewtonPreferences
+    page = NewtonPreferences(panel)
+    runtime = page.tabs.widget(3)
+    check = [b for b in runtime.findChildren(QPushButton) if b.text() == "Check runtime"][0]
+    assert check.parentWidget() is page.python.parentWidget()
+    page.deleteLater()
