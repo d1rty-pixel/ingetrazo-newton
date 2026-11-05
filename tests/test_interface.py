@@ -1723,6 +1723,17 @@ def label_rows(root):
             if hasattr(w,"text_label") and w.isVisible()]
 
 
+def test_sidebar_checkbox_toggles_on_its_drawn_box_and_on_its_text(qtapp):
+    from PySide6.QtCore import QPoint
+    from PySide6.QtTest import QTest
+    from newton.toolbar import IconCheck
+    box = IconCheck("Use limits");box.resize(240,24);box.show()
+    for x in (10,30,60,150):
+        box.setChecked(False)
+        QTest.mouseClick(box,Qt.LeftButton,pos=QPoint(x,10))
+        assert box.isChecked(),x
+
+
 @pytest.mark.parametrize("width",[600,400,300,280,260])
 def test_sidebar_rows_keep_their_height_at_every_width(panel,qtapp,width):
     from newton.model import box,AddDemo,Configure

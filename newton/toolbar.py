@@ -94,6 +94,10 @@ class IconCheck(QCheckBox):
     def _left(self):
         return 20+self.GAP+self._indicator()[0]+self.GAP
 
+    def hitButton(self,pos):
+        # The base class derives the click area from its own (empty) text and puts it where it would draw the box.
+        return self.rect().contains(pos)
+
     def hasHeightForWidth(self):
         return True
 
