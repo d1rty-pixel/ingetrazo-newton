@@ -5,7 +5,7 @@ Newton runs its physics in a separate Python process. IngeTrazo does not ship a 
 | Platform | Status |
 |---|---|
 | Linux x86_64, IngeTrazo Flatpak | tested |
-| Windows x64 | not tested yet; Windows scripts exist |
+| Windows x64 | tested on Windows 11 with IngeTrazo 0.6.0: the button, methods B and C (`scripts/lab/windows-install-test.ps1`) |
 | macOS | not tested; the automatic setup has a `uv` download for Apple silicon (arm64) only |
 | Linux AppImage or tarball | not tested |
 | Linux Snap | not tested |

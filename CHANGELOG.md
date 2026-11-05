@@ -38,6 +38,9 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ### Fixed
 
+- Windows: `install-local.ps1` works in Windows PowerShell 5.1; it reported "MuJoCo is not installed" for every interpreter because PowerShell dropped the quotes of its MuJoCo check.
+- Windows: `setup-runtime.ps1` accepts only a Python 3.12 64-bit and says so, replaces a `.venv` left by another Python instead of failing again, leaves a Linux `.venv` from WSL alone and installs the pinned `runtime-requirements.txt` (with numpy).
+- `install-local.ps1 -Update` and `install-local.sh --update` remove modules that a newer version no longer has.
 - The installation scripts copy `runtime-requirements.txt` and `LICENSE`; without the requirements file *Set up runtime* failed after a script installation.
 - *Preferences → Runtime*: the status line is no longer cut off and the descriptions on every preferences page use the normal text colour instead of a pale grey. The page now links to the manual installation guide on GitHub instead of naming a repository file.
 - The default runtime lookup finds `.venv/bin/python` on Linux and macOS, not only `.venv/Scripts/python.exe` on Windows; one helper in `runtime_setup.py` serves both lookups.
@@ -48,6 +51,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ### Documentation
 
+- Windows is tested: release zip, installation scripts, runtime setup (button, command line, manual) and simulation on Windows 11 with IngeTrazo 0.6.0. The README shows the status of every platform as a badge. `scripts/lab/windows-install-test.ps1` repeats the test in a sandbox.
 - New `docs/installation.md` (extension library, manual install per platform, release zip, verification) and `docs/ai-skill.md` (using the skill with Claude Code and Codex); `docs/runtime-setup.md` now starts with the automatic setup and has manual steps per platform; shorter README with a platform status table.
 - Test model `models/z0-contact-test.igz` and the decisions for the planned warning about bodies below the ground at Z = 0 (resting on Z = 0 does not count; the warning does not block the start).
 - Performance audit results (start time, per-frame redraw cost), shared-mesh measurements and a live check in the Flatpak in `docs/lab/test-and-measurement-runs.md` and `docs/known-issues.md`.

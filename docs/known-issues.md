@@ -4,6 +4,14 @@ Bugs and observations that are known but not yet fixed. Each entry states what i
 
 Status values: **open** (confirmed, not fixed), **observation** (reported, cause unknown), **fixed** (kept until the fix is released).
 
+## Document marked modified after a simulation
+
+- **Status:** observation
+- **Reported:** 2026-11-05, Windows installation test (GUI phase), IngeTrazo 0.6.0 on Windows 11
+- **Symptom:** After opening `models/domino-30-with-pendulum.igz`, Start and Reset, the title shows `*` and closing asks whether to save, although nothing was edited. The screenshot taken while the simulation ran already shows the marker.
+- **Unverified:** whether opening alone sets it (for example the history hook that creates missing axis or connection objects) or the simulation workspace does.
+- **Next step:** open the model in a test window, read the modified state before and after Start/Reset.
+
 ## Starting a large model copies all geometry
 
 - **Status:** fixed

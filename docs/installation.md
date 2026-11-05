@@ -12,7 +12,7 @@ Newton targets IngeTrazo 0.6.0 (Extension API 2). Its code is Python and contain
 | Platform | Status |
 |---|---|
 | Linux, IngeTrazo Flatpak | tested |
-| Windows (installer or portable zip) | scripts exist (`install-local.ps1`, `setup-runtime.ps1`), run not re-verified |
+| Windows (installer or portable zip) | tested on Windows 11 with the installer of IngeTrazo 0.6.0: release zip, scripts, loading and simulating in the host (`scripts/lab/windows-install-test.ps1`) |
 | macOS (IngeTrazo `.dmg`, Apple Silicon) | not tested |
 | Linux AppImage or tarball | not tested; same plugin folder logic as the host code below |
 | Linux Snap | not tested; plugin folder not verified |
@@ -95,18 +95,18 @@ scripts/install-local.sh
 | `--python PATH` | interpreter for `runtime.json` instead of `.venv/bin/python` |
 | `--destination DIR` | plugins folder instead of the Flatpak one, for example `~/.local/share/ingetrazo/plugins` for an AppImage |
 
-**Windows** (scripts exist, run not re-verified), PowerShell from the repository root:
+**Windows** (tested on Windows 11 with Windows PowerShell 5.1), PowerShell from the repository root; from cmd.exe, put `powershell -NoProfile -ExecutionPolicy Bypass -File` in front of each script:
 
 ```powershell
 .\scripts\setup-runtime.ps1 -Python 'C:\Path\to\Python312\python.exe'
 .\scripts\install-local.ps1
 ```
 
-`setup-runtime.ps1` creates `.venv` and installs `mujoco==3.3.7` into it. `install-local.ps1` installs into `%APPDATA%\ingetrazo\plugins\newton`. Options: `-Update` (backup in `.backups`), `-Python` (another interpreter, for example an existing environment's `Scripts\python.exe`), `-Destination` (another plugins folder).
+`setup-runtime.ps1` creates `.venv` and installs `newton/runtime-requirements.txt` (MuJoCo 3.3.7, numpy 2.5.4) into it. It needs a Python 3.12 64-bit (`-Python`, default `python` from `PATH`) and stops with a message for any other version; a `.venv` made with another Python is replaced, a Linux `.venv` from WSL in a shared checkout is left alone and stops the script. Without an installed Python 3.12 use the runtime's interpreter instead: [runtime-setup.md](runtime-setup.md) method B, then `install-local.ps1 -Python <data>\newton-runtime\venv\Scripts\python.exe`. `install-local.ps1` installs into `%APPDATA%\ingetrazo\plugins\newton`. Options: `-Update` (backup in `.backups`), `-Python` (another interpreter, for example an existing environment's `Scripts\python.exe`), `-Destination` (another plugins folder).
 
 ### Update and uninstall
 
-- Update: repeat the copy or unzip over the existing folder (delete `<plugins>/newton/i18n` and `icons` first so removed files do not linger), or use `--update` / `-Update`. The runtime lives outside the plugin folder and survives.
+- Update: repeat the copy or unzip over the existing folder (delete the `.py` files and the folders `i18n` and `icons` in `<plugins>/newton` first so removed files do not linger; on Windows `Expand-Archive` also needs `-Force` to overwrite), or use `--update` / `-Update`, which do both. The runtime lives outside the plugin folder and survives.
 - Uninstall: close IngeTrazo, delete `<plugins>/newton/`. To also remove the runtime, first use **Remove runtime** in the preferences (or `runtime_setup.py uninstall`), see [runtime-setup.md](runtime-setup.md).
 - An extension put into the plugins folder by hand is shown on the **Installed** tab as "Installed by hand, outside the extension manager"; the manager can replace it with a catalog version once one exists.
 

@@ -178,6 +178,6 @@ Newton uses the Python package `newton`, the model key `group.ext["newton"]`, th
 - Unconfigured normal groups are static. Unconfigured face-me scale figures are visual only. Hidden groups and groups on hidden layers follow **Preferences → Newton → Simulation → Hidden geometry → Include**. **When needed** (the default) simulates a hidden body only if a visible body depends on it, for example as its reference body, attachment, connection or coupling, and keeps hidden static bodies as surroundings; all other hidden bodies are left out and are not shown in the temporary simulation. **Always** simulates every hidden body invisibly, as if it were visible; **Never** leaves all of them out, so a visible body whose reference body is hidden cannot start. Loose geometry is displayed but does not collide.
 - Box and sphere are simplified enclosing colliders. Convex hulls close concave holes. No automatic concave decomposition; degenerate hulls can be rejected.
 - Bounce is an approximation through MuJoCo's contact damping. The optional ground is an infinite plane at Z=0.
-- No ball/universal joints, replay, magnetism, buoyancy or SketchyPhysics script compatibility yet.
+- Ball joints exist only as connections (no ball axis with drive or limits). No universal joints, replay, magnetism, buoyancy or SketchyPhysics script compatibility yet.
 - One simulation per window; the workspace blocks switching projects. No guaranteed frame rate for large models.
 - IngeTrazo's 0.x API is subject to change. Checked was v0.6.0, commit `e61132a7f8a098ca77fb6b0e7cac488c1bd410cb`.
