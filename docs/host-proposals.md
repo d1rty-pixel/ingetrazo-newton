@@ -16,7 +16,7 @@ Each entry states: what was found in the host, the proposal, what Newton could r
 - **Found:** 2026-11-05, start-time audit and guarding the temporary simulation
 - **Host today:** an extension can only move groups by changing `group.xform` and raising `scene.version`; the host then rebuilds its consolidated buffers (`_sync_edges`, 17–31 ms per frame). The host's groups preview moves all groups by one shared offset only.
 - **Proposal:** `viewport.set_display_transforms({group: matrix})` (or similar), drawn without touching the scene, `scene.version` or the buffers; cleared with `None`.
-- **Newton:** could simulate on the document itself: no clone scene in `prepare()`, no copies (about 10 s start time on the CR10 model), no shared meshes, no recentring in `collision_view.py`, `connections.py`, `eraser.py` and `session.apply()`. Fixes "Every simulation frame rebuilds the viewport caches" in [known-issues.md](known-issues.md).
+- **Newton:** could simulate on the document itself: no clone scene in `prepare()`, no shared meshes and their frame offsets (`SimulationScene.place`), no welded copies of groups with children (most of the remaining 4.3 s start time on the CR10 model). Fixes "Every simulation frame rebuilds the viewport caches" in [known-issues.md](known-issues.md).
 - **Others:** any animation, kinematics or exploded-view extension.
 
 ## Read-only document or workspace
@@ -66,9 +66,9 @@ Each entry states: what was found in the host, the proposal, what Newton could r
 
 - **Status:** idea
 - **Found:** 2026-11-05
-- **Host today:** the renderer clears `mesh._chunk_dirty` and `mesh._attrs_dirty` on the mesh (`views/viewport.py`).
+- **Host today:** the renderer clears `mesh._chunk_dirty` and `mesh._attrs_dirty` on the mesh (`views/viewport.py`, chunk validation around line 12196–12267).
 - **Proposal:** keep them per cache entry, so a mesh drawn in two documents stays correct in both.
-- **Newton:** closes the shared-mesh display gap in [known-issues.md](known-issues.md).
+- **Newton:** could drop `pending_redraws` in `session.py`, which saves the flags of the document's meshes at Start and sets them again at Reset.
 
 ## Simplify Mesh after a refused command
 

@@ -9,19 +9,19 @@ Status values: **open** (confirmed, not fixed), **observation** (reported, cause
 - **Status:** open
 - **Reported:** 2026-11-05, CR10 sliding electronics compartment model (about 250 000 vertices)
 - **Symptom:** Pressing Start takes about 10 s before the simulation runs; the simulation itself is fast.
-- **Checked:** `prepare()` (`newton/model.py`) copies every included group for the temporary simulation with `transformed_mesh`, which welds the whole mesh again. On this model the copies of plain groups take 6.3 s; groups with children or a component transform are copied twice (2.8 s). Sharing the document's meshes instead would remove most of it. The temporary simulation now refuses every undoable command and never opens a group (see "The temporary simulation's edit guard has gaps"); the sharing itself is not yet implemented.
+- **Checked:** `prepare()` (`newton/model.py`) copied every included group for the temporary simulation with `transformed_mesh`, which welds the whole mesh again. The clones now share the document's mesh (plain groups and component instances), and compound parts read their points without a copy; on this model `prepare()` dropped from 11.3 s to 4.3 s (see `docs/test-results.md`).
+- **Remaining:** A group with children still needs one welded world-space mesh (`world_mesh` → `_merged_placements`), most of the remaining time. Sharing the children instead would need clones with nested placements; not investigated.
 
 ## The temporary simulation's edit guard has gaps
 
 - **Status:** open
 - **Reported:** 2026-11-05, review of the host's edit paths before sharing meshes with the temporary simulation
-- **Checked:** The workspace's `ReadOnlyHistory` (`newton/session.py`) refuses every command before it runs, `SimulationScene` (`newton/model.py`) never opens a group, and the session replaces `viewport.begin_group_edit` while it runs. The Edit menu commands and the Delete key go through `history.execute`; a test runs them in the simulation. After the simulation, `changed_meshes` compares each mesh's mutation serial and element counts with the start and reports a difference.
+- **Checked:** The simulation's clones share the document's meshes, so any change there changes the model. The workspace's `ReadOnlyHistory` (`newton/session.py`) refuses every command before it runs, `SimulationScene` (`newton/model.py`) never opens a group, and the session replaces `viewport.begin_group_edit` while it runs. The Edit menu commands and the Delete key go through `history.execute`; a test runs them in the simulation. After the simulation, `changed_meshes` compares each mesh's mutation serial and element counts with the start and reports a difference.
 - **Gaps:**
   - Code that changes a mesh without `history.execute` is not stopped: another extension, a script run in the host, or code that replaces `history.execute` on the instance (Newton's own eraser does this, but the eraser is not available in the simulation).
   - Browser (`views/outliner.py`) and Tray (`views/tray.py`) actions were not checked one by one; both call `history.execute` (18 and 16 times) and a search found no direct mesh changes.
   - The check after the simulation misses changes that keep the serial and the counts: reversed faces (`FlipFacesCommand` reverses the loops in place) and face attributes (`f.attrs`, colour, material, texture).
   - Simplify Mesh in the simulation, with loose faces present, raises an `IndexError` in the host: `_on_simplify_mesh` reads `history.undo_stack[-1]` after a refused command. Nothing is changed.
-  - Once meshes are shared: the renderer clears `mesh._chunk_dirty` and `mesh._attrs_dirty` on the mesh itself. A document mesh whose change was not yet drawn when the simulation started would lose these flags, and the document view could show its old paint until the next change. Not yet verified.
 
 ## Every simulation frame rebuilds the viewport caches
 

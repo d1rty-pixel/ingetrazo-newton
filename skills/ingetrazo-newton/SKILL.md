@@ -5,7 +5,7 @@ description: How to build, configure and speed up physics models with Newton, th
 
 # Newton for IngeTrazo
 
-Newton turns the top-level groups and components of an IngeTrazo model into rigid bodies and simulates them with MuJoCo 3.3.7 in a separate Python process. Start copies the model into a temporary simulation; Reset discards it. The document is never changed by a simulation. Full manual: `docs/manual.md`; example models: `models/` and `docs/example-models.md`.
+Newton turns the top-level groups and components of an IngeTrazo model into rigid bodies and simulates them with MuJoCo 3.3.7 in a separate Python process. Start builds a temporary simulation that shares the model's geometry and refuses every edit; Reset discards it. The document is never changed by a simulation. Full manual: `docs/manual.md`; example models: `models/` and `docs/example-models.md`.
 
 ## Objects and what they do
 
@@ -39,7 +39,7 @@ Data model (for reading `.igz` files or scripts): everything lives in `group.ext
 ## Performance
 
 Where time goes (measured, see `docs/test-results.md` and `docs/known-issues.md`):
-- **Start:** `prepare()` (`newton/model.py`) copies the geometry of every included group; cost grows with vertex count. A model with ~250 000 vertices needs about 10 s.
+- **Start:** `prepare()` (`newton/model.py`) shares each included group's mesh, but reads every vertex for the bounds and collision shapes, and welds one copy for each group with children (nested groups or components). A model with ~250 000 vertices needs about 4 s, most of it for groups with children.
 - **Simulation:** almost entirely MuJoCo's constraint solver. It grows with contacts, closed loops (connections), couplings and cable segments. Python overhead in the worker is about 1 %.
 - **Display:** every frame redraws all moving bodies; the host rebuilds its buffers (15–30 ms per frame with 100+ bodies).
 

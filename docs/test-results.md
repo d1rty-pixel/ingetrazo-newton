@@ -1,5 +1,24 @@
 # Verification log
 
+## Shared meshes in the temporary simulation (Linux)
+
+Checked on 5 November 2026 on Linux x86_64, same model and method as "Hidden geometry" below (`prepare()` only, single run).
+
+| Include hidden geometry | Before | Shared meshes | Simulated bodies |
+|---|---|---|---|
+| When needed | 11.3 s | 4.3 s | 12 |
+| Always | 16.8 s | 6.1 s | 113 |
+
+- The before figures were measured again in the same session; they differ slightly from the table below.
+- The specs sent to the worker are unchanged: centres, half sizes and vertices are equal, compound parts differ by at most 1.5e-8 m (float32 rounding of the former second copy).
+- The remaining time is mostly the welded mesh of groups with children (see known issues).
+- The renderer clears `_chunk_dirty`/`_attrs_dirty` on a mesh it draws; the session now restores flags that were pending when the simulation started (`test_render_flags_of_shared_meshes_survive_the_simulation`).
+
+```text
+.venv/bin/python -m pytest tests -q --basetemp=.test-state/pytest
+271 passed, 13 warnings in 55.80s
+```
+
 ## Hidden geometry (Linux)
 
 Checked on 5 November 2026 on Linux x86_64 with the worker run in-process (no GUI drawing time). The CR10 sliding electronics compartment model has 208 groups, 120 of them hidden (101 movable). Each figure is a single run on this machine and is no general speed guarantee.
