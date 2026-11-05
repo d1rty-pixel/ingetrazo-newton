@@ -1,6 +1,8 @@
 """Small colour-coded guides, generated from the same frame as the axis glyph."""
 import math
-from PySide6.QtCore import Qt,QRectF
+import time
+from PySide6.QtCore import Qt,QRectF,QObject,QEvent,QTimer
+from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QColor,QPen,QVector3D,QFont,QFontMetrics,QBrush,QPainter
 from .eraser import axis_frame,axis_geometry
 from .model import axes_visible,with_zero,fit_limits
@@ -53,6 +55,30 @@ def place_caption(x,y,width,height,viewport_width,viewport_height,obstacles,occu
     xs.extend((8,viewport_width-width-8))
     search()
     return best[1]
+
+
+QUIET_AFTER_WHEEL = .25
+
+
+class Quiet(QObject):
+    """Tells the overlay that the view is being zoomed, and repaints once the wheel stops."""
+    def __init__(self,panel,viewport):
+        super().__init__(viewport)
+        self.panel,self.viewport = panel,viewport
+        viewport.installEventFilter(self)
+
+    def eventFilter(self,watched,event):
+        if event.type()==QEvent.Wheel:
+            self.panel.quiet_until = time.monotonic()+QUIET_AFTER_WHEEL
+            QTimer.singleShot(int(QUIET_AFTER_WHEEL*1000)+20,self.viewport.update)
+        elif event.type()==QEvent.MouseButtonRelease:
+            QTimer.singleShot(0,self.viewport.update)
+        return False
+
+
+def quiet(panel,viewport):
+    """Plates are placed from scratch every paint, so they wait while the view or an object is being dragged."""
+    return (viewport.underMouse() and QApplication.mouseButtons()!=Qt.NoButton) or time.monotonic()<getattr(panel,"quiet_until",0)
 
 
 def caption_font(viewport):
@@ -136,7 +162,9 @@ def draw(panel,viewport,painter):
     painter.setFont(font)
     metrics = QFontMetrics(font)
     occupied = []
-    panel.axis_label_hits = []
+    still = quiet(panel,viewport)
+    # Hidden plates stay pickable: the press that starts a drag may still be a click on one.
+    if not still:panel.axis_label_hits = []
     eraser = panel.app.window._tools.get("eraser")
     marked = getattr(eraser,"axis_marked",set()) if viewport.active_tool is eraser else set()
     selected = {g.uid for g in panel.selected()}
@@ -207,5 +235,5 @@ def draw(panel,viewport,painter):
             rows_of.append((prefix+" "+text,kind))
             if anchor is None and front[i]:anchor = int(xs[i]),int(ys[i])
         # One plate per axis keeps the free-space search linear in the number of selected axes.
-        if rows_of and anchor:caption(anchor[0],anchor[1],rows_of,j["uid"])
+        if rows_of and anchor and not still:caption(anchor[0],anchor[1],rows_of,j["uid"])
     painter.restore()

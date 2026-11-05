@@ -250,6 +250,8 @@ class NewtonPanel(QWidget):
         self.session.changed.connect(self.refresh)
         self.session.telemetry.connect(self.controls.telemetry)
         app.add_overlay(self.draw_joints)
+        from .axis_guides import Quiet
+        Quiet(self,app.viewport)
         app.add_context_menu(self.context_menu)
         self.toolbar,self.simulation_bar,self.actions = build(self)
         self.refresh_profiles()
