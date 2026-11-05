@@ -97,6 +97,12 @@ Useful scripts: `scripts/preview.py` (open a demo in a test window), `scripts/be
 - Known bugs and unexplained observations go to [docs/known-issues.md](docs/known-issues.md); remove an entry when its fix lands.
 - Do not commit `ingetrazo-source/`, `.venv/`, `.test-state/`, `newton/runtime.json` or `dist/`.
 
+## Changelog
+
+- [CHANGELOG.md](CHANGELOG.md) lists every notable change by release. Versions are the GitHub releases (tag `v<version>`, the version from `__version__` in `newton/__init__.py`); unreleased changes go under "Unreleased", grouped as Added, Changed, Fixed, Removed and Documentation.
+- Update the changelog no later than the release: before a release is published, move "Unreleased" into a section with the release version and date. Preferably also add an entry as soon as a task is complete, in the same commit or one right after it.
+- Write entries for users of the extension: what changed and why it matters, not the commit list. Measured effects (for example start time) may be named with their figure.
+
 ## Host proposals
 
 - Develop against the pinned host only. Never wait for, anticipate or design around a host change that has not landed in the pinned version.
