@@ -25,8 +25,8 @@ Such relations are also outlined in the model: when a body is selected, the bodi
 | Control name | For example "Close gripper", "Left door", "Feed" |
 | Free / passive | No control; moves through gravity, contacts or dragging |
 | Servo / angle | Move to a target angle in degrees and hold it |
-| Position / distance | Move to a linear target in millimetres and hold it |
-| Motor / speed | Rotation speed in °/s or feed in mm/s |
+| Position / distance | Move to a linear target in the document's length unit and hold it |
+| Motor / speed | Rotation speed in °/s or feed in length unit per second |
 | Minimum / Maximum | Optional angle or distance limits |
 | Limit hardness | How firmly the limits hold, 0–100 % |
 | Start target | Stored control value when the simulation starts |
@@ -37,15 +37,17 @@ Such relations are also outlined in the model: when a body is selected, the bodi
 
 **Limit hardness** sets how firmly the limits hold. At 100 %, the default, they act as hard stops; even in a long chain of light links, such as a cable drag chain, a limit gives way by only a few tenths of a degree. Lower values let the limits yield under load like a rubber buffer; 0 % is MuJoCo's default softness, with which such a chain can bend through its stops by tens of degrees. The value is stored per axis and in profiles and has no effect without limits. Models saved before the setting existed use 100 %, so their limits now hold harder than before. Internally the value sets the limit's `solreflimit` and `solimplimit`: at 0 % MuJoCo's defaults (time constant 0.02 s, impedance 0.9–0.95), at 100 % twice the time step (1/120 s) and impedance 0.99–0.999.
 
-The model position at setup corresponds to 0° or 0 mm. A limit range in use must contain this initial position. Body values and local overrides are in the sections **Body & contact** and **Simulation overrides**; global simulation and runtime selection are in the extension preferences.
+The model position at setup corresponds to 0° or 0 (a length). A limit range in use must contain this initial position. Body values and local overrides are in the sections **Body & contact** and **Simulation overrides**; global simulation and runtime selection are in the extension preferences.
 
-Acceleration and deceleration are coupled at first. With the chain switch on, the deceleration follows every change of the acceleration. After releasing it, it can be set separately; coupling again applies the acceleration value immediately. The limits apply in °/s² or mm/s² to the setpoint profile. On a direction change the drive first brakes to zero and then accelerates in the other direction. Both values and the coupling are stored with profiles and models; older settings automatically take over the previous symmetric acceleration.
+**Units.** Lengths follow the document unit of **Window → Units**: slide axis limits, target, speed (unit/s) and acceleration (unit/s²), connection points, rope and cable radius, softening radius and initial velocity (unit/s), in the sidebar, the control panel and the profile editor. The model still stores metres, so changing the unit changes only what is shown and typed; the fields update at once. Number fields show about 0.1 to 1 mm per step (3 decimals in m, 2 in cm, 1 in mm, 2 in inches, 3 in feet); fractional and feet-and-inches units appear as decimal inches or feet. Rotations stay in degrees; gravity (m/s²), attraction (m³/s²), pressures (Pa), damping (1/s), forces (N, Nm) and mass (kg) stay in SI units because they are physical constants, not model lengths.
+
+Acceleration and deceleration are coupled at first. With the chain switch on, the deceleration follows every change of the acceleration. After releasing it, it can be set separately; coupling again applies the acceleration value immediately. The limits apply in °/s² or length unit/s² to the setpoint profile. On a direction change the drive first brakes to zero and then accelerates in the other direction. Both values and the coupling are stored with profiles and models; older settings automatically take over the previous symmetric acceleration.
 
 With a multi-selection, body values and movable/fixed can be changed together. Axes and reference bodies are set up for a single selected group. Without a selected body the Newton sidebar stays empty. The overview is in the existing **Browser**: the type column shows Newton, axis kind and control name. The existing body names are kept; no additional geometry objects are created for controls.
 
 The **Generic** section is at the top of the sidebar. The selected group or component name appears in the heading after **Newton properties**. On start the previously shown configuration stays visible and is disabled; the sections can still be opened and closed, and the sidebar can still be scrolled. Start/pause and reset are in the toolbar and the control panel. Hints for placing and editing appear for a few seconds in IngeTrazo's status bar, messages of the running simulation in the control panel. Without a selection the sidebar stays empty as before.
 
-Angle limits, limit hardness, position/target values and the bounded body and environment values friction, bounce and gravity have wide sliders with a compact number field. For a bounded position drive the slider range is exactly minimum and maximum, for a speed drive ±maximum speed. This also applies to linear axes in millimetres. The ranges adapt immediately when the limits change. Exact input remains possible; angles beyond a full turn are supported. A drag changes the model live and stays one undo step. Scrolling over these sliders does not change values by accident.
+Angle limits, limit hardness, position/target values and the bounded body and environment values friction, bounce and gravity have wide sliders with a compact number field. For a bounded position drive the slider range is exactly minimum and maximum, for a speed drive ±maximum speed. This also applies to linear axes. The ranges adapt immediately when the limits change. Exact input remains possible; angles beyond a full turn are supported. A drag changes the model live and stays one undo step. Scrolling over these sliders does not change values by accident.
 
 ## Placing and editing axes
 
