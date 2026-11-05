@@ -22,6 +22,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ### Documentation
 
+- Test model `models/z0-contact-test.igz` and the decisions for the planned warning about bodies below the ground at Z = 0 (resting on Z = 0 does not count; the warning does not block the start).
 - Performance audit results (start time, per-frame redraw cost), shared-mesh measurements and a live check in the Flatpak in `docs/test-results.md` and `docs/known-issues.md`.
 - `docs/host-proposals.md` collects IngeTrazo improvements that would make Newton or other extensions simpler, safer or faster.
 - `scripts/benchmark_overlays.py` times the overlay paint and the selection refresh for N jointed bodies.
