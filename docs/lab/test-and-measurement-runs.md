@@ -1,5 +1,9 @@
 # Test and measurement runs
 
+## Keep the pose on reset (Linux)
+
+Checked on 5 November 2026 on Linux x86_64 (Ubuntu), offscreen, same environment as below. Full suite: 412 passed in 111 s. `tests/test_keep_pose.py` runs the real worker, drives the joints of the robot arm and checks: Reset restores the model by default; with the box checked the pose is written as one undo/redo step; joint pivot and axis object agree afterwards; a locked body and a failure keep nothing. Undo is exact up to float32 rounding of the baked vertices. Not checked on screen.
+
 ## Key bindings (Linux)
 
 Checked on 5 November 2026 on Linux x86_64 (Ubuntu), offscreen, same environment as "Limit hardness" below; host reference IngeTrazo v0.6.0, commit `e61132a7`.

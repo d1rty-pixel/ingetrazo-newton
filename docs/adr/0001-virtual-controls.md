@@ -106,3 +106,13 @@ Decided after the first build of the editors, before release. Where it differs, 
 - **The cards keep their binding row**, so every target stays bindable from the control panel.
 - **Slot labels.** Each slot can carry a label (for example "Gripper"), a global preference like the slot count (QSettings, not the document). It is part of the action text ("Newton: Key 1 – Gripper"), so IngeTrazo's shortcut settings show it too, and the slot choices in the binding fields show it.
 - **Own preferences page.** The key slots move from the *Simulation* page to a page of their own, with the explanation above the slot list and each assigned key drawn as a key cap.
+
+## Addendum 2026-11-05: keep the pose
+
+Replaces the open "Keep pose on stop" point above.
+
+- **Trigger:** a control panel checkbox (off by default) that changes what Reset does; no new Stop command, because the control panel is to be redesigned as a whole.
+- **Scope:** only the body pose (position and rotation) is written, as one undo step. The joint frame, the axis object and the attachment point move with their body (the same data update as a native move); joint start angles and targets are not changed.
+- **Fail-closed:** with a flexible or locked body, a body that contains groups (no own transform) or a changed geometry, nothing is written, the original model is restored and the control panel says why. Reset after an error never keeps the pose.
+- **Edit guard:** the write happens after the workspace is left, through the model's own history, so the simulation's read-only history is not involved.
+

@@ -21,10 +21,6 @@ Points collected so far:
 - The pressed button of a virtual switch hardly stands out from the others (a slightly darker grey in the Qt style).
 - Key binding fields (sidebar section, control cards, *Key slots* tab): check live after the redesign. Untested on screen: the captions above the fields ("Set to", "Back to", "Step", "Down key") in the narrow sidebar, the key caps, and the slot names and labels staying identical in every list after a label or key change.
 
-## Keep the pose when the simulation stops
-
-Agreed, not designed yet. A control panel checkbox (off by default): when the simulation stops, the bodies keep their simulated pose instead of returning to the model. This writes the poses into the document, so decide first: whether "stop" is a new command beside Pause and Reset, how it forms one undo step, what happens to start angles, and how it fits the simulation's edit guard.
-
 ## Idea: sequence editor with a timeline for controls and scripting
 
 Status: idea, not agreed or scoped. Virtual controls and the scripting boundary are decided in [ADR 0001](adr/0001-virtual-controls.md); the rest below records the wish so it can be refined later.
