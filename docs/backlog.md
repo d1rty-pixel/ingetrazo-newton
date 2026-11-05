@@ -13,17 +13,13 @@ Virtual controls (switch and slider), key bindings (toggle, step), the *Key bind
 
 ## Control panel redesign
 
-Agreed, not designed yet. The control panel looks too technical; redesign it as a whole, including where the virtual control editor lives. Start with a draft before any code.
+The redesign is built: the control panel is a bottom dock with one strip per control, and the virtual control and key binding editors expand in the strips (per-state remove and the accent-coloured pressed button are part of it). What is still open:
 
-Points collected so far:
-
-- Virtual control editor: *Remove state* removes the last state (or the column of a selected cell, which the value boxes rarely make current); the user expects to delete a chosen state. Give each state its own remove action.
-- The pressed button of a virtual switch hardly stands out from the others (a slightly darker grey in the Qt style).
-- Key binding fields (sidebar section, control cards, *Key slots* tab): check live after the redesign. Untested on screen: the captions above the fields ("Set to", "Back to", "Step", "Down key") in the narrow sidebar, the key caps, and the slot names and labels staying identical in every list after a label or key change.
+- Key binding fields (expanded rows, *Key slots* tab): check live. Untested on screen: the captions above the fields ("Set to", "Back to", "Step", "Down key"), the key caps, and the slot names and labels staying identical in every list after a label or key change.
 
 ## Idea: sequence editor with a timeline for controls and scripting
 
-Status: idea, not agreed or scoped. Virtual controls and the scripting boundary are decided in [ADR 0001](adr/0001-virtual-controls.md); the rest below records the wish so it can be refined later.
+Status: idea, not agreed or scoped. The control panel's strips sit in one column grid, so a timeline lane can later be added as a further column beside them. Virtual controls and the scripting boundary are decided in [ADR 0001](adr/0001-virtual-controls.md); the rest below records the wish so it can be refined later.
 
 Today the controls (servo targets, motor speeds) are set by hand in the control panel while a simulation runs. A sequence editor would let the user plan and replay such movements.
 

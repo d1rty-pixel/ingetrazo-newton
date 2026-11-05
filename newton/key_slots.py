@@ -62,7 +62,7 @@ class KeySlots(QObject):
         action.changed.connect(follow)
         action.triggered.connect(lambda _checked=False, n=n: self.panel.session.press(n))
         window.addAction(action)
-        self.panel.controls.addAction(action)   # the non-modal control panel window has the focus while driving
+        self.panel.controls.addAction(action)   # a floating control panel is a window of its own and has the focus while driving
         self.actions.append(action)
         return action
 

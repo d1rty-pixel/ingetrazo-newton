@@ -195,10 +195,11 @@ def build(panel):
         [("free","movable","Movable",lambda:panel.mark("dynamic"),"Make the selection movable"),
          ("fixed","fixed","Fixed",lambda:panel.mark("static"),"Fix the selection")],
         [("panel","panel","Newton properties",panel.show_sidebar,"Show properties of the selection")],
-        [("controls","controls","Controls",panel.show_controls,"Open named actuator controls")]])
+        [("controls","controls","Controls",panel.controls.toggle,"Show or hide the control panel")]])
     simulation = bar(tr("Newton Simulation"),"newton_simulation",[
         [("play","play","Start / pause",panel.start_or_pause,"Run or pause the simulation"),
          ("reset","reset","Reset",panel.session.reset,"Return to the original model"),
          ("drag","drag","Drag body",panel.activate_drag,"Drag passive bodies")]])
     panel.app.restore_toolbar_layout()
+    panel.controls.keep_sidebar_height()
     return tools,simulation,Actions(panel.app.window,actions)

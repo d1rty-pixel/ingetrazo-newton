@@ -139,3 +139,12 @@ Each entry states: what was found in the host, the proposal, what Newton could r
 - **Proposal:** a public `ShortcutsPanel.reload()`, or let the page re-collect the actions whenever it is shown and before every `assign`.
 - **Newton:** removes `refresh_shortcut_page` (`newton/preferences.py`), which writes `PreferencesDialog._shortcuts._actions` and calls `_fill()`.
 - **Others:** any extension whose commands change at runtime.
+
+## A bottom panel area for extensions
+
+- **Status:** idea
+- **Found:** 2026-11-06, Newton's control panel as a dock below the 3D view
+- **Host today:** `ExtensionApp.add_panel` (`views/extension_api.py`, line 167) puts a widget only into the side tray, as a tab beside Properties. An extension that needs a wide, short panel (a strip per control) has no API for it. The window layout (`restore_late_toolbars`, `views/main_window.py`, line 2994) restores the saved state by object name when an extension asks for it, and that `restoreState` also restores the corner ownership saved with the layout, so a layout saved before the panel existed brings the default corners back.
+- **Proposal:** `add_panel(..., area="bottom")` (or `add_bottom_panel`) that creates the `QDockWidget` in `Qt.BottomDockWidgetArea` with a stable object name, lists it in *Window ▸ Panels*, keeps the side tray at full window height (`setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)`, re-applied after every `restoreState`) and restores it with the window layout.
+- **Newton:** removes the dock created in `Controls.make_dock` through the `QMainWindow` API, the `setCorner` call there and its repetition in `Controls.refresh` and after `restore_toolbar_layout` in `newton/toolbar.py`, and the own show/hide toggle for the dock.
+- **Others:** any extension with a timeline, console, log or table that needs width more than height.

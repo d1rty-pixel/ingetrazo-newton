@@ -107,6 +107,10 @@ Decided after the first build of the editors, before release. Where it differs, 
 - **Slot labels.** Each slot can carry a label (for example "Gripper"), a global preference like the slot count (QSettings, not the document). It is part of the action text ("Newton: Key 1 – Gripper"), so IngeTrazo's shortcut settings show it too, and the slot choices in the binding fields show it.
 - **Own preferences page.** The key slots move from the *Simulation* page to a page of their own, with the explanation above the slot list and each assigned key drawn as a key cap.
 
+## Addendum 2026-11-06: the control panel is a dock
+
+The control panel redesign replaces two decisions above. The control panel is a dock below the 3D view with one strip per control, not a floating window with cards, and the virtual control editor is no longer a separate dialog: the strip of a virtual control expands in place into the editor, which writes every change to the document as its own undo step (no *OK* and *Cancel*, a remove button for every state, axis and control). Key bindings of axes and virtual controls are edited in the expanded strips; the sidebar section *Key bindings* is gone. A sidebar note for a managed joint opens the strip's expansion instead of the dialog. During a simulation the strips show the bindings the session started with. Closing the dock no longer ends a running simulation.
+
 ## Addendum 2026-11-05: keep the pose
 
 Replaces the open "Keep pose on stop" point above.

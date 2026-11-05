@@ -94,7 +94,8 @@ def test_a_locked_body_keeps_nothing_and_says_why(panel, qtapp):
     next(g for g in panel.app.window._parked["scene"].groups if g.uid == moving).locked = True
     panel.session.reset()
     wait(qtapp, lambda: not panel.session.workspace)
-    assert "was not kept" in panel.controls.hint.text() and "locked" in panel.controls.hint.text()
+    text = panel.controls.banner_text.text() if not panel.controls.banner.isHidden() else panel.controls.hint.text()
+    assert "was not kept" in text and "locked" in text
     assert state(panel) == before
 
 

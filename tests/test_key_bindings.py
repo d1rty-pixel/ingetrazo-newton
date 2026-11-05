@@ -1,7 +1,6 @@
 import math
 
 import pytest
-from PySide6.QtWidgets import QDoubleSpinBox, QPushButton
 
 from newton.key_bindings import check, next_value, resolve, stored, with_bindings
 from newton.model import joint_rows
@@ -157,20 +156,20 @@ def test_press_steps_a_virtual_switch_and_the_card_follows(panel, qtapp):
     panel.session.press(1)
     assert panel.session.virtual_values == {"c1": 2}
     assert panel.session.targets[first["uid"]] == pytest.approx(.2)
-    buttons = panel.controls.virtual_cards["c1"].findChildren(QPushButton)
+    buttons = panel.controls.virtual_inputs["c1"][1].buttons()
     assert [b.isChecked() for b in buttons] == [False, False, True]
     panel.session.press(2)
     assert [b.isChecked() for b in buttons] == [False, True, False]
     assert panel.session.targets[first["uid"]] == pytest.approx(.1)
 
 
-def test_press_moves_a_slider_card(panel, qtapp):
+def test_press_moves_a_slider_row(panel, qtapp):
     seed_coupled_robot(panel)
     first = eligible_rows(panel)[0]
     c = dict(switch((first["uid"],), states=((0,), (.4,))), kind="slider")
     start(panel, qtapp, with_bindings(with_controls(None, [c]), [step("c1", 1, .25, kind="control")]))
     panel.session.press(1)
-    assert panel.controls.virtual_cards["c1"].findChild(QDoubleSpinBox).value() == 25
+    assert panel.controls.virtual_inputs["c1"][1].value() == 25
     assert panel.session.virtual_values["c1"] == .25
     assert panel.session.targets[first["uid"]] == pytest.approx(.1)
 
@@ -188,7 +187,7 @@ def test_damaged_bindings_refuse_start(panel):
     panel.app.set_document_data({"bindings": [toggle(slot=0)]})
     panel.start_or_pause()
     assert panel.session.workspace is None
-    assert "key bindings" in panel.controls.hint.text()
+    assert "key bindings" in panel.controls.banner_text.text()
 
 
 def test_press_does_nothing_when_not_running(panel):
@@ -201,99 +200,75 @@ def test_press_does_nothing_when_not_running(panel):
     assert seen == [] and panel.session.targets == {}
 
 
-def card_fields(panel, kind, ident):
+def row_fields(panel, kind, ident):
+    """The binding fields in the expansion of one row; the host loads the extension under its own package name, so the class differs from newton.binding_fields'."""
     from PySide6.QtWidgets import QWidget
-    card = panel.controls.virtual_cards[ident] if kind == "control" else panel.controls.rows[ident][0].parentWidget()
-    # The host loads the extension under its own package name, so the class differs from newton.binding_fields'.
-    return next(w for w in card.findChildren(QWidget) if type(w).__name__ == "BindingFields")
+    controls = panel.controls
+    controls.expanded.add((kind, ident))
+    panel.show_controls()
+    return next(w for w in controls.scroll.widget().findChildren(QWidget)
+                if type(w).__name__ == "BindingFields" and (w.kind, w.ident) == (kind, ident))
 
 
-def test_card_fields_store_one_undo_step_and_keep_the_focus(panel):
+def test_row_fields_store_one_undo_step_and_the_strip_follows(panel, qtapp):
+    from PySide6.QtWidgets import QLabel
     seed_coupled_robot(panel)
     first = next(r for r in eligible_rows(panel) if r["limited"])
     panel.refresh()
-    fields = card_fields(panel, "joint", first["uid"])
+    fields = row_fields(panel, "joint", first["uid"])
     assert fields.isEnabled() and fields.binding is None
+    steps = len(panel.app.viewport.history.undo_stack)
     fields.slot.setCurrentIndex(fields.slot.findData(2))
     fields.edit("slot")
     assert panel.app.document_data() == {"bindings": [dict(target={"joint": first["uid"]}, slot=2, mode="toggle",
                                                            value=first["upper"], rest=fields.binding["rest"])]}
-    panel.refresh()
-    assert card_fields(panel, "joint", first["uid"]) is fields
+    assert len(panel.app.viewport.history.undo_stack) == steps+1
+    wait(qtapp, lambda: row_fields(panel, "joint", first["uid"]).binding is not None)
+    assert "Toggle" in [l.text() for l in panel.controls.scroll.widget().findChildren(QLabel)]
     panel.app.viewport.history.undo()
     panel.refresh()
     assert panel.app.document_data() is None
-    assert card_fields(panel, "joint", first["uid"]).binding is None
+    assert row_fields(panel, "joint", first["uid"]).binding is None
 
 
-def test_card_fields_of_a_switch_use_state_names_and_are_disabled_while_running(panel, qtapp):
+def test_row_fields_of_a_switch_use_state_names_and_are_disabled_while_running(panel, qtapp):
     seed_coupled_robot(panel)
     first = eligible_rows(panel)[0]
     c = switch((first["uid"],))
     panel.app.set_document_data(with_bindings(with_controls(None, [c]), [toggle("c1", 1, 2, 0, kind="control")]))
     panel.refresh()
-    fields = card_fields(panel, "control", "c1")
+    fields = row_fields(panel, "control", "c1")
     assert fields.value.currentText() == "S2" and fields.rest.currentText() == "S0"
     start(panel, qtapp, panel.app.document_data())
-    assert not card_fields(panel, "control", "c1").isEnabled()
+    assert not row_fields(panel, "control", "c1").isEnabled()
 
 
-def sidebar_fields(panel):
-    from PySide6.QtWidgets import QWidget
-    return next((w for w in panel.bindings_section.findChildren(QWidget) if type(w).__name__ == "BindingFields"), None)
-
-
-def test_sidebar_section_binds_the_selected_axis_in_one_undo_step(panel):
+def test_rows_show_the_bindings_of_the_running_session(panel, qtapp):
+    from PySide6.QtWidgets import QLabel
     seed_coupled_robot(panel)
     first = next(r for r in eligible_rows(panel) if r["limited"])
-    group = next(g for g in panel.app.scene.groups if g.uid == first["uid"])
-    panel.app.scene.selection.clear()
-    panel.refresh()
-    assert not panel.bindings_section.isVisibleTo(panel)
-    panel.app.scene.selection.add(group)
-    panel.refresh()
-    assert panel.bindings_section.isVisibleTo(panel)
-    fields = sidebar_fields(panel)
-    assert fields is not None and fields.binding is None
-    fields.slot.setCurrentIndex(fields.slot.findData(2))
-    fields.edit("slot")
-    assert panel.app.document_data()["bindings"][0]["target"] == {"joint": first["uid"]}
-    assert sidebar_fields(panel) is fields
-    panel.app.viewport.history.undo()
-    panel.refresh()
-    assert panel.app.document_data() is None
-    assert sidebar_fields(panel).binding is None
+    start(panel, qtapp, with_bindings(None, [toggle(first["uid"], 1, first["upper"], first["lower"])]))
+    assert panel.session.bindings
+    assert "Toggle" in [l.text() for l in panel.controls.scroll.widget().findChildren(QLabel)]
 
 
-def test_sidebar_section_is_hidden_for_a_passive_axis_and_disabled_while_running(panel, qtapp):
+def test_a_passive_axis_has_no_row_and_so_no_binding_fields(panel):
     seed_coupled_robot(panel)
-    rows = joint_rows(panel.app.scene)
-    passive = next((r for r in rows if r["drive"] == "free" or r.get("coupling")), None)
-    if passive:
-        group = next(g for g in panel.app.scene.groups if g.uid == passive["uid"])
-        panel.app.scene.selection.clear(); panel.app.scene.selection.add(group)
-        panel.refresh()
-        assert not panel.bindings_section.isVisibleTo(panel)
-    first = eligible_rows(panel)[0]
-    panel.app.scene.selection.clear(); panel.app.scene.selection.add(next(g for g in panel.app.scene.groups if g.uid == first["uid"]))
-    panel.refresh()
-    start(panel, qtapp, panel.app.document_data())
-    assert not panel.bindings_section.body.isEnabled()
+    panel.show_controls()
+    passive = next(r for r in joint_rows(panel.app.scene) if r["drive"] == "free" or r.get("coupling"))
+    assert passive["uid"] not in panel.controls.rows
+    assert not hasattr(panel, "bindings_section")
 
 
-def test_a_changed_slot_label_reaches_the_sidebar_and_the_card_dropdowns(panel):
+def test_a_changed_slot_label_reaches_the_row_dropdowns(panel):
     seed_coupled_robot(panel)
     first = next(r for r in eligible_rows(panel) if r["limited"])
-    group = next(g for g in panel.app.scene.groups if g.uid == first["uid"])
-    panel.app.scene.selection.clear()
     panel.refresh()
-    panel.app.scene.selection.add(group)
-    panel.refresh()
+    row_fields(panel, "joint", first["uid"])
     panel.key_slots.set_label(1, "Gripper")
     panel.refresh_widgets()
-    found = (sidebar_fields(panel), card_fields(panel, "joint", first["uid"]))
-    for fields in found:
-        assert "Key 1 – Gripper" in fields.slot.itemText(fields.slot.findData(1))
+    fields = row_fields(panel, "joint", first["uid"])
+    assert "Key 1 – Gripper" in fields.slot.itemText(fields.slot.findData(1))
 
 
 def test_a_changed_slot_key_reaches_the_dropdowns_and_every_list_names_slots_alike(panel):
@@ -306,7 +281,7 @@ def test_a_changed_slot_key_reaches_the_dropdowns_and_every_list_names_slots_ali
     page = NewtonPreferences(panel)
     panel.key_slots.set_label(1, "Gripper")
     panel.key_slots.actions[0].setShortcuts([QKeySequence("Ctrl+F9")])
-    fields = card_fields(panel, "joint", first["uid"])
+    fields = row_fields(panel, "joint", first["uid"])
     text = fields.slot.itemText(fields.slot.findData(1))
     assert text.startswith("Key 1 – Gripper (") and "F9" in text
     assert page.slot_heads[0][0].text() == "Key 1 – Gripper"
