@@ -64,6 +64,19 @@ Restart IngeTrazo completely and open **Extensions → Newton…**. The toolbars
 
 Ready-made examples are in [`models/`](models) and described in [docs/example-models.md](docs/example-models.md).
 
+## Claude Code skill
+
+[`skills/ingetrazo-newton/SKILL.md`](skills/ingetrazo-newton/SKILL.md) gives [Claude Code](https://claude.com/claude-code) a compact guide to Newton: the objects and their effects, how to group parts so the simulation is correct and fast, performance options and limits. Install it for all your projects, or only for one project, by linking or copying the folder:
+
+```bash
+# for all projects
+mkdir -p ~/.claude/skills && ln -s "$PWD/skills/ingetrazo-newton" ~/.claude/skills/ingetrazo-newton
+# or only for one project
+mkdir -p /path/to/project/.claude/skills && cp -r skills/ingetrazo-newton /path/to/project/.claude/skills/
+```
+
+On Windows, copy the folder to `%USERPROFILE%\.claude\skills\`. Claude Code picks the skill up in new sessions. It is used automatically when you ask about Newton models, or explicitly with `/ingetrazo-newton`, for example `/ingetrazo-newton why does my drawer simulation start so slowly?`.
+
 ## Documentation
 
 | Document | Content |
@@ -74,6 +87,7 @@ Ready-made examples are in [`models/`](models) and described in [docs/example-mo
 | [docs/backlog.md](docs/backlog.md) | Agreed follow-up work |
 | [docs/test-results.md](docs/test-results.md) | Verification log per version |
 | [docs/research.md](docs/research.md) | Original research on SketchyPhysics and IngeTrazo |
+| [skills/ingetrazo-newton/SKILL.md](skills/ingetrazo-newton/SKILL.md) | Claude Code skill: modelling for Newton, grouping, performance, limits |
 | [AGENTS.md](AGENTS.md) | Development setup, tests and conventions |
 
 ## Licence
