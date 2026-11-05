@@ -14,9 +14,10 @@ Each entry states: what was found in the host, the proposal, what Newton could r
 
 - **Status:** idea
 - **Found:** 2026-11-05, start-time audit and guarding the temporary simulation
-- **Host today:** an extension can only move groups by changing `group.xform` and raising `scene.version`; the host then rebuilds its consolidated buffers (`_sync_edges`, 17–31 ms per frame). The host's groups preview moves all groups by one shared offset only.
+- **Host today:** an extension can only move groups by changing `group.xform` and raising `scene.version`; the host then rebuilds its consolidated buffers (`_sync_edges` in `views/viewport.py`, 17–31 ms per frame). The host's groups preview moves all groups by one shared offset only.
+- **Measured:** Newton's `Session.apply()` raises `scene.version` on every frame. The rebuild costs 31 ms per frame for the crank drive (121 bodies) and 17 ms for the CR10 model, against 0.2 ms for an unchanged frame; the display reaches only about 30 frames per second.
 - **Proposal:** `viewport.set_display_transforms({group: matrix})` (or similar), drawn without touching the scene, `scene.version` or the buffers; cleared with `None`.
-- **Newton:** could simulate on the document itself: no clone scene in `prepare()`, no shared meshes and their frame offsets (`SimulationScene.place`). Fixes "Every simulation frame rebuilds the viewport caches" in [known-issues.md](known-issues.md).
+- **Newton:** could simulate on the document itself: no clone scene in `prepare()`, no shared meshes and their frame offsets (`SimulationScene.place`), and no per-frame `scene.version` bump in `Session.apply()`, which removes the buffer rebuild from every frame. Fixes "Every simulation frame rebuilds the viewport caches" in [known-issues.md](known-issues.md).
 - **Others:** any animation, kinematics or exploded-view extension.
 
 ## Read-only document or workspace
