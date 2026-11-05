@@ -186,10 +186,16 @@ def test_clones_share_the_document_mesh_and_keep_its_world_placement():
     instance.xform.rotate(30,1,1,0)
     instance.xform.scale(1,-2,.5)
     hinged = box("hinged", (8,0,1), (2,.2,2), joint=dict(type="hinge",pivot=[7,0,1],axis=[0,0,1]))
-    scene, bodies, movers = specs([plain, instance, hinged])
-    for group in (plain, instance, hinged):
+    nested = Group(name="nested")
+    nested.adopt([box("leg", (0,4,0), (1,1,1)), box("leg", (2,4,0), (1,1,1))])
+    nested.children[1].xform.rotate(45,0,0,1)
+    nested.xform.translate(0,0,5)
+    nested.ext = {KEY: dict(mode="dynamic", shape="compound", mass=1)}
+    scene, bodies, movers = specs([plain, instance, hinged, nested])
+    for group in (plain, instance, hinged, nested):
         clone = movers[group.uid]
         assert clone.mesh is group.mesh
+        assert all(a is b for a, b in zip(clone.children, group.children))
         placed = [x for v in world_mesh(clone).vertices for x in v.position.toTuple()]
         source = [x for v in world_mesh(group).vertices for x in v.position.toTuple()]
         assert placed == pytest.approx(source, abs=1e-5)

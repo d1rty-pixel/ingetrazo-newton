@@ -52,8 +52,9 @@ def mesh_marks(scene):
 
 def pending_redraws(scene):
     """Render flags the document view has not consumed yet; drawing a clone clears them on the shared mesh."""
+    from core.purge import iter_groups
     defaults = {"_chunk_dirty": True, "_attrs_dirty": False}  # As the host's renderer reads them.
-    return [(g.mesh, flag) for g in scene.groups for flag, default in defaults.items() if getattr(g.mesh, flag, default)]
+    return [(g.mesh, flag) for g in iter_groups(scene.groups) for flag, default in defaults.items() if getattr(g.mesh, flag, default)]
 
 
 def changed_meshes(marks):
