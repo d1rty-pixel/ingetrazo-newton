@@ -8,6 +8,7 @@ from . import help_texts as help
 from .icons import icon,pixmap
 from .reference_table import ReferenceTable
 from .toolbar import pictogram_check
+from .units import signature as units_signature, SPAN_METRES
 
 MAX_BODY_ROWS = 6
 KEEP_KEY = "newton/keep_warnings_on_reset"
@@ -18,9 +19,13 @@ def keep_on_reset():
 
 
 def display_units(joint):
+    """Scale of the target and the actual value; the suffix has no leading space."""
+    from dataclasses import replace
+    from . import units
+    velocity = joint["drive"] == "velocity"
     if joint["type"] == "hinge":
-        return 180/math.pi, "°" if joint["drive"] != "velocity" else "°/s"
-    return 1000, "mm" if joint["drive"] != "velocity" else "mm/s"
+        return replace(units.ANGLE_RATE if velocity else units.ANGLE,decimals=1)
+    return units.speed() if velocity else units.length()
 
 
 class Controls(QDialog):
@@ -76,7 +81,7 @@ class Controls(QDialog):
 
     def refresh(self, joints, active):
         joints = [j for j in joints if j["drive"]!="free" and not j.get("coupling")]
-        signature = (repr(joints), active)
+        signature = (repr(joints), active, units_signature())
         if signature != self.signature:
             self.signature = signature
             widget = QWidget()
@@ -94,14 +99,15 @@ class Controls(QDialog):
                 actual = QLabel(tr("Actual: —"))
                 actual.setTextFormat(Qt.PlainText)
                 actual.setAlignment(Qt.AlignLeft|Qt.AlignVCenter)
-                factor, unit = display_units(joint)
+                shown = display_units(joint)
+                factor = shown.factor
                 mapping = (joint.get("display") or {})
                 scale,offset = mapping.get("scale",1),mapping.get("offset",0)
                 if joint["drive"] != "free":
                     if joint["drive"] == "position":
                         low, high = joint["lower"]*factor, joint["upper"]*factor
                         if not joint["limited"]:
-                            low, high = (-180,180) if joint["type"] == "hinge" else (-1000,1000)
+                            low, high = (-180,180) if joint["type"] == "hinge" else (-shown.show(SPAN_METRES),shown.show(SPAN_METRES))
                     else:
                         extent = joint["max_speed"]*factor
                         low, high = -extent, extent
@@ -110,8 +116,8 @@ class Controls(QDialog):
                     row.setSpacing(10)
                     value = QDoubleSpinBox()
                     value.setRange(low, high)
-                    value.setDecimals(1)
-                    value.setSuffix(" " + unit)
+                    value.setDecimals(shown.decimals)
+                    value.setSuffix(shown.suffix)
                     target = (self.panel.session.targets.get(joint["uid"], joint["target"])*scale+offset)*factor
                     value.setValue(target)
                     from .range_control import RangeControl
@@ -128,7 +134,7 @@ class Controls(QDialog):
                     gl.addLayout(row)
                     slider.setEnabled(active)
                     value.setEnabled(active)
-                self.rows[joint["uid"]] = (actual, joint, factor)
+                self.rows[joint["uid"]] = (actual, joint, shown)
                 layout.addWidget(group)
             layout.addStretch()
             old = self.scroll.takeWidget()
@@ -212,14 +218,16 @@ class Controls(QDialog):
     def telemetry(self, data):
         for uid, state in data.items():
             if uid in self.rows:
-                label, joint, factor = self.rows[uid]
+                label, joint, shown = self.rows[uid]
+                factor = shown.factor
+                digits = shown.decimals
                 value = state["velocity"] if joint["drive"] == "velocity" else state["position"]
                 mapping = (joint.get("display") or {})
                 value = value*mapping.get("scale",1)+mapping.get("offset",0)
-                label.setText(tr("Actual: {value:.1f} {unit}",value=value*factor,unit=display_units(joint)[1]))
+                label.setText(tr("Actual: {value} {unit}",value=f"{value*factor:.{digits}f}",unit=shown.unit))
                 target = (state.get("target",joint["target"])*mapping.get("scale",1)+mapping.get("offset",0))*factor
                 command = (state.get("command",state.get("target",joint["target"]))*mapping.get("scale",1)+mapping.get("offset",0))*factor
-                label.setToolTip(tr("Target: {target:.1f} · Ramp: {command:.1f} · Load: {load:.0f}%",target=target,command=command,load=state.get("load",0)*100))
+                label.setToolTip(tr("Target: {target} · Ramp: {command} · Load: {load:.0f}%",target=f"{target:.{digits}f}",command=f"{command:.{digits}f}",load=state.get("load",0)*100))
                 label.setStyleSheet("color: #e79b38" if state.get("at_limit") else "")
                 if state.get("at_limit"):label.setText(label.text()+" · "+tr("At limit"))
         self.align_values()

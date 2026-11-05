@@ -12,3 +12,12 @@ def seed_demo(panel,kind):
         panel.app.viewport.camera.fit_to(lo,hi)
     panel.refresh()
     return groups
+
+
+def set_units(panel,unit):
+    """Window -> Units, as the host's preferences dialog applies it."""
+    from core import units
+    scene = panel.app.scene
+    units.apply_units(scene,{"length":unit,"precision":2})
+    scene.version += 1
+    panel.app.viewport.notify_scene_changed()

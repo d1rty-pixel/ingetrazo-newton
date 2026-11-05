@@ -1,6 +1,7 @@
 """Compact material editor; a selected grouped polyline supplies the path."""
 from PySide6.QtWidgets import QWidget,QFormLayout,QComboBox
 from .environment_ui import number
+from . import units
 from .model import settings,reference_id
 from .i18n import tr
 from .toolbar import decorate,physical_label
@@ -20,7 +21,7 @@ class FlexibleEditor(QWidget):
         self.fields = QWidget();detail = QFormLayout(self.fields);detail.setContentsMargins(0,0,0,0)
         # Long labels move above their field in a narrow sidebar instead of widening it.
         detail.setRowWrapPolicy(QFormLayout.WrapLongRows)
-        self.radius = number(.001,10,.015);self.radius.setSuffix(" m")
+        self.radius = number(.001,10,.015)
         self.bend,self.twist,self.damping = number(0,1e10,2e4),number(0,1e10,1e4),number(0,100,.002)
         for title,widget,art in (("Radius",self.radius,"radius"),("Bending modulus",self.bend,"bending"),
                                  ("Torsion modulus",self.twist,"torsion"),("Joint damping",self.damping,"joint_damping")):
@@ -46,7 +47,9 @@ class FlexibleEditor(QWidget):
             cfg = raw or {}
             self.kind.setCurrentIndex(self.kind.findData(cfg.get("kind","rigid")))
             self.fields.setVisible(bool(raw))
-            for widget,key,value in ((self.radius,"radius",.015),(self.bend,"bend",2e4),(self.twist,"twist",1e4),(self.damping,"damping",.002)):
+            scale = units.length();units.apply(self.radius,scale,scale.show(.001),scale.show(10))
+            units.show(self.radius,cfg.get("radius",.015))
+            for widget,key,value in ((self.bend,"bend",2e4),(self.twist,"twist",1e4),(self.damping,"damping",.002)):
                 widget.setValue(cfg.get(key,value))
             self.start.setCurrentIndex(self.start.findData(cfg.get("start","fixed")))
             self.end_uid = cfg.get("end_reference")
@@ -76,7 +79,7 @@ class FlexibleEditor(QWidget):
                         bend = 2e6 if self.kind.currentData()=="cable" else 2e4
                         self.bend.setValue(bend);self.twist.setValue(bend/2)
                     finally:self.updating = False
-                cfg = validate(dict(kind=self.kind.currentData(),points=points,radius=self.radius.value(),source=old.get("source","line" if not old else "mesh"),
+                cfg = validate(dict(kind=self.kind.currentData(),points=points,radius=units.stored(self.radius),source=old.get("source","line" if not old else "mesh"),
                     bend=self.bend.value(),twist=self.twist.value(),damping=self.damping.value(),
                     start=self.start.currentData(),end_reference=self.end_uid))
                 if settings(self.group).get("joint"):raise ValueError("Flexible bodies cannot also have a motion axis.")

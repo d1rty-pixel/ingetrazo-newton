@@ -130,6 +130,7 @@ def guide_geometry(panel,viewport,j,detail):
             label(at(actual),f"{math.degrees(actual):.1f}°","actual")
             if j["drive"]=="position": add(a,at(target),"target")
     else:
+        from core.units import fmt_len_fine
         # Positions are real model distances, not a scaled schematic.
         track = a+u*r*.7
         if detail and j["limited"]:
@@ -137,11 +138,11 @@ def guide_geometry(panel,viewport,j,detail):
             for distance,kind in ((j["lower"],"minimum"),(j["upper"],"maximum")):
                 p = track+d*distance
                 add(p-u*r*.25,p+u*r*.25,kind)
-                label(p,f"{distance*1000:.1f} mm",kind)
+                label(p,fmt_len_fine(distance),kind)
         p = track+d*actual
         add(p-u*r*.35,p+u*r*.35,"actual")
         if detail:
-            label(p,f"{actual*1000:.1f} mm","actual")
+            label(p,fmt_len_fine(actual),"actual")
             if j["drive"]=="position":
                 p = track+d*target
                 add(p-u*r*.3,p+u*r*.3,"target")

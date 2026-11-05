@@ -78,7 +78,7 @@ def test_translation_and_english_fallback_follow_host_language(qtapp):
         assert tr("Quality")=="Qualität"
         set_language("fr")
         assert tr("Newton profiles")=="Newton profiles"
-        assert tr("Actual: {value:.1f} {unit}",value=4,unit="mm")=="Actual: 4.0 mm"
+        assert tr("Actual: {value} {unit}",value="4.0",unit="mm")=="Actual: 4.0 mm"
     finally:
         set_language(old)
 

@@ -3,6 +3,7 @@ from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QWidget,QFormLayout,QHBoxLayout,QPushButton,QComboBox,QLabel,QCheckBox
 from views.fold_section import narrow
 from .environment_ui import number
+from . import units
 from .model import settings
 from .connections import KINDS,apply_connection,begin
 from .interaction import ReferencePickTool
@@ -25,7 +26,7 @@ class ConnectionEditor(QWidget):
         detail.setRowWrapPolicy(QFormLayout.WrapLongRows)
         self.point = [number(-1e9,1e9) for _ in range(3)];self.axis = [number(-1,1) for _ in range(3)]
         for axis,point in zip("XYZ",self.point):
-            point.setSuffix(" mm");detail.addRow(tr("Point {axis}",axis=axis),point)
+            detail.addRow(tr("Point {axis}",axis=axis),point)
         self.axis_fields = QWidget();axes = QHBoxLayout(self.axis_fields);axes.setContentsMargins(0,0,0,0)
         # Three fields side by side must shrink with the sidebar.
         narrow(*self.axis)
@@ -53,7 +54,8 @@ class ConnectionEditor(QWidget):
                 rows.append((value["target"],target,target.name if target else tr("Missing body"),""))
             self.target.set_rows(rows)
             if value:
-                for field,v in zip(self.point,value["point"]):field.setValue(v*1000)
+                scale = units.length()
+                for field,v in zip(self.point,value["point"]):units.apply(field,scale);field.setValue(scale.show(v))
                 for field,v in zip(self.axis,value.get("axis",[0,1,0])):field.setValue(v)
             self.detail.setRowVisible(self.axis_fields,self.kind.currentData()=="hinge")
             self.lock.setVisible(bool(value))
@@ -70,7 +72,7 @@ class ConnectionEditor(QWidget):
             value = dict(old)
             if key=="type":value["type"] = self.kind.currentData()
             else:
-                value[key] = list(old.get(key,[0,1,0]));value[key][index] = (self.point[index].value()/1000 if key=="point" else self.axis[index].value())
+                value[key] = list(old.get(key,[0,1,0]));value[key][index] = (units.length().si(self.point[index].value()) if key=="point" else self.axis[index].value())
             try:apply_connection(self.panel,self.group,value)
             except (ValueError,TypeError) as exc:self.panel.status_message(str(exc));self.refresh(self.group)
 
