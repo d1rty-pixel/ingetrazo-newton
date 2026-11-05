@@ -2328,3 +2328,24 @@ def test_check_runtime_sits_with_the_python_field_and_the_log_below_it(panel):
     check = [b for b in runtime.findChildren(QPushButton) if b.text() == "Check runtime"][0]
     assert check.parentWidget() is page.python.parentWidget()
     page.deleteLater()
+
+
+def test_axis_sidebar_rows_explain_themselves_on_label_and_input(panel):
+    select_demo_axis(panel)
+    joint,body = panel.joint_form,panel.body_form
+    generic = panel.editor.body.layout()
+    rows = [(generic,panel.mode),(generic,panel.reference_buttons[0]),(joint,panel.name_edit),(joint,panel.drive),
+            (joint,panel.ranges["lower"]),(joint,panel.ranges["upper"]),(joint,panel.ranges["target"]),
+            (joint,panel.max_speed),(joint,panel.acceleration),(joint,panel.deceleration_row),(joint,panel.force),
+            (body,panel.shape),(body,panel.mass),(body,panel.ranges["friction"]),(body,panel.ranges["bounce"])]
+    for form,field in rows:
+        assert field.toolTip(),field
+        assert form.labelForField(field).toolTip(),field
+    assert panel.lower.toolTip() and panel.target.toolTip() and panel.limited.toolTip()
+    assert panel.joint_box.toolTip()==""
+    for key,_,widget,_,_ in panel.environment.rows:
+        assert widget.toolTip(),key
+    for form in [i.layout() for i in map(panel.environment.layout().itemAt,range(3)) if i.layout()]:
+        for r in range(form.rowCount()):
+            label = form.itemAt(r,form.ItemRole.LabelRole)
+            if label:assert label.widget().toolTip()

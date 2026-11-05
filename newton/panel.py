@@ -141,7 +141,6 @@ class NewtonPanel(QWidget):
 
         self.joint_box = section(tr("Motion"),"motion")
         self.joint_form = form = QFormLayout(self.joint_box.body)
-        self.joint_box.setToolTip(tr(help.MOTION))
         form.setRowWrapPolicy(QFormLayout.WrapLongRows)
         self.kind_label = QLabel(tr("No axis"))
         form.addRow(self.kind_label)
@@ -250,6 +249,8 @@ class NewtonPanel(QWidget):
         self.environment = EnvironmentOverrides(self)
         form.addRow(self.environment)
         layout.addWidget(self.environment_section)
+        from . import tooltips
+        tooltips.apply(self)
         self.sections = (self.editor,self.profile_box,self.joint_box,self.coupling_section,self.connection_section,
             self.flexible_section,self.body_section,self.environment_section)
         # Only the closing stretch takes spare height: folded sections report vertical growth through their layout.
@@ -327,7 +328,7 @@ class NewtonPanel(QWidget):
         if link:
             name = (tr(p['name']) if p['builtin'] else p['name']) if p else tr('Missing profile')
             self.profile_status.setText(name+' · '+tr(status(groups[0],p)))
-            self.profile_sync.setToolTip(tr('Overwrite profile parameters; keep axis placement and reference bodies.'))
+            self.profile_sync.setToolTip(tr(help.TIP_PROFILE_SYNC))
 
     def sync_profile(self):
         groups = self.selected()

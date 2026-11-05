@@ -19,6 +19,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ### Changed
 
+- Sidebar texts: shorter section paragraphs and a hover text on every key row (labels and inputs) of Generic, Motion, Axis coupling, Mechanical connection, Flexible material, Body & contact and Simulation overrides. The Motion section tooltip is replaced by the Actuator tooltip.
 - *Simulation overrides* no longer has a switch: every setting is shown and editable, values equal to the global default are greyed (and inherited), a changed value is drawn normally, and a button beside each value resets it to the default.
 - *Preferences → Runtime*: *Check runtime* sits with the Python environment it checks and shows its result there, also in builds without automatic setup. *Remove runtime* is offered only for a runtime Newton created itself, refuses a symbolic link, and its confirmation names Newton's own folder and says when your current interpreter lies outside it.
 - The axis plates in the 3D view are lighter: the name stays bold, while minimum, maximum and actual position are drawn in a smaller regular weight.
