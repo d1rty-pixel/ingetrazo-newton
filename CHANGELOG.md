@@ -24,6 +24,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 ### Fixed
 
 - The default runtime lookup finds `.venv/bin/python` on Linux and macOS, not only `.venv/Scripts/python.exe` on Windows; one helper in `runtime_setup.py` serves both lookups.
+- Axis and connection objects follow their body when it is hidden or unhidden and when it is renamed (a renamed object is overwritten); both steps undo together with the body's change.
 - The "unknown collision shape" error has a translatable English text.
 - No horizontal scrollbar in the sidebar at a dock width of 260 px; the side margins are narrower to make room.
 - Render flags of the document's meshes that were still pending at Start are restored after Reset, so the model view does not keep old paint.

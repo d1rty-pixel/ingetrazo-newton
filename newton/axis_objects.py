@@ -70,6 +70,10 @@ def close(a,b):
     return all(abs(x-y)<=1e-5*max(1,abs(x),abs(y)) for x,y in zip(a,b))
 
 
+def marker_name(body,key):
+    return tr("Axis" if key==AXIS else "Connection")+" · "+body.name
+
+
 def build(body,key,value,size):
     """An axis is a rod with a small cross at the pivot; a connection draws the glyph of its type (see connections.glyph)."""
     mesh = Mesh()
@@ -81,7 +85,8 @@ def build(body,key,value,size):
         lines = [segment for line in glyph(value.get("type","ball")) for segment in zip(line,line[1:])]
     for a,b in lines:
         mesh.add_edge(m.map(QVector3D(*a)*size),m.map(QVector3D(*b)*size))
-    group = Group(mesh,tr("Axis" if key==AXIS else "Connection")+" · "+body.name)
+    group = Group(mesh,marker_name(body,key))
+    group.hidden = bool(body.hidden)
     group.layer = AXES_LAYER
     group.axes = m
     group.ext = {KEY:{"mode":"ignore",key:body.uid}}
@@ -153,6 +158,25 @@ class LockMarker(Command):
 
     def do(self,scene):self.apply(scene,self.locked)
     def undo(self,scene):self.apply(scene,self.before)
+
+
+class Appearance(Command):
+    """Name and visibility of an object follow its body."""
+    keeps_paint = True
+
+    def __init__(self,group,name,hidden):
+        self.group,self.state = group,(name,bool(hidden))
+
+    def swap(self,scene):
+        old = (self.group.name,bool(self.group.hidden))
+        self.group.name,self.group.hidden = self.state
+        if self.group.hidden:
+            scene.selection.discard(self.group)
+        self.state = old
+        scene.version += 1
+
+    def do(self,scene):self.swap(scene)
+    def undo(self,scene):self.swap(scene)
 
 
 class Reshape(Command):
@@ -229,6 +253,8 @@ def plan(scene,before=None,cmd=None,size=lambda g:.2):
                 else:
                     commands.append(AddMarker(build(body,key,value,size(body))))
                 continue
+            if (marker.name,bool(marker.hidden))!=(marker_name(body,key),bool(body.hidden)):
+                commands.append(Appearance(marker,marker_name(body,key),body.hidden))
             if key==CONNECTION and marker.ext[KEY].get("glyph")!=glyph_name(value):
                 commands.append(Reshape(marker,build(body,key,value,size(body))))
                 continue
