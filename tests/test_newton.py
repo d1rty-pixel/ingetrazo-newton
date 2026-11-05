@@ -370,3 +370,36 @@ def test_start_angle_makes_limits_and_targets_absolute(world):
     from newton.worker import joint_settings
     with pytest.raises(ValueError,match="initial position"):
         joint_settings(dict(door.ext[KEY]["joint"],lower=-1,upper=1))
+
+
+def hanging_chain(hardness):
+    # Eight 10 g links held level by stops at ±1.5°, like the upper run of a cable drag chain.
+    links,parent = [],None
+    for i in range(8):
+        link = box(f"Link {i}",(.015+.03*i,0,1),(.03,.02,.02),mass=.01,
+                   joint=dict(type="hinge",drive="free",pivot=[.03*i,0,1],axis=[0,-1,0],parent=parent,limited=True,
+                              lower=math.radians(-1.5),upper=math.radians(1.5),limit_hardness=hardness))
+        link.ext[KEY]["reference"] = parent
+        links.append(link);parent = link.uid
+    return links
+
+
+@pytest.mark.parametrize("hardness,limit",[(1.0,.5),(0.0,None)])
+def test_limit_hardness_holds_a_chain_of_light_links_at_its_stops(world,hardness,limit):
+    links = hanging_chain(hardness)
+    _,bodies,_ = specs(links)
+    world.load(dict(bodies=bodies,floor=False))
+    joints = advance(world,2)["joints"]
+    excess = max(abs(math.degrees(joints[g.uid]["position"]))-1.5 for g in links)
+    if limit is None:
+        assert excess>3  # MuJoCo's default softness: the reason the setting exists.
+    else:
+        assert excess<limit
+
+
+def test_limit_hardness_defaults_to_a_hard_stop_and_is_bounded():
+    from newton.worker import joint_settings
+    assert joint_settings(dict(pivot=[0,0,0],axis=[0,0,1]))["limit_hardness"]==1
+    for bad in (-.1,1.1,float("nan")):
+        with pytest.raises(ValueError):
+            joint_settings(dict(pivot=[0,0,0],axis=[0,0,1],limit_hardness=bad))

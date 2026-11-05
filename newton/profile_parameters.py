@@ -46,10 +46,13 @@ class ProfileParameters(QWidget):
         self.limited = pictogram_check(QCheckBox(tr("Use limits")),"limits");mf.addRow(self.limited);self.choices.append(self.limited)
         self.limited.toggled.connect(lambda v:self.edit("joint","limited",v))
         self.motion = {}
-        for key,title,low,art in (("lower","Minimum",-1e12,"limit_min"),("upper","Maximum",-1e12,"limit_max"),("target","Initial target",-1e12,"target"),
+        for key,title,low,art in (("lower","Minimum",-1e12,"limit_min"),("upper","Maximum",-1e12,"limit_max"),
+                              ("limit_hardness","Limit hardness",0,"limit_hardness"),("target","Initial target",-1e12,"target"),
                               ("max_speed","Speed",.000001,"speed"),("acceleration","Acceleration",.000001,"acceleration"),
                               ("deceleration","Deceleration",.000001,"deceleration"),("force","Max. force",0,"force")):
             self.motion[key] = numeric(mf,title,low,1e12,lambda v,k=key:self.edit("joint",k,v/self.factor(k)),art)
+        self.motion["limit_hardness"].setMaximum(100)
+        self.motion["limit_hardness"].setToolTip(tr(help.LIMIT_HARDNESS))
         self.sync = pictogram_check(QCheckBox(tr("Synchronize acceleration and deceleration")),"sync");mf.addRow(self.sync);self.choices.append(self.sync)
         self.sync.toggled.connect(lambda v:self.edit("joint","deceleration_sync",v))
         overrides = page("Simulation overrides",help.PROFILE_OVERRIDES)
@@ -71,7 +74,7 @@ class ProfileParameters(QWidget):
 
     def factor(self,key):
         joint = (self.profile or {}).get("joint") or {}
-        return 1 if key=="force" else 180/math.pi if joint.get("type")=="hinge" else 1000
+        return 1 if key=="force" else 100 if key=="limit_hardness" else 180/math.pi if joint.get("type")=="hinge" else 1000
 
     def defaults(self):
         linear,angular = global_damping()
@@ -99,7 +102,7 @@ class ProfileParameters(QWidget):
                 self.drive.setCurrentIndex(self.drive.findData(joint["drive"]));self.limited.setChecked(joint["limited"]);self.sync.setChecked(joint["deceleration_sync"])
                 angle = joint["type"]=="hinge"
                 for key,field in self.motion.items():
-                    unit = (" Nm" if angle else " N") if key=="force" else ("°" if angle else " mm")
+                    unit = (" Nm" if angle else " N") if key=="force" else " %" if key=="limit_hardness" else ("°" if angle else " mm")
                     if key=="max_speed" or (key=="target" and joint["drive"]=="velocity"):unit += "/s"
                     if key in ("acceleration","deceleration"):unit += "/s²"
                     field.setSuffix(unit);field.setValue(joint[key]*self.factor(key))

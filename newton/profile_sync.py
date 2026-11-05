@@ -10,7 +10,11 @@ from .worker import joint_settings,resolve_couplings
 
 def fingerprint(profile):
     p = profiles.validate(profile)
-    payload = json.dumps([p['body'],p['joint']],sort_keys=True,allow_nan=False)
+    joint = p['joint']
+    if joint and joint['limit_hardness']==1:
+        # Signatures stored before the setting existed stay valid for the default.
+        joint = {k:v for k,v in joint.items() if k!='limit_hardness'}
+    payload = json.dumps([p['body'],joint],sort_keys=True,allow_nan=False)
     return hashlib.sha256(payload.encode()).hexdigest()
 
 

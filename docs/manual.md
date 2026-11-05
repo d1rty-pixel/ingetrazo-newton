@@ -28,11 +28,14 @@ Such relations are also outlined in the model: when a body is selected, the bodi
 | Position / distance | Move to a linear target in millimetres and hold it |
 | Motor / speed | Rotation speed in °/s or feed in mm/s |
 | Minimum / Maximum | Optional angle or distance limits |
+| Limit hardness | How firmly the limits hold, 0–100 % |
 | Start target | Stored control value when the simulation starts |
 | Speed | Maximum speed of the actuator's setpoint profile |
 | Acceleration | Acceleration limit of the actuator's setpoint profile |
 | Deceleration | Separate limit for braking and direction changes; the chain switch synchronises it with the acceleration |
 | Maximum force | Limit in Nm or N |
+
+**Limit hardness** sets how firmly the limits hold. At 100 %, the default, they act as hard stops; even in a long chain of light links, such as a cable drag chain, a limit gives way by only a few tenths of a degree. Lower values let the limits yield under load like a rubber buffer; 0 % is MuJoCo's default softness, with which such a chain can bend through its stops by tens of degrees. The value is stored per axis and in profiles and has no effect without limits. Models saved before the setting existed use 100 %, so their limits now hold harder than before. Internally the value sets the limit's `solreflimit` and `solimplimit`: at 0 % MuJoCo's defaults (time constant 0.02 s, impedance 0.9–0.95), at 100 % twice the time step (1/120 s) and impedance 0.99–0.999.
 
 The model position at setup corresponds to 0° or 0 mm. A limit range in use must contain this initial position. Body values and local overrides are in the sections **Body & contact** and **Simulation overrides**; global simulation and runtime selection are in the extension preferences.
 
@@ -42,7 +45,7 @@ With a multi-selection, body values and movable/fixed can be changed together. A
 
 The **Generic** section is at the top of the sidebar. The selected group or component name appears in the heading after **Newton properties**. On start the previously shown configuration stays visible and is disabled; the sections can still be opened and closed, and the sidebar can still be scrolled. Start/pause and reset are in the toolbar and the control panel. Hints for placing and editing appear for a few seconds in IngeTrazo's status bar, messages of the running simulation in the control panel. Without a selection the sidebar stays empty as before.
 
-Angle limits, position/target values and the bounded body and environment values friction, bounce and gravity have wide sliders with a compact number field. For a bounded position drive the slider range is exactly minimum and maximum, for a speed drive ±maximum speed. This also applies to linear axes in millimetres. The ranges adapt immediately when the limits change. Exact input remains possible; angles beyond a full turn are supported. A drag changes the model live and stays one undo step. Scrolling over these sliders does not change values by accident.
+Angle limits, limit hardness, position/target values and the bounded body and environment values friction, bounce and gravity have wide sliders with a compact number field. For a bounded position drive the slider range is exactly minimum and maximum, for a speed drive ±maximum speed. This also applies to linear axes in millimetres. The ranges adapt immediately when the limits change. Exact input remains possible; angles beyond a full turn are supported. A drag changes the model live and stays one undo step. Scrolling over these sliders does not change values by accident.
 
 ## Placing and editing axes
 

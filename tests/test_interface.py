@@ -1257,6 +1257,24 @@ def test_sidebar_position_slider_uses_linear_limits_and_one_undo_per_drag(panel)
     assert control.a==-100 and panel.target.minimum()==-100
 
 
+def test_sidebar_limit_hardness_slider_is_one_undo_step_and_follows_the_limits_switch(panel):
+    group = select_demo_axis(panel)
+    assert panel.hardness.value()==100 and "limit_hardness" not in group.ext[KEY]["joint"]
+    control = panel.ranges["limit_hardness"]
+    hist = panel.app.viewport.history
+    before = len(hist.undo_stack)
+    control.slider.sliderPressed.emit()
+    control.slider.setValue(5000)
+    control.slider.setValue(2500)
+    control.slider.sliderReleased.emit()
+    assert group.ext[KEY]["joint"]["limit_hardness"]==pytest.approx(.25)
+    assert len(hist.undo_stack)==before+1
+    hist.undo();panel.app.viewport.notify_scene_changed()
+    assert panel.hardness.value()==100
+    panel.limited.setChecked(False)
+    assert not control.slider.isEnabled() and not panel.hardness.isEnabled()
+
+
 def test_sidebar_angle_slider_keeps_precise_multi_turn_input_and_passive_state(panel):
     group = select_demo_axis(panel)
     panel.upper.setValue(360)

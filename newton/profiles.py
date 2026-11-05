@@ -8,7 +8,7 @@ from .model import DEFAULTS,settings
 from .worker import joint_settings,environment_override
 
 STORE = "newton/profiles_v1"
-JOINT_KEYS = ("type","drive","limited","lower","upper","target","max_speed","acceleration","deceleration","deceleration_sync","force")
+JOINT_KEYS = ("type","drive","limited","lower","upper","limit_hardness","target","max_speed","acceleration","deceleration","deceleration_sync","force")
 
 
 def builtins():

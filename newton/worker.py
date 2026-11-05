@@ -21,6 +21,16 @@ def numbers(values):
     return " ".join(str(float(v)) for v in values)
 
 
+def limit_solver(hardness):
+    """MuJoCo solref/solimp of a joint limit: 0 is MuJoCo's default softness, 1 a hard stop.
+
+    The soft default gives way by tens of degrees in chains of light links, because the load of the whole chain acts
+    on each small link. 2*DT is the stiffest time constant MuJoCo accepts without clamping it."""
+    h = float(hardness)
+    timeconst = .02+(2*DT-.02)*h
+    return numbers([timeconst,1]),numbers([.9+.09*h,.95+.049*h,.001,.5,2])
+
+
 def attachment_settings(raw):
     if not isinstance(raw,dict) or not isinstance(raw.get("target"),str) or not raw["target"]:
         raise ValueError("Invalid mechanical connection.")
@@ -72,6 +82,7 @@ def joint_settings(raw):
     j.setdefault("limited", j["type"] == "slide" or j["drive"] == "position")
     j.setdefault("lower", -math.pi/2 if j["type"] == "hinge" else -.5)
     j.setdefault("upper", math.pi/2 if j["type"] == "hinge" else .5)
+    j.setdefault("limit_hardness", 1.0)
     j.setdefault("max_speed", max(abs(float(j["target"])) if j["drive"] == "velocity" else 0,
                                   math.pi if j["type"] == "hinge" else 1))
     j.setdefault("acceleration", 2*math.pi if j["type"] == "hinge" else 2)
@@ -89,12 +100,14 @@ def joint_settings(raw):
     if length < 1e-9:
         raise ValueError("The joint axis must not be zero.")
     j["axis"] = [v/length for v in j["axis"]]
-    for key in ("target", "force", "lower", "upper", "max_speed", "acceleration","deceleration","start"):
+    for key in ("target", "force", "lower", "upper", "limit_hardness", "max_speed", "acceleration","deceleration","start"):
         j[key] = float(j[key])
         if not math.isfinite(j[key]):
             raise ValueError("Invalid joint parameter.")
     if j["force"] < 0 or (j["limited"] and not j["lower"] < j["upper"]):
         raise ValueError("Invalid joint limits or force.")
+    if not 0 <= j["limit_hardness"] <= 1:
+        raise ValueError("Limit hardness must be between 0 and 100 %.")
     if j["max_speed"] <= 0 or j["acceleration"] <= 0 or j["deceleration"]<=0:
         raise ValueError("Speed and acceleration must be positive.")
     if j["limited"] and not j["lower"] <= j["start"] <= j["upper"]:
@@ -273,6 +286,7 @@ class World:
                             limited="true" if joint["limited"] else "false")
                 if joint["limited"]:
                     args["range"] = numbers([joint["lower"], joint["upper"]])
+                    args["solreflimit"],args["solimplimit"] = limit_solver(joint["limit_hardness"])
                 if joint["start"]:
                     args["ref"] = numbers([joint["start"]])
                 ET.SubElement(body, "joint", **args)

@@ -81,3 +81,21 @@ def test_translation_and_english_fallback_follow_host_language(qtapp):
         assert tr("Actual: {value:.1f} {unit}",value=4,unit="mm")=="Actual: 4.0 mm"
     finally:
         set_language(old)
+
+
+def test_limit_hardness_is_a_profile_value_and_keeps_older_signatures_valid(profile_store):
+    import hashlib
+    from newton.profile_sync import fingerprint,status
+    g = box("Soft stop",(0,0,1),(1,1,1),joint=dict(type="hinge",drive="free",pivot=[0,0,1],axis=[0,0,1],
+            limited=True,lower=-1,upper=1,limit_hardness=.3))
+    p = profiles.save_custom(profiles.from_group(g,"Soft stop"))
+    assert profiles.custom_profiles()[0]["joint"]["limit_hardness"]==.3
+    # A signature stored before the setting existed, for a profile at the default hardness.
+    hard = profiles.validate(dict(p,joint=dict(p["joint"],limit_hardness=1)))
+    older = hashlib.sha256(json.dumps([hard["body"],{k:v for k,v in hard["joint"].items() if k!="limit_hardness"}],
+                                      sort_keys=True).encode()).hexdigest()
+    assert fingerprint(hard)==older
+    assert fingerprint(p)!=fingerprint(hard)
+    g.ext[KEY]["joint"]["limit_hardness"] = 1
+    g.ext[KEY]["profile_link"] = dict(id=hard["id"],signature=older)
+    assert status(g,hard)=="In sync"

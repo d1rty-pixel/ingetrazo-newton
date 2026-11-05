@@ -153,6 +153,9 @@ class NewtonPanel(QWidget):
         self.limited = pictogram_check(QCheckBox(tr("Use limits")),"limits")
         form.addRow(self.limited)
         self.lower,self.upper = spin(-1e6,0,-90),spin(0,1e6,90)
+        self.hardness = spin(0,100,100)
+        self.hardness.setDecimals(0)
+        self.hardness.setSuffix(" %")
         self.target = spin(-1e6,1e6,0)
         self.max_speed,self.acceleration = spin(.01,1e6,180),spin(.01,1e6,360)
         self.deceleration = spin(.01,1e6,360)
@@ -168,6 +171,10 @@ class NewtonPanel(QWidget):
         self.force = spin(0,1e6,100)
         form.addRow(physical_label(tr("Minimum"),"limit_min"),self.range_field("lower",self.lower,-180,0))
         form.addRow(physical_label(tr("Maximum"),"limit_max"),self.range_field("upper",self.upper,0,180))
+        hardness = physical_label(tr("Limit hardness"),"limit_hardness")
+        form.addRow(hardness,self.range_field("limit_hardness",self.hardness,0,100))
+        for widget in (hardness,self.ranges["limit_hardness"]):
+            widget.setToolTip(tr(help.LIMIT_HARDNESS))
         form.addRow(physical_label(tr("Initial target"),"target"),self.range_field("target",self.target,-180,180))
         form.addRow(physical_label(tr("Speed"),"speed"),self.max_speed)
         form.addRow(physical_label(tr("Acceleration"),"acceleration"),self.acceleration)
@@ -258,7 +265,7 @@ class NewtonPanel(QWidget):
         self.name_edit.editingFinished.connect(lambda:self.live_joint("name",self.name_edit.text()))
         self.drive.currentIndexChanged.connect(lambda:self.live_joint("drive",self.drive.currentData()))
         self.limited.toggled.connect(lambda value:self.live_joint("limited",value))
-        for widget,key in ((self.lower,"lower"),(self.upper,"upper"),(self.target,"target"),
+        for widget,key in ((self.lower,"lower"),(self.upper,"upper"),(self.hardness,"limit_hardness"),(self.target,"target"),
                            (self.max_speed,"max_speed"),(self.acceleration,"acceleration"),(self.deceleration,"deceleration"),(self.force,"force")):
             widget.valueChanged.connect(lambda value,k=key:self.live_joint(k,value))
         self.deceleration_sync.toggled.connect(lambda value:self.live_joint("deceleration_sync",value))
@@ -479,7 +486,7 @@ class NewtonPanel(QWidget):
             w.setEnabled(driven)
         self.deceleration.setEnabled(driven and not self.deceleration_sync.isChecked())
         self.deceleration_sync.setEnabled(driven)
-        for w in (self.lower,self.upper):
+        for w in (self.lower,self.upper,self.hardness):
             w.setEnabled(self.limited.isChecked())
         if driven and j and j.get("drive","free")=="free" and j.get("force",0)<=0:
             previous = self.force.blockSignals(True)
@@ -504,6 +511,8 @@ class NewtonPanel(QWidget):
         changed = dict(original)
         if key in ("lower","upper","target","max_speed","acceleration","deceleration"):
             value *= math.pi/180 if changed["type"]=="hinge" else .001
+        if key=="limit_hardness":
+            value /= 100
         if key=="name":
             value = value.strip() or groups[0].name
         changed[key] = value
@@ -686,6 +695,7 @@ class NewtonPanel(QWidget):
                           (self.max_speed,"max_speed"),(self.acceleration,"acceleration"),(self.deceleration,"deceleration")):
                 w.setValue(j[key]*factor)
             self.deceleration_sync.setChecked(j["deceleration_sync"])
+            self.hardness.setValue(j["limit_hardness"]*100)
             self.force.setValue(j["force"])
             self.update_units()
             self.drive.setEnabled(not j.get("coupling"))
@@ -733,6 +743,7 @@ class NewtonPanel(QWidget):
         factor = math.pi/180 if j["type"]=="hinge" else .001
         j.update(name=self.name_edit.text().strip() or groups[0].name,drive=self.drive.currentData(),
             limited=self.limited.isChecked(),lower=self.lower.value()*factor,upper=self.upper.value()*factor,
+            limit_hardness=self.hardness.value()/100,
             target=self.target.value()*factor,max_speed=self.max_speed.value()*factor,
             acceleration=self.acceleration.value()*factor,deceleration=self.deceleration.value()*factor,
             deceleration_sync=self.deceleration_sync.isChecked(),force=self.force.value())
