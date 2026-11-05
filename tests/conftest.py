@@ -1,3 +1,4 @@
+import locale
 import os
 import sys
 from pathlib import Path
@@ -20,6 +21,12 @@ def qtapp():
     QSettings.setDefaultFormat(QSettings.IniFormat)
     QSettings.setPath(QSettings.IniFormat, QSettings.UserScope, str(ROOT / ".test-state"))
     return app
+
+
+@pytest.fixture(autouse=True)
+def c_numeric_locale():
+    # QApplication adopts the system's LC_NUMERIC; MuJoCo's cable plugin then cannot parse "0.5" in a comma locale.
+    locale.setlocale(locale.LC_NUMERIC, "C")
 
 
 @pytest.fixture(autouse=True)
