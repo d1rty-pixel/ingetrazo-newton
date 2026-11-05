@@ -325,7 +325,7 @@ class World:
                                   vertex=" ".join(numbers(v) for v in verts))
                     args.update(type="mesh", mesh=f"mesh_{name}")
             else:
-                raise ValueError(f"Unbekannte Collision shape: {kind}")
+                raise ValueError("Unknown collision shape.")
             ET.SubElement(body, "geom", **args)
             self.bodies[uid] = name
         # Directly connected bodies often meet/overlap at the bearing. Their

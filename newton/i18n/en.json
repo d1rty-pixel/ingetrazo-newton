@@ -336,6 +336,7 @@
   "Torsion modulus": "Torsion modulus",
   "Type": "Type",
   "Unknown Newton error.": "Unknown Newton error.",
+  "Unknown collision shape.": "Unknown collision shape.",
   "Unknown joint type or actuator.": "Unknown joint type or actuator.",
   "Unknown simulation quality.": "Unknown simulation quality.",
   "Unlink": "Unlink",
