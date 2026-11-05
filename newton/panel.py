@@ -141,7 +141,22 @@ class NewtonPanel(QWidget):
         self.reference_buttons = (pick,self.reference_table)
 
         self.joint_box = section(tr("Motion"),"motion")
-        self.joint_form = form = QFormLayout(self.joint_box.body)
+        # The wrapped note sits above the form: word-wrapped labels get too little height inside a QFormLayout.
+        joint_outer = QVBoxLayout(self.joint_box.body)
+        self.managed_note = QWidget()
+        note_layout = QVBoxLayout(self.managed_note);note_layout.setContentsMargins(0,0,0,0)
+        self.managed_label = QLabel();self.managed_label.setWordWrap(True);self.managed_label.setTextFormat(Qt.PlainText)
+        self.managed_button = QPushButton(icon("controls"),tr("Edit virtual control…"))
+        self.managed_button.setToolTip(tr(help.MANAGED_BY_VIRTUAL_CONTROL))
+        self.managed_control = None
+        self.managed_button.clicked.connect(lambda:self.edit_virtual_controls(self.managed_control))
+        note_layout.addWidget(self.managed_label);note_layout.addWidget(self.managed_button)
+        self.managed_note.hide()
+        joint_outer.addWidget(self.managed_note)
+        joint_fields = QWidget()
+        joint_outer.addWidget(joint_fields)
+        self.joint_form = form = QFormLayout(joint_fields)
+        form.setContentsMargins(0,0,0,0)
         form.setRowWrapPolicy(QFormLayout.WrapLongRows)
         self.kind_label = QLabel(tr("No axis"))
         form.addRow(self.kind_label)
@@ -683,6 +698,7 @@ class NewtonPanel(QWidget):
             tuple((g.uid,g.name,repr((g.ext or {}).get(KEY)),bool(getattr(g,"locked",False))) for g in self.app.scene.groups))
         if signature==self.selection_signature:
             self.controls.refresh(self.control_rows,False)
+            self.refresh_managed(groups)
             return
         self.selection_signature = signature
         self.control_rows = joint_rows(self.app.scene)
@@ -692,6 +708,7 @@ class NewtonPanel(QWidget):
         self.reference_names = {g.uid:g.name for g in self.app.scene.groups}
         self.gizmo_sizes = {g.uid:gizmo_size(g) for g in self.app.scene.groups if settings(g).get("joint")}
         self.controls.refresh(self.control_rows,False)
+        self.refresh_managed(groups)
         browser = getattr(self.app.window,"project_browser",None)
         if browser is not None:
             browser.outliner.refresh()
@@ -960,6 +977,14 @@ class NewtonPanel(QWidget):
             return resolve(stored(self.app.document_data()),joint_rows(self.app.scene))
         except ValueError:
             return []  # Start reports the problem; the panel still shows the joints.
+
+    def refresh_managed(self,groups):
+        from .virtual_controls import managed
+        control = managed(self.virtual_controls()).get(groups[0].uid) if len(groups)==1 else None
+        self.managed_control = control["id"] if control else None
+        self.managed_note.setVisible(control is not None)
+        if control:
+            self.managed_label.setText(tr("Managed by virtual control “{name}”. Its states set this axis's target.",name=control["name"]))
 
     def edit_virtual_controls(self,select):
         """Open the row of a virtual control for editing in the control panel."""
