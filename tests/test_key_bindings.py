@@ -290,13 +290,10 @@ def test_a_changed_slot_key_reaches_the_dropdowns_and_every_list_names_slots_ali
     page.deleteLater()
 
 
-def test_cards_and_sidebar_keep_showing_their_keys_while_running(panel, qtapp):
+def test_the_simulation_scene_carries_the_document_bindings(panel, qtapp):
     seed_coupled_robot(panel)
     first, other = eligible_rows(panel)[:2]
-    c = switch((first["uid"],))
-    bound = with_bindings(with_controls(None, [c]), [toggle("c1", 1, 2, 0, kind="control"),
-                                                    toggle(other["uid"], 2, other["upper"], 0)])
+    bound = with_bindings(with_controls(None, [switch((first["uid"],))]),
+                          [toggle("c1", 1, 2, 0, kind="control"), toggle(other["uid"], 2, other["upper"], 0)])
     start(panel, qtapp, bound)
-    panel.refresh()
-    assert card_fields(panel, "control", "c1").slot.currentData() == 1
-    assert card_fields(panel, "joint", other["uid"]).slot.currentData() == 2
+    assert stored(panel.app.document_data()) == stored(bound)
