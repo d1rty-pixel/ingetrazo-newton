@@ -4,6 +4,7 @@ from PySide6.QtCore import Qt,QPoint,QSettings
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QLabel, QScrollArea,
     QWidget, QGroupBox, QHBoxLayout, QDoubleSpinBox,QPushButton,QCheckBox,QButtonGroup)
 from .i18n import tr
+from . import keep_pose
 from . import help_texts as help
 from .icons import icon,pixmap
 from .reference_table import ReferenceTable
@@ -66,6 +67,11 @@ class Controls(QDialog):
         self.keep.toggled.connect(lambda on:QSettings().setValue(KEEP_KEY,on))
         row.addWidget(self.keep,1)
         self.layout.addLayout(row)
+        self.keep_pose = pictogram_check(QCheckBox(tr("Keep the pose on reset")),"keep_pose")
+        self.keep_pose.setToolTip(tr(help.KEEP_POSE))
+        self.keep_pose.setChecked(keep_pose.enabled())
+        self.keep_pose.toggled.connect(lambda on:QSettings().setValue(keep_pose.SETTING,on))
+        self.layout.addWidget(self.keep_pose)
         self.time_label = QLabel()
         self.edit_button = QPushButton(tr("Virtual controls…"))
         self.edit_button.setToolTip(tr(help.VIRTUAL_CONTROLS))

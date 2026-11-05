@@ -9,6 +9,7 @@ from pathlib import Path
 from PySide6.QtCore import QObject, QProcess, QTimer, Signal
 from PySide6.QtGui import QMatrix4x4, QQuaternion
 from core.history import History
+from . import keep_pose
 from .worker import joint_settings
 
 
@@ -93,7 +94,7 @@ class Workspace:
         return True
 
     def new(self):
-        self.session.reset()
+        self.session.reset(keep=False)
 
     def left(self):
         self.session.stop_worker()
@@ -369,14 +370,31 @@ class Session(QObject):
             self.metrics.emit(dict(self.performance,paused=not self.running))
             self.changed.emit()
 
-    def reset(self):
+    def reset(self, *_, keep=True):
+        """Back to the model; with the keep-pose setting on, the simulated pose becomes the model's."""
+        moved = None
         if self.workspace:
+            if keep and keep_pose.enabled() and self.ready:
+                moved = keep_pose.deltas(self)
             if self.app.workspace() is self.workspace:
                 self.app.leave_workspace()
             else:
                 self.stop_worker()
                 self.workspace = None
         self.changed.emit()
+        if moved:
+            self.write_pose(moved)
+
+    def write_pose(self, moved):
+        # After changed: the panel then says "The simulation was reset and the original model is restored.", which must not hide this.
+        try:
+            cmd = keep_pose.command(self.app.scene, moved)
+            if cmd is not None:
+                self.app.viewport.history.execute(cmd)
+        except ValueError as exc:
+            self.message.emit(tr("The pose was not kept: {reason} The original model is restored.", reason=exc), "warning")
+            return
+        self.message.emit(tr("The simulated pose was written into the model. Undo restores the original pose."), "info")
 
     def stop_worker(self):
         self.timer.stop()
@@ -407,5 +425,5 @@ class Session(QObject):
                 self.app.viewport.set_active_tool(tool)
 
     def fail(self, text):
-        self.reset()
+        self.reset(keep=False)
         self.message.emit(text,"error")
