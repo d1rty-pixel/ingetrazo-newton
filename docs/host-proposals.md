@@ -121,3 +121,21 @@ Each entry states: what was found in the host, the proposal, what Newton could r
 - **Proposal:** check `history.last_rejected` after `execute`; return it as an error (or a separate `rejected` field) with `changed: False`, and let the MCP bridge print it.
 - **Newton:** the simulation's `ReadOnlyHistory` (`newton/session.py`) refuses every command on purpose, so a script or AI tool cannot change the model during a simulation. With this, the caller learns why nothing happened instead of seeing a silent success.
 - **Others:** any workspace or extension that refuses commands, and every user of the Python console.
+
+## Press and release for shortcut actions
+
+- **Status:** idea
+- **Found:** 2026-11-05, designing key bindings for Newton's controls
+- **Host today:** keyboard shortcuts are `QAction` shortcuts, managed by the shortcut page (`views/shortcuts.py`: stored per action under `shortcuts/<key>`, clashes resolved by `assign`, reapplied after `load_extensions` in `views/main_window.py`, line 2986). A `QAction` reports only `triggered` on the press (repeated while the key is held); nothing reports the release. Tools get raw key events only through the viewport (`views/viewport.py`, around line 18126).
+- **Proposal:** let an action opt in to hold semantics, for example a host signal `pressed(action)` / `released(action)` for actions with a flag such as `action.setProperty("ingetrazo_hold", True)`, fired once per press (no auto-repeat) and once on release, also when the window loses focus while the key is held.
+- **Newton:** enables the trigger mode *momentary* (a control holds its key value while the key is down) without an application-wide key event filter beside the host's shortcut handling ([backlog.md](backlog.md), "Virtual controls and key bindings", item 3).
+- **Others:** any extension or tool with hold-to-act keys (temporary views, push-to-talk style modifiers, jog controls).
+
+## Shortcut page that follows added and removed actions
+
+- **Status:** idea
+- **Found:** 2026-11-05, Newton key slots
+- **Host today:** `ShortcutsPanel` (`views/shortcuts.py`, line 387) collects the window's actions once, when the preferences dialog is built, and `assign` checks clashes only against that list. An action an extension adds or removes while the dialog is open is missing from the list and from the clash check, so two actions can end up on one key (Qt then fires neither).
+- **Proposal:** a public `ShortcutsPanel.reload()`, or let the page re-collect the actions whenever it is shown and before every `assign`.
+- **Newton:** removes `refresh_shortcut_page` (`newton/preferences.py`), which writes `PreferencesDialog._shortcuts._actions` and calls `_fill()`.
+- **Others:** any extension whose commands change at runtime.

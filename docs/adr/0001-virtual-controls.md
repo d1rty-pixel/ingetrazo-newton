@@ -83,3 +83,17 @@ These are decided now so that the first step does not block them:
 ## Addendum 2026-11-05: switches that move their axes one after another
 
 A switch can set `"sequential": true` (editor: *Move the axes one after another*). The session then sets the first axis's target and each next one when the previous axis's ramp has reached its target (the worker's `command` equals its `target`), in the order of `joints`. The ramp, not the measured position, decides, so no settling tolerance is needed. Switching again drops the rest of the old order; the initial state at Start applies at once. The worker protocol stays unchanged. Sliders ignore the option. Arriving together (stretching the faster axes' ramps) was discussed as a third mode and is not built; it would need a per-axis ramp factor in the worker protocol.
+
+## Addendum 2026-11-05: key bindings design
+
+Refines the "Key bindings" boundary above before it is built. Where it differs, this addendum replaces it.
+
+- **Slots are host shortcut actions.** Each slot is a `QAction` on the main window (object name `newton_key_slot_<n>`, text "Newton: Key <n>"). The user assigns its key in IngeTrazo's own keyboard shortcut settings, which already store the keys per action, refuse reserved keys and resolve clashes. Newton does not store keys itself; the original "keys in QSettings" meant a Newton-owned store and is dropped. Only the number of slots is a Newton setting (`newton/key_slots`, five by default, sanity limit 999); slots are removed from the end so their numbers stay stable.
+- **No default keys.** The default slots are empty placeholders; the user chooses every key.
+- **Active only during a simulation.** Outside a simulation the slot actions are disabled, so their keys stay free for modelling.
+- **Assignment in the document.** `app.document_data()["bindings"]` holds at most one binding per target (a real joint by its ID or a virtual control by its ID): slot, trigger mode and the mode's values, stored in internal units. A slot may operate several targets. Real joints keep their bindings here, not in `group.ext`, so there is one place, one undo path (`SetPluginDataCommand`) and no change to the joint data. A binding whose target or slot is gone is skipped at Start, not deleted.
+- **Toggle** compares with the current target: at its key value it goes to its rest value, otherwise to its key value. A value changed by hand in between therefore leads to the key value on the next press.
+- **Step** adds its step on each press and subtracts it on an optional second slot, clamped to the range the control panel offers.
+- **No auto-repeat.** A held key acts once (`QAction.setAutoRepeat(False)`): a slot can serve toggle and step bindings at once, and a repeating toggle would flicker.
+- **Momentary is deferred.** A `QAction` shortcut reports only the press, never the release; detecting the release would need an application-wide key event filter beside the host's shortcut handling. See [backlog.md](../backlog.md) and the host proposal "Press and release for shortcut actions" in [host-proposals.md](../host-proposals.md).
+- **Editing** happens both on the control panel cards and in a table of all bindings opened from the control panel; both edit the same document data and, like the virtual control editor, only outside a simulation.
