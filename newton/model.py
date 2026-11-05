@@ -391,3 +391,15 @@ def with_zero(group,joint):
     joint["zero"] = zero
     joint["start"] = hinge_start(group,joint) if zero else 0.
     return joint
+
+
+def ground_scrapers(specs,floor):
+    """uids of movable bodies whose geometry reaches below Z = 0 while their ground contact is on."""
+    result = []
+    for spec in specs:
+        if spec["mass"] <= 0:continue
+        if (spec.get("simulation_override") or {}).get("floor",floor) is not True:continue
+        lowest = spec["center"][2]+min(v[2] for v in spec["vertices"])
+        # A body resting on Z = 0 may sit a rounding error below it.
+        if lowest < -1e-6:result.append(spec["uid"])
+    return result

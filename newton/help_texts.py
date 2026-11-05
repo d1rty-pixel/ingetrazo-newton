@@ -4,6 +4,7 @@ SHOW_COLLIDERS = "Collision shapes are the simplified geometry Newton uses for c
 COLLIDER_SHORTCUT = "Opens IngeTrazo's shortcut settings at the command that switches the collision display. No shortcut is assigned by default."
 GRAVITY = "Acceleration along the model's Z axis in m/s². −9.81 is Earth's gravity, 0 makes all bodies weightless and positive values pull upwards. Stronger gravity means more load for actuators."
 GROUND = "Adds an invisible, infinite floor at height Z = 0 for bodies to land on. Switch it off when parts should move below Z = 0 or when the model has its own base."
+WARN_GROUND = "At Start, the control panel lists movable bodies that reach below Z = 0 while ground contact is on: they scrape along the ground and distort the result. Bodies that only rest on Z = 0, fixed bodies and bodies without ground contact are not listed. The warning never prevents the start."
 LINEAR_DAMPING = "Slows down moving bodies, similar to air resistance. At 1 /s a free body loses about two thirds of its speed per second; 0 switches damping off. More damping calms oscillations but also resists intended motion, so actuators need more force."
 ANGULAR_DAMPING = "Like linear damping, but for rotation: slows down spinning and wobbling bodies. 0 switches it off."
 QUALITY = "How exactly joints and contacts are solved. Quick suits setting up large mechanisms, Balanced everyday work, and Precise checking demanding contacts. Geometry and cable resolution stay the same, but motion can differ slightly between the levels."

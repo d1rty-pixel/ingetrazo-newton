@@ -930,9 +930,17 @@ class NewtonPanel(QWidget):
             quality = QSettings().value("newton/quality","balanced")
             self.session.start(python,scene,specs,movers,self.gravity.value(),self.floor.isChecked(),linear,angular,quality)
             self.controls.message(tr("Drag passive bodies. Use controls for actuators."))
+            self.warn_ground_contact(specs,movers)
         except Exception as exc:
             self.controls.message(str(exc),"error")
         self.show_controls()
+
+    def warn_ground_contact(self,specs,movers):
+        if str(QSettings().value("newton/warn_ground_contact",True)).lower() not in ("true","1"):return
+        from .model import ground_scrapers
+        names = [movers[uid].name for uid in ground_scrapers(specs,self.floor.isChecked())]
+        if names:
+            self.controls.message(tr("Reaches below Z = 0 and scrapes along the ground: {names}",names=", ".join(names)),"warning")
 
     def shutdown(self,*args):
         self.collision_view.stop()

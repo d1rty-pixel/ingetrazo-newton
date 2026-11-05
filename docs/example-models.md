@@ -12,7 +12,7 @@ The models are in [`models/`](../models). They can be opened directly in IngeTra
 | `crank-drive-energy-chain.igz`, `crank-drive-drag-chain.igz` | Motor, crank drive, cable in a chain |
 | `drag-chain-with-cable.igz`, `rope-and-cable.igz` | Ropes and cables |
 | `sun-and-planet.igz` | Attraction and initial velocity |
-| `z0-contact-test.igz` | Movable bodies that scrape along the ground at Z = 0 (test model for the planned warning) |
+| `z0-contact-test.igz` | Movable bodies that scrape along the ground at Z = 0 (test model for the ground contact warning) |
 
 ## Wrecking ball and brick wall
 
@@ -54,7 +54,7 @@ Opening a test window: `.venv\Scripts\python.exe scripts/flexible_demos.py carri
 
 ## Z0 contact test model
 
-**`models/z0-contact-test.igz`** collects the cases of the planned warning about movable bodies touching the ground plane ([backlog](backlog.md)). Red bodies should be reported, green and grey ones not; the orange cube only rests on Z = 0 and does not count.
+**`models/z0-contact-test.igz`** collects the cases of the warning at Start about movable bodies that reach below the ground plane. Red bodies should be reported, green and grey ones not; the orange cube only rests on Z = 0 and does not count.
 
 - Row along X, 10 cm cubes: resting on Z = 0 (orange), 2 cm below, centred on Z = 0, fully below Z = 0, 5 cm above (control); a fixed cube across Z = 0 (grey) and a weightless cube across Z = 0 with ground contact switched off (green).
 - Two linear servos (2 kg, 0–500 mm along +X, 200 N, 100 mm/s), bottom 0.7 mm below Z = 0 and 5 mm above.

@@ -1971,3 +1971,21 @@ def test_render_flags_of_shared_meshes_survive_the_simulation(panel,qtapp):
     mesh._chunk_dirty = mesh._attrs_dirty = False  # What drawing the clone does.
     panel.session.reset()
     assert mesh._chunk_dirty and mesh._attrs_dirty
+
+
+def test_ground_warning_lists_scraping_bodies_and_can_be_switched_off(panel):
+    from core.scene import Scene
+    from formats import igz
+    from newton.model import prepare
+    scene = Scene();igz.load_into(scene,Path(__file__).resolve().parents[1]/"models/z0-contact-test.igz")
+    _,specs,movers = prepare(scene)
+    panel.floor.setChecked(True)
+    QSettings().setValue("newton/warn_ground_contact",True)
+    panel.controls.hint.setText("")
+    panel.warn_ground_contact(specs,movers)
+    assert "below Z = 0" in panel.controls.hint.text() and not panel.controls.hint_mark.isHidden()
+    QSettings().setValue("newton/warn_ground_contact",False)
+    panel.controls.hint.setText("")
+    panel.warn_ground_contact(specs,movers)
+    QSettings().remove("newton/warn_ground_contact")
+    assert panel.controls.hint.text()==""
