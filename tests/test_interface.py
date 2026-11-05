@@ -2328,3 +2328,46 @@ def test_check_runtime_sits_with_the_python_field_and_the_log_below_it(panel):
     check = [b for b in runtime.findChildren(QPushButton) if b.text() == "Check runtime"][0]
     assert check.parentWidget() is page.python.parentWidget()
     page.deleteLater()
+
+
+def test_closing_the_controls_ends_a_running_or_paused_simulation(panel,qtapp,monkeypatch):
+    select_demo_axis(panel)
+    original = panel.app.scene
+    calls = []
+    real_reset = panel.session.reset
+    monkeypatch.setattr(panel.session,"reset",lambda:(calls.append(1),real_reset())[1])
+    for pause in (False,True):
+        panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+        if pause:
+            panel.session.toggle()
+        assert panel.controls.isVisible() and panel.session.workspace
+        panel.controls.close()
+        assert panel.session.workspace is None and not panel.session.running
+        assert panel.app.scene is original and not panel.controls.isVisible()
+    assert len(calls)==2
+    panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+    panel.show_controls()
+    panel.controls.reject()
+    assert panel.session.workspace is None and len(calls)==3
+
+
+def test_closing_the_controls_without_a_simulation_does_nothing_and_reopens(panel,qtapp):
+    select_demo_axis(panel)
+    panel.show_controls()
+    panel.controls.close()
+    assert not panel.controls.isVisible() and panel.session.workspace is None
+    panel.show_controls()
+    assert panel.controls.isVisible()
+    panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+    panel.controls.close()
+    panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+    assert panel.session.workspace and panel.controls.isVisible()
+
+
+def test_shutdown_does_not_reset_the_session_again(panel,qtapp,monkeypatch):
+    select_demo_axis(panel)
+    panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+    calls = []
+    monkeypatch.setattr(panel.session,"reset",lambda:calls.append(1))
+    panel.shutdown()
+    assert not calls

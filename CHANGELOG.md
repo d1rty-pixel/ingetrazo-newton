@@ -19,6 +19,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ### Changed
 
+- Closing the control panel (window button or Esc) while a simulation runs or is paused now ends the simulation like Reset and restores the original model, so no simulation keeps running without its controls.
 - *Simulation overrides* no longer has a switch: every setting is shown and editable, values equal to the global default are greyed (and inherited), a changed value is drawn normally, and a button beside each value resets it to the default.
 - *Preferences → Runtime*: *Check runtime* sits with the Python environment it checks and shows its result there, also in builds without automatic setup. *Remove runtime* is offered only for a runtime Newton created itself, refuses a symbolic link, and its confirmation names Newton's own folder and says when your current interpreter lies outside it.
 - The axis plates in the 3D view are lighter: the name stays bold, while minimum, maximum and actual position are drawn in a smaller regular weight.
