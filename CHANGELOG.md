@@ -11,6 +11,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ### Changed
 
+- Selecting many axes no longer freezes the view: every axis gets one plate (name, minimum, maximum and actual position in their guide colours) instead of up to four labels, and the free-space search is bounded. Select-all of 20 jointed bodies went from 10 s to 29 ms per paint. The plates are hidden while the view or an object is being dragged and while zooming, and a plate next to the axis is chosen before one at the viewport edge.
 - Start is much faster on large models: the temporary simulation shares the document's meshes and nested placements instead of copying them. `prepare()` on the CR10 model (about 250 000 vertices) went from 11.3 s to 0.84 s.
 - The temporary simulation refuses every edit: commands are refused before they run, groups cannot be opened, and a geometry change made anyway is reported after Reset.
 
@@ -23,6 +24,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 - Performance audit results (start time, per-frame redraw cost), shared-mesh measurements and a live check in the Flatpak in `docs/test-results.md` and `docs/known-issues.md`.
 - `docs/host-proposals.md` collects IngeTrazo improvements that would make Newton or other extensions simpler, safer or faster.
+- `scripts/benchmark_overlays.py` times the overlay paint and the selection refresh for N jointed bodies.
 - Known issue: cable tests fail when `tests/test_newton.py` runs before `tests/test_flexible.py` in one process.
 
 ## 0.14.0 — 2026-11-04

@@ -66,7 +66,6 @@ Checked on 5 November 2026 on Linux x86_64 (Ubuntu, GNOME/Wayland), Python 3.12,
 - Checked visually in a separate IngeTrazo window with 60 hinged leaves: a single selection places its plate next to the axis, plates hide while orbiting and moving. Keyboard navigation was not checked.
 - The benchmark runs offscreen without OpenGL, so it times the 2D overlay only.
 
-
 ## Control panel height (Linux)
 
 Checked on 4 November 2026 on Linux x86_64 (Ubuntu, GNOME/Wayland), IngeTrazo 0.6.0 Flatpak, toolbar icons 40 px, with Python 3.12.14 and PySide6 6.11.3.
