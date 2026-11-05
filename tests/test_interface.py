@@ -2590,6 +2590,7 @@ def test_sidebar_sections_without_content_fold_and_with_content_open(panel):
 
 
 def test_manual_fold_holds_until_the_selection_changes_and_is_not_stored(panel):
+    QSettings().remove("newton/open_overrides")  # Written by older builds; the test state outlives runs.
     from newton.model import box,AddDemo
     a,b = box("A",(9,9,2),(.1,.1,.1),mode="static"),box("B",(8,9,2),(.1,.1,.1),mode="static")
     panel.app.viewport.history.execute(AddDemo([a,b]))
