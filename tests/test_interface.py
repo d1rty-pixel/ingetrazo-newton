@@ -1716,6 +1716,13 @@ def squashed_widgets(root):
         and w.height()<w.minimumSizeHint().height()-1]
 
 
+def label_rows(root):
+    """(text label, drawing label) of every visible form label; the text must stay beside the drawing."""
+    from PySide6.QtWidgets import QWidget
+    return [(w.text_label,w.icon_label) for w in root.findChildren(QWidget)
+            if hasattr(w,"text_label") and w.isVisible()]
+
+
 @pytest.mark.parametrize("width",[600,400,300,280,260])
 def test_sidebar_rows_keep_their_height_at_every_width(panel,qtapp,width):
     from newton.model import box,AddDemo,Configure
@@ -1738,6 +1745,9 @@ def test_sidebar_rows_keep_their_height_at_every_width(panel,qtapp,width):
         assert not squashed_widgets(panel),(body.name,squashed_widgets(panel))
         scroll = panel.sections[0].parentWidget().parentWidget().parentWidget()
         assert scroll.horizontalScrollBar().maximum()==0,"no sideways scrolling"
+        for text,image in label_rows(panel):
+            assert text.mapTo(panel,text.rect().topLeft()).x()>image.mapTo(panel,image.rect().topRight()).x(),text.text()
+            assert text.mapTo(panel,text.rect().topLeft()).y()<image.mapTo(panel,image.rect().bottomRight()).y(),text.text()
 
 
 def test_folded_sidebar_sections_stack_instead_of_sharing_the_spare_height(panel,qtapp):

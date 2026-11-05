@@ -29,11 +29,11 @@ class FlexibleEditor(QWidget):
         self.start = QComboBox()
         for title,key in (("Clamped","fixed"),("Pinned","pinned"),("Free","free")):self.start.addItem(tr(title),key)
         decorate(self.start,"attachment")
-        detail.addRow(tr("Start"),self.start)
+        detail.addRow(physical_label(tr("Start")),self.start)
         self.end_uid = None
         self.end = ChooseButton(tr("Choose…"),self.end_candidates,self.attach_end,tr("No suitable body"),lambda g:offer(panel,g))
         self.end_table = ReferenceTable(lambda _:self.attach_end(None),tr("Free"),panel)
-        detail.addRow(tr("End attachment"),self.end);detail.addRow(self.end_table)
+        detail.addRow(physical_label(tr("End attachment")),self.end);detail.addRow(self.end_table)
         form.addRow(self.fields)
         self.kind.currentIndexChanged.connect(self.write)
         for field in (self.radius,self.bend,self.twist,self.damping):field.valueChanged.connect(self.write)
