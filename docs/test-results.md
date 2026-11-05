@@ -42,6 +42,31 @@ Checked on 5 November 2026 on Linux x86_64 with the worker run in-process (no GU
 
 No visible body of this model depends on a hidden movable body. The remaining start time is mostly the copy of visible geometry for the temporary simulation (see known issues).
 
+## Axis overlay performance (Linux)
+
+Checked on 5 November 2026 on Linux x86_64 (Ubuntu, GNOME/Wayland), Python 3.12, PySide6 6.11.3, offscreen, host reference IngeTrazo v0.6.0.
+
+```text
+.venv/bin/python -m pytest tests -q --basetemp=.test-state/pytest
+266 passed, 13 warnings in 51.66s
+.venv/bin/python scripts/benchmark_overlays.py --sizes=5,20,60 --repeat=3 --images=.test-state/overlays
+```
+
+`scripts/benchmark_overlays.py` builds a static base with N hinged leaves in a separate offscreen window and times the overlay paint (`panel.draw_joints`) and the selection refresh. Paint time with all bodies selected, minimum of 3 runs:
+
+| Bodies | Before | After |
+|---|---|---|
+| 5 | 83 ms | under 10 ms |
+| 20 | 10126 ms | 29 ms |
+| 60 | not measured | 141 ms |
+
+- Cause: `place_caption` searched every obstacle edge and every placed label for each of up to four labels per axis, about N⁴ work. The selection refresh stayed below 40 ms throughout; history sync and file I/O did not show up in the profile.
+- Fix: one plate per axis (name, minimum, maximum, actual, each in its guide colour), a staged candidate search (nearest positions, then the edges of the 4 nearest neighbours, viewport edges last), one projection call per axis, and no plates while a mouse button is held over the viewport or shortly after the mouse wheel.
+- Not measured: a single selection of 60 bodies is 21 ms. The target of 50 ms for select-all with 60 bodies was not reached (141 ms); the user judged the result in the live window as clearly better.
+- Checked visually in a separate IngeTrazo window with 60 hinged leaves: a single selection places its plate next to the axis, plates hide while orbiting and moving. Keyboard navigation was not checked.
+- The benchmark runs offscreen without OpenGL, so it times the 2D overlay only.
+
+
 ## Control panel height (Linux)
 
 Checked on 4 November 2026 on Linux x86_64 (Ubuntu, GNOME/Wayland), IngeTrazo 0.6.0 Flatpak, toolbar icons 40 px, with Python 3.12.14 and PySide6 6.11.3.
