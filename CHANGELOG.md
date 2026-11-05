@@ -6,7 +6,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ### Added
 
-- **Virtual controls**: a switch or slider in the control panel that moves several axes to defined states at once, for example *Flap: closed / open*. Created and changed with **Virtual controls…** in the control panel, saved in the `.igz`, one undo step per change. See the manual, *Virtual controls*.
+- **Virtual controls**: a switch or slider in the control panel that moves several axes to defined states at once, for example *Flap: closed / open*. Created and changed with **Virtual controls…** in the control panel, saved in the `.igz`, one undo step per change. A switch can move its axes one after another instead of together. See the manual, *Virtual controls*.
 - Checkbox *Keep warnings and errors on reset* next to Start and Reset in the control panel (off by default, remembered). While a simulation runs, the bodies in a warning such as the Z = 0 warning cannot be selected; with the box checked, Reset keeps the warning and its body table instead of replacing it with the reset notice, and the rows then select the bodies in the restored model. Start always clears every message and checks again.
 - The Start warning lists the affected bodies as a table below a short sentence, with a thumbnail, the name and how far the body reaches below Z = 0. Hovering a row outlines the body in the view, a click selects it; long lists show the first six and a count. The table disappears with the message.
 - Icon `ground_below` for the preference *Warn about bodies below Z = 0*, so it no longer looks like *Ground at Z = 0*.

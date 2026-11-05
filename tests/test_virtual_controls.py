@@ -184,3 +184,47 @@ def test_editor_cancel_changes_nothing_and_is_disabled_during_simulation(panel, 
     panel.start_or_pause()
     wait(qtapp, lambda: panel.session.ready)
     assert not panel.controls.edit_button.isEnabled()
+
+
+def test_one_by_one_switch_starts_each_axis_after_the_previous_ramp(panel, qtapp):
+    seed_coupled_robot(panel)
+    first, second = eligible_rows(panel)[1:3]
+    c = control(joints=(first["uid"], second["uid"]), states=((0, 0), (.3, -.3)))
+    c["sequential"] = True
+    panel.app.set_document_data(with_controls(None, [c]))
+    panel.start_or_pause()
+    wait(qtapp, lambda: panel.session.ready)
+    panel.session.set_virtual("c1", 1)
+    assert panel.session.targets[first["uid"]] == pytest.approx(.3)
+    assert panel.session.targets[second["uid"]] == 0
+    wait(qtapp, lambda: panel.session.targets[second["uid"]] != 0)
+    state = panel.session.joint_states[first["uid"]]
+    assert state["command"] == pytest.approx(.3)
+    assert panel.session.joint_states[second["uid"]]["command"] == pytest.approx(0, abs=1e-9)
+    wait(qtapp, lambda: "c1" not in panel.session.sequences)
+    # Switching back mid-way drops the rest of the old order.
+    panel.session.set_virtual("c1", 0)
+    panel.session.set_virtual("c1", 1)
+    assert panel.session.sequences["c1"]["rest"] == [(second["uid"], -.3)]
+
+
+def test_one_by_one_is_refused_unless_true_or_false():
+    c = control()
+    c["sequential"] = "yes"
+    with pytest.raises(ValueError):
+        check(c)
+
+
+def test_editor_stores_one_by_one_only_for_switches_when_on(panel):
+    from newton.virtual_editor import VirtualControlEditor
+    seed_coupled_robot(panel)
+    editor = VirtualControlEditor(panel)
+    editor.show()
+    editor.add("switch")
+    editor.one_by_one.setChecked(True)
+    assert editor.current["sequential"] is True
+    editor.one_by_one.setChecked(False)
+    assert "sequential" not in editor.current
+    editor.add("slider")
+    assert editor.one_by_one.isHidden()
+    editor.reject()

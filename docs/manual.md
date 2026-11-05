@@ -146,6 +146,7 @@ A virtual control moves several axes with one switch or slider, for example a fl
 - **Add axis** takes an axis with a control of its own into the control. Passive axes and following axes of a coupling cannot be added; a coupling's leading axis can, and its followers move with it. An axis belongs to at most one virtual control.
 - The table has one column per **state** and one row per axis. The first row holds the state names, the other rows the target of each axis in that state, in the axis's unit. **Add state** copies the last state; a control keeps at least two.
 - **At start** chooses the state (switch) or position (slider) the control takes when the simulation starts. It replaces the start targets of its axes.
+- **Move the axes one after another** (switches only, off by default): each axis starts when the ramp of the previous one has reached its target, in the order of the table rows. Switching again during such a move drops the rest of the old order. Off, all axes start together; each still moves at its own speed, so a short move ends earlier than a long one. The state at start always applies at once.
 - **OK** stores all changes as one undo step; **Cancel** discards them.
 
 In the control panel a switch shows one button per state; a click moves every axis to that state's targets. A slider runs from 0 % (first state) to 100 % (last state) and moves smoothly from state to state in between. The axes of a virtual control have no control of their own in the control panel. They still move at their own speed and acceleration and stop at their limits.

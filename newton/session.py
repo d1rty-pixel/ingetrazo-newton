@@ -128,6 +128,8 @@ class Session(QObject):
         self.targets = {}
         self.virtual = {}
         self.virtual_values = {}
+        self.sequences = {}
+        self.step_serial = 0
         self.joint_states = {}
         self.colliders = {}
         self.drag = None
@@ -154,8 +156,9 @@ class Session(QObject):
                           for s in specs if s.get("joint") and not s["joint"].get("coupling")}
         self.virtual = {c["id"]: c for c in controls}
         self.virtual_values = {}
+        self.sequences = {}
         for control in controls:
-            self.set_virtual(control["id"], control["initial"])
+            self.set_virtual(control["id"], control["initial"], one_by_one=False)
         self.workspace = Workspace(self, scene)
         if not self.app.enter_workspace(self.workspace):
             self.workspace = None
@@ -231,6 +234,7 @@ class Session(QObject):
         if not self.workspace:
             return
         self.joint_states = result.get("joints",{})
+        self.advance_sequences()
         if "colliders" in result:
             self.colliders = result["colliders"]
         for uid, (position, quaternion) in result["poses"].items():
@@ -265,6 +269,7 @@ class Session(QObject):
         count = min(int(self.elapsed * 240), 24)
         if count and not self.pending:
             self.elapsed -= count/240
+            self.step_serial += 1
             self.send(dict(op="step", count=count, targets=self.targets,drag=self.drag))
 
     def can_drag(self,uid):
@@ -292,14 +297,38 @@ class Session(QObject):
         if uid in self.targets and math.isfinite(float(value)):
             self.targets[uid] = float(value)
 
-    def set_virtual(self, control_id, value):
+    def set_virtual(self, control_id, value, one_by_one=True):
+        """``one_by_one=False`` at Start: the initial state applies at once, like every other start target."""
         from .virtual_controls import clamp, targets
         control = self.virtual.get(control_id)
         if control is None or not math.isfinite(float(value)):
             return
         self.virtual_values[control_id] = clamp(control, value)
-        for uid, target in targets(control, value).items():
+        moves = list(targets(control, value).items())
+        self.sequences.pop(control_id, None)
+        if one_by_one and control.get("sequential") and control["kind"] == "switch" and moves:
+            (uid, target), rest = moves[0], moves[1:]
             self.set_target(uid, target)
+            self.sequences[control_id] = dict(waiting=uid, since=self.step_serial, rest=rest)
+            return
+        for uid, target in moves:
+            self.set_target(uid, target)
+
+    def advance_sequences(self):
+        """Start the next axis of a one-by-one switch once the previous axis's ramp has reached its target."""
+        for control_id, sequence in list(self.sequences.items()):
+            state = self.joint_states.get(sequence["waiting"])
+            # A result from a step sent before the target was set says nothing about the new move.
+            if self.step_serial <= sequence["since"] or state is None:
+                continue
+            if abs(state.get("command", state["target"])-state["target"]) > 1e-9:
+                continue
+            if not sequence["rest"]:
+                del self.sequences[control_id]
+                continue
+            uid, target = sequence["rest"].pop(0)
+            self.set_target(uid, target)
+            sequence.update(waiting=uid, since=self.step_serial)
 
     def toggle(self):
         if self.ready:
@@ -332,6 +361,7 @@ class Session(QObject):
         self.targets = {}
         self.virtual = {}
         self.virtual_values = {}
+        self.sequences = {}
         self.joint_states = {}
         self.colliders = {}
         self.drag = None

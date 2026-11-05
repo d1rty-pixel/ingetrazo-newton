@@ -3,7 +3,7 @@ import copy
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QListWidget, QListWidgetItem, QPushButton,
     QLineEdit, QLabel, QTableWidget, QTableWidgetItem, QDoubleSpinBox, QComboBox, QDialogButtonBox, QFormLayout,
-    QWidget, QAbstractItemView, QHeaderView)
+    QWidget, QAbstractItemView, QHeaderView, QCheckBox)
 from .i18n import tr
 from .model import joint_rows
 from .range_control import scroll_safe
@@ -81,6 +81,10 @@ class VirtualControlEditor(QDialog):
         initial.addWidget(self.initial_position)
         initial.addStretch()
         form.addRow(tr("At start"), initial)
+        self.one_by_one = QCheckBox(tr("Move the axes one after another"))
+        self.one_by_one.setToolTip(tr("Each axis starts when the previous one has reached its target, in the order of the table rows. Off: all axes start together."))
+        self.one_by_one.toggled.connect(self.set_one_by_one)
+        form.addRow("", self.one_by_one)
         self.table = QTableWidget()
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
@@ -165,6 +169,10 @@ class VirtualControlEditor(QDialog):
                 self.table.setCellWidget(index+1, column, self.value_box(row, control, index, column))
         self.table.blockSignals(False)
         self.initial_state.setVisible(switch)
+        self.one_by_one.setVisible(switch)
+        self.one_by_one.blockSignals(True)
+        self.one_by_one.setChecked(bool(control.get("sequential")))
+        self.one_by_one.blockSignals(False)
         self.initial_position.setVisible(not switch)
         self.initial_state.clear()
         self.initial_state.addItems([s["name"] for s in states])
@@ -203,6 +211,13 @@ class VirtualControlEditor(QDialog):
     def set_initial(self, value):
         if self.current is not None:
             self.current["initial"] = value
+
+    def set_one_by_one(self, on):
+        if self.current is not None:
+            if on:
+                self.current["sequential"] = True
+            else:
+                self.current.pop("sequential", None)
 
     def fill_joint_choice(self):
         taken = {uid for c in self.controls for uid in c["joints"]}

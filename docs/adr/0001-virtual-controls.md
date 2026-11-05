@@ -79,3 +79,7 @@ These are decided now so that the first step does not block them:
 - **Rollout:** in the next release; no migration, the data is new.
 - **Rollback:** remove the feature; documents keep an unused `plugin_data["newton"]` entry that the host ignores.
 - **Tests:** validation and resolution as pure functions; session targets at Start and on change; the control panel cards; editor round trip with undo; `.igz` save and load.
+
+## Addendum 2026-11-05: switches that move their axes one after another
+
+A switch can set `"sequential": true` (editor: *Move the axes one after another*). The session then sets the first axis's target and each next one when the previous axis's ramp has reached its target (the worker's `command` equals its `target`), in the order of `joints`. The ramp, not the measured position, decides, so no settling tolerance is needed. Switching again drops the rest of the old order; the initial state at Start applies at once. The worker protocol stays unchanged. Sliders ignore the option. Arriving together (stretching the faster axes' ramps) was discussed as a third mode and is not built; it would need a per-axis ramp factor in the worker protocol.

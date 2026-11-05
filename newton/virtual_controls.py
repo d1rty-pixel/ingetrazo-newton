@@ -46,6 +46,8 @@ def check(control):
         raise bad()
     if control["kind"] == "slider" and not 0 <= initial <= 1:
         raise bad()
+    if not isinstance(control.get("sequential", False), bool):
+        raise bad()
     return control
 
 
