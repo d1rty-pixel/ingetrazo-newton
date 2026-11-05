@@ -9,6 +9,7 @@ from pathlib import Path
 from PySide6.QtCore import QObject, QProcess, QTimer, Signal
 from PySide6.QtGui import QMatrix4x4, QQuaternion
 from core.history import History
+from . import keep_pose
 from .worker import joint_settings
 
 
@@ -93,7 +94,7 @@ class Workspace:
         return True
 
     def new(self):
-        self.session.reset()
+        self.session.reset(keep=False)
 
     def left(self):
         self.session.stop_worker()
@@ -112,6 +113,7 @@ class Session(QObject):
     frame = Signal(float)
     telemetry = Signal(object)
     metrics = Signal(object)
+    targets_changed = Signal()
 
     def __init__(self, app, parent=None):
         super().__init__(parent)
@@ -126,6 +128,11 @@ class Session(QObject):
         self.movers = {}
         self.elapsed = 0.0
         self.targets = {}
+        self.virtual = {}
+        self.virtual_values = {}
+        self.bindings = []
+        self.sequences = {}
+        self.step_serial = 0
         self.joint_states = {}
         self.colliders = {}
         self.drag = None
@@ -141,7 +148,7 @@ class Session(QObject):
         self.watchdog.setSingleShot(True)
         self.watchdog.timeout.connect(lambda: self.fail(tr("The Newton process did not answer within 15 seconds. The simulation was reset.")))
 
-    def start(self, python, scene, specs, movers, gravity, floor,linear_damping=0,angular_damping=0,quality="balanced"):
+    def start(self, python, scene, specs, movers, gravity, floor,linear_damping=0,angular_damping=0,quality="balanced",controls=(),bindings=()):
         if self.workspace or self.app.workspace() is not None:
             raise ValueError(tr("The simulation cannot start while another workspace is open. Close that workspace first."))
         if not Path(python).is_file():
@@ -150,6 +157,12 @@ class Session(QObject):
         self.specs = {s["uid"]:s for s in specs}
         self.targets = {s["uid"]: joint_settings(s["joint"])["target"]
                           for s in specs if s.get("joint") and not s["joint"].get("coupling")}
+        self.virtual = {c["id"]: c for c in controls}
+        self.virtual_values = {}
+        self.bindings = list(bindings)
+        self.sequences = {}
+        for control in controls:
+            self.set_virtual(control["id"], control["initial"], one_by_one=False)
         self.workspace = Workspace(self, scene)
         if not self.app.enter_workspace(self.workspace):
             self.workspace = None
@@ -225,6 +238,7 @@ class Session(QObject):
         if not self.workspace:
             return
         self.joint_states = result.get("joints",{})
+        self.advance_sequences()
         if "colliders" in result:
             self.colliders = result["colliders"]
         for uid, (position, quaternion) in result["poses"].items():
@@ -259,6 +273,7 @@ class Session(QObject):
         count = min(int(self.elapsed * 240), 24)
         if count and not self.pending:
             self.elapsed -= count/240
+            self.step_serial += 1
             self.send(dict(op="step", count=count, targets=self.targets,drag=self.drag))
 
     def can_drag(self,uid):
@@ -286,6 +301,66 @@ class Session(QObject):
         if uid in self.targets and math.isfinite(float(value)):
             self.targets[uid] = float(value)
 
+    def set_virtual(self, control_id, value, one_by_one=True):
+        """``one_by_one=False`` at Start: the initial state applies at once, like every other start target."""
+        from .virtual_controls import clamp, targets
+        control = self.virtual.get(control_id)
+        if control is None or not math.isfinite(float(value)):
+            return
+        self.virtual_values[control_id] = clamp(control, value)
+        moves = list(targets(control, value).items())
+        self.sequences.pop(control_id, None)
+        if one_by_one and control.get("sequential") and control["kind"] == "switch" and moves:
+            (uid, target), rest = moves[0], moves[1:]
+            self.set_target(uid, target)
+            self.sequences[control_id] = dict(waiting=uid, since=self.step_serial, rest=rest)
+            return
+        for uid, target in moves:
+            self.set_target(uid, target)
+
+    def press(self, slot):
+        """A key slot was pressed: move every bound target one toggle or step."""
+        if not (self.ready and self.workspace):
+            return
+        from .key_bindings import next_value, target_of
+        changed = False
+        for binding in self.bindings:
+            if binding["slot"] == slot:
+                down = False
+            elif binding["mode"] == "step" and binding.get("slot_down") == slot:
+                down = True
+            else:
+                continue
+            kind, ident = target_of(binding)
+            if kind == "joint":
+                if ident not in self.targets:
+                    continue
+                self.set_target(ident, next_value(binding, self.targets[ident], down))
+            else:
+                control = self.virtual.get(ident)
+                if control is None:
+                    continue
+                self.set_virtual(ident, next_value(binding, self.virtual_values.get(ident, control["initial"]), down))
+            changed = True
+        if changed:
+            self.targets_changed.emit()
+
+    def advance_sequences(self):
+        """Start the next axis of a one-by-one switch once the previous axis's ramp has reached its target."""
+        for control_id, sequence in list(self.sequences.items()):
+            state = self.joint_states.get(sequence["waiting"])
+            # A result from a step sent before the target was set says nothing about the new move.
+            if self.step_serial <= sequence["since"] or state is None:
+                continue
+            if abs(state.get("command", state["target"])-state["target"]) > 1e-9:
+                continue
+            if not sequence["rest"]:
+                del self.sequences[control_id]
+                continue
+            uid, target = sequence["rest"].pop(0)
+            self.set_target(uid, target)
+            sequence.update(waiting=uid, since=self.step_serial)
+
     def toggle(self):
         if self.ready:
             self.running = not self.running
@@ -295,14 +370,31 @@ class Session(QObject):
             self.metrics.emit(dict(self.performance,paused=not self.running))
             self.changed.emit()
 
-    def reset(self):
+    def reset(self, *_, keep=True):
+        """Back to the model; with the keep-pose setting on, the simulated pose becomes the model's."""
+        moved = None
         if self.workspace:
+            if keep and keep_pose.enabled() and self.ready:
+                moved = keep_pose.deltas(self)
             if self.app.workspace() is self.workspace:
                 self.app.leave_workspace()
             else:
                 self.stop_worker()
                 self.workspace = None
         self.changed.emit()
+        if moved:
+            self.write_pose(moved)
+
+    def write_pose(self, moved):
+        # After changed: the panel then says "The simulation was reset and the original model is restored.", which must not hide this.
+        try:
+            cmd = keep_pose.command(self.app.scene, moved)
+            if cmd is not None:
+                self.app.viewport.history.execute(cmd)
+        except ValueError as exc:
+            self.message.emit(tr("The pose was not kept: {reason} The original model is restored.", reason=exc), "warning")
+            return
+        self.message.emit(tr("The simulated pose was written into the model. Undo restores the original pose."), "info")
 
     def stop_worker(self):
         self.timer.stop()
@@ -315,6 +407,10 @@ class Session(QObject):
         self.running = self.ready = self.pending = False
         self.movers = {}
         self.targets = {}
+        self.virtual = {}
+        self.virtual_values = {}
+        self.bindings = []
+        self.sequences = {}
         self.joint_states = {}
         self.colliders = {}
         self.drag = None
@@ -329,5 +425,5 @@ class Session(QObject):
                 self.app.viewport.set_active_tool(tool)
 
     def fail(self, text):
-        self.reset()
+        self.reset(keep=False)
         self.message.emit(text,"error")

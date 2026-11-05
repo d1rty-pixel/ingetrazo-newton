@@ -53,6 +53,32 @@ def different(a,b):
     return any(abs(x-y)>1e-6 for x,y in zip(a.data(),b.data()))
 
 
+def carries_metadata(group):
+    cfg = settings(group)
+    return bool(cfg.get("joint") or cfg.get("point_attachment") or (cfg.get("flexible") and group.xform is None))
+
+
+def carry_metadata(g,m):
+    """Move the world-space data a body carries (joint frame, attachment point, flexible points) by ``m``."""
+    cfg = settings(g)
+    classic_flex = cfg.get("flexible") and g.xform is None
+    g.ext = copy.deepcopy(g.ext)
+    if cfg.get("joint"):
+        j = g.ext[KEY]["joint"]
+        point = m.map(QVector3D(*j["pivot"]))
+        direction = m.mapVector(QVector3D(*j["axis"])).normalized()
+        j["pivot"],j["axis"] = list(point.toTuple()),list(direction.toTuple())
+        if j.get("zero"):
+            j["zero"] = list(m.mapVector(QVector3D(*j["zero"])).normalized().toTuple())
+    if classic_flex:
+        g.ext[KEY]["flexible"]["points"] = [list(m.map(QVector3D(*p)).toTuple()) for p in cfg["flexible"]["points"]]
+    if cfg.get("point_attachment"):
+        g.ext[KEY]["point_attachment"]["point"] = list(m.map(QVector3D(*cfg["point_attachment"]["point"])).toTuple())
+        if cfg["point_attachment"].get("type")=="hinge":
+            axis = m.mapVector(QVector3D(*cfg["point_attachment"]["axis"])).normalized()
+            g.ext[KEY]["point_attachment"]["axis"] = list(axis.toTuple())
+
+
 class TransformDependent(Command):
     keeps_paint = True
 
@@ -129,27 +155,10 @@ class FollowTransform(Command):
         for g in scene.groups:
             if g.uid not in deltas:
                 continue
-            cfg = settings(g)
-            classic_flex = cfg.get("flexible") and g.xform is None
-            if not cfg.get("joint") and not cfg.get("point_attachment") and not classic_flex:
+            if not carries_metadata(g):
                 continue
             self.metadata_before.append((g,copy.deepcopy(g.ext)))
-            g.ext = copy.deepcopy(g.ext)
-            m = deltas[g.uid]
-            if cfg.get("joint"):
-                j = g.ext[KEY]["joint"]
-                point = m.map(QVector3D(*j["pivot"]))
-                direction = m.mapVector(QVector3D(*j["axis"])).normalized()
-                j["pivot"],j["axis"] = list(point.toTuple()),list(direction.toTuple())
-                if j.get("zero"):
-                    j["zero"] = list(m.mapVector(QVector3D(*j["zero"])).normalized().toTuple())
-            if classic_flex:
-                g.ext[KEY]["flexible"]["points"] = [list(m.map(QVector3D(*p)).toTuple()) for p in cfg["flexible"]["points"]]
-            if cfg.get("point_attachment"):
-                g.ext[KEY]["point_attachment"]["point"] = list(m.map(QVector3D(*cfg["point_attachment"]["point"])).toTuple())
-                if cfg["point_attachment"].get("type")=="hinge":
-                    axis = m.mapVector(QVector3D(*cfg["point_attachment"]["axis"])).normalized()
-                    g.ext[KEY]["point_attachment"]["axis"] = list(axis.toTuple())
+            carry_metadata(g,deltas[g.uid])
             self.metadata_after.append((g,copy.deepcopy(g.ext)))
 
     def undo(self,scene):

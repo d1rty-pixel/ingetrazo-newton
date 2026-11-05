@@ -17,6 +17,22 @@ INFO 14, PASS 25, FAIL 3, SKIP 1
 - Real installation afterwards: runtime with method B into `%APPDATA%\ingetrazo`, extension with `install-local.ps1 -Update` (old 0.14.0 copy replaced, removed modules gone), interpreter preference cleared. *Set up runtime* in **Preferences → Newton → Runtime** then rebuilt the runtime by hand without problems; the simulation runs with it.
 - Observation: after opening the model, Start and Reset, the document is marked modified (`*` in the title), so closing asks whether to save. Not yet clear whether opening or the simulation causes it.
 - `Expand-Archive` over an existing installation needs `-Force`, which the update instructions in `docs/installation.md` do not mention.
+## Keep the pose on reset (Linux)
+
+Checked on 5 November 2026 on Linux x86_64 (Ubuntu), offscreen, same environment as below. Full suite: 412 passed in 111 s. `tests/test_keep_pose.py` runs the real worker, drives the joints of the robot arm and checks: Reset restores the model by default; with the box checked the pose is written as one undo/redo step; joint pivot and axis object agree afterwards; a locked body and a failure keep nothing. Undo is exact up to float32 rounding of the baked vertices. Not checked on screen.
+
+## Key bindings (Linux)
+
+Checked on 5 November 2026 on Linux x86_64 (Ubuntu), offscreen, same environment as "Limit hardness" below; host reference IngeTrazo v0.6.0, commit `e61132a7`.
+
+```text
+.venv/bin/python -m pytest tests -q --basetemp=.test-state/pytest
+404 passed in 89 s
+```
+
+- Covers key slots, the bindings runtime (toggle, step, second step slot, skipped targets), the binding fields on the control panel cards (one undo step per change, no rebuild of the edited card) the *Key bindings* sidebar section for a single selected axis, and the *Key slots* preferences tab (labels, key caps).
+- Run after removing the *Key bindings…* table, adding the sidebar section and the *Key slots* tab. Four tests needed their preferences tab index moved by one (*Runtime* is now tab 4); `test_sidebar_rows_keep_their_height_at_every_width` uses a 2500 px window instead of 1100 px (see `docs/known-issues.md`).
+- Not yet checked live in IngeTrazo.
 
 ## Limit hardness (Linux)
 

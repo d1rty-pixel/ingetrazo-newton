@@ -2,8 +2,9 @@
 import math
 from PySide6.QtCore import Qt,QPoint,QSettings
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QLabel, QScrollArea,
-    QWidget, QGroupBox, QHBoxLayout, QDoubleSpinBox,QPushButton,QCheckBox)
+    QWidget, QGroupBox, QHBoxLayout, QDoubleSpinBox,QPushButton,QCheckBox,QButtonGroup)
 from .i18n import tr
+from . import keep_pose
 from . import help_texts as help
 from .icons import icon,pixmap
 from .reference_table import ReferenceTable
@@ -66,33 +67,60 @@ class Controls(QDialog):
         self.keep.toggled.connect(lambda on:QSettings().setValue(KEEP_KEY,on))
         row.addWidget(self.keep,1)
         self.layout.addLayout(row)
+        self.keep_pose = pictogram_check(QCheckBox(tr("Keep the pose on reset")),"keep_pose")
+        self.keep_pose.setToolTip(tr(help.KEEP_POSE))
+        self.keep_pose.setChecked(keep_pose.enabled())
+        self.keep_pose.toggled.connect(lambda on:QSettings().setValue(keep_pose.SETTING,on))
+        self.layout.addWidget(self.keep_pose)
         self.time_label = QLabel()
-        self.layout.addWidget(self.time_label)
+        self.edit_button = QPushButton(tr("Virtual controls…"))
+        self.edit_button.setToolTip(tr(help.VIRTUAL_CONTROLS))
+        self.edit_button.clicked.connect(lambda:panel.edit_virtual_controls())
+        # Beside Start/Reset it squeezed the keep checkbox into two lines.
+        time_row = QHBoxLayout()
+        time_row.addWidget(self.time_label,1)
+        time_row.addWidget(self.edit_button)
+        self.layout.addLayout(time_row)
         self.performance_label = QLabel();self.performance_label.setWordWrap(True)
         self.layout.addWidget(self.performance_label);self.performance_label.hide()
         panel.session.metrics.connect(self.show_performance)
         panel.session.frame.connect(lambda seconds:self.time_label.setText(tr("Time: {seconds:.2f} s",seconds=seconds)))
         panel.session.message.connect(self.message)
         self.rows = {}
+        self.virtual_cards = {}
+        self.joint_inputs = {}
+        self.virtual_inputs = {}
+        self.following = False
+        panel.session.targets_changed.connect(self.follow_targets)
         self.actual_columns = []
         self.range_controls = []
         self.signature = None
         self.kept = None
 
     def refresh(self, joints, active):
-        joints = [j for j in joints if j["drive"]!="free" and not j.get("coupling")]
-        signature = (repr(joints), active, units_signature())
+        from .virtual_controls import managed
+        virtual = self.panel.virtual_controls()
+        taken = managed(virtual)
+        joints = [j for j in joints if j["drive"]!="free" and not j.get("coupling") and j["uid"] not in taken]
+        from .binding_fields import slot_labels
+        bindings = self.bindings()
+        signature = (repr(joints), repr(virtual), active, units_signature(), repr(slot_labels(self.panel)), repr(bindings))
         if signature != self.signature:
             self.signature = signature
             widget = QWidget()
             layout = QVBoxLayout(widget)
             self.rows = {}
+            self.virtual_cards = {}
+            self.joint_inputs = {}
+            self.virtual_inputs = {}
             self.actual_columns = []
             self.range_controls = []
-            if not joints:
+            if not joints and not virtual:
                 label = QLabel(tr("No actuators"))
                 label.setWordWrap(True)
                 layout.addWidget(label)
+            for control in virtual:
+                layout.addWidget(self.virtual_card(control,active,bindings))
             for joint in joints:
                 group = QGroupBox(joint["body"]+" "+joint["name"])
                 gl = QVBoxLayout(group)
@@ -124,8 +152,9 @@ class Controls(QDialog):
                     control = RangeControl(value,low,high)
                     control.set_span(low,high,expand=False)
                     slider = control.slider
-                    value.valueChanged.connect(lambda n, uid=joint["uid"], f=factor,s=scale,o=offset: self.panel.session.set_target(uid, (n/f-o)/s))
-                    value.valueChanged.connect(lambda n,uid=joint["uid"]:self.highlight_axis(uid))
+                    value.valueChanged.connect(lambda n, uid=joint["uid"], f=factor,s=scale,o=offset: None if self.following else self.panel.session.set_target(uid, (n/f-o)/s))
+                    value.valueChanged.connect(lambda n,uid=joint["uid"]:None if self.following else self.highlight_axis(uid))
+                    self.joint_inputs[joint["uid"]] = (value,factor,scale,offset)
                     slider.sliderPressed.connect(lambda uid=joint["uid"]:self.highlight_axis(uid))
                     self.actual_columns.append(actual)
                     self.range_controls.append(control)
@@ -134,6 +163,7 @@ class Controls(QDialog):
                     gl.addLayout(row)
                     slider.setEnabled(active)
                     value.setEnabled(active)
+                    gl.addWidget(self.key_fields("joint",joint["uid"],joint,bindings,active))
                 self.rows[joint["uid"]] = (actual, joint, shown)
                 layout.addWidget(group)
             layout.addStretch()
@@ -146,9 +176,97 @@ class Controls(QDialog):
         self.start_button.setText(tr("Pause") if active and self.panel.session.running else tr("Resume") if active else tr("Start"))
         self.start_button.setEnabled(not active or self.panel.session.ready)
         self.reset_button.setEnabled(active)
+        self.edit_button.setEnabled(not active)
         if not active:
             self.time_label.setText(tr("Time: {seconds:.2f} s",seconds=0))
         self.refresh_icons()
+
+    def bindings(self):
+        """The document's key bindings; None when damaged (Start reports it, the fields stay disabled)."""
+        from .key_bindings import stored
+        try:
+            return stored(self.panel.app.document_data())
+        except ValueError:
+            return None
+
+    def key_fields(self, kind, ident, subject, bindings, active):
+        from .binding_fields import BindingFields
+        from .key_bindings import find
+        fields = BindingFields(self.panel,kind,ident,subject,find(bindings or [],kind,ident))
+        fields.setEnabled(not active and bindings is not None)
+        fields.changed.connect(lambda binding:self.store_binding(kind,ident,binding))
+        return fields
+
+    def store_binding(self, kind, ident, binding):
+        from .binding_fields import store
+        from .key_bindings import replaced
+        previous = self.signature
+        # The fields already show the change; a rebuild would delete the sending widget and take its focus.
+        # Set before writing: the host refreshes the panel inside set_document_data.
+        self.signature = previous[:-1]+(repr(replaced(self.bindings(),kind,ident,binding)),)
+        if not store(self.panel,kind,ident,binding):
+            self.signature = previous
+
+    def virtual_card(self, control, active, bindings):
+        from .virtual_controls import clamp
+        from .range_control import RangeControl
+        group = QGroupBox(control["name"])
+        card = QVBoxLayout(group)
+        row = QHBoxLayout()
+        card.addLayout(row)
+        value = clamp(control,self.panel.session.virtual_values.get(control["id"],control["initial"]))
+        def change(v,control_id=control["id"]):
+            if not self.following:
+                self.panel.session.set_virtual(control_id,v)
+        if control["kind"] == "switch":
+            buttons = QButtonGroup(group)
+            for index,state in enumerate(control["states"]):
+                button = QPushButton(state["name"])
+                button.setCheckable(True)
+                button.setChecked(index == value)
+                button.setEnabled(active)
+                buttons.addButton(button,index)
+                row.addWidget(button)
+            buttons.idClicked.connect(change)
+            self.virtual_inputs[control["id"]] = ("switch",buttons)
+        else:
+            number = QDoubleSpinBox()
+            number.setRange(0,100)
+            number.setDecimals(0)
+            number.setSuffix(" %")
+            number.setValue(value*100)
+            slider = RangeControl(number,0,100)
+            slider.set_span(0,100,expand=False)
+            number.valueChanged.connect(lambda n:change(n/100))
+            self.virtual_inputs[control["id"]] = ("slider",number)
+            slider.slider.setEnabled(active)
+            number.setEnabled(active)
+            self.range_controls.append(slider)
+            row.addWidget(slider,1)
+        card.addWidget(self.key_fields("control",control["id"],control,bindings,active))
+        self.virtual_cards[control["id"]] = group
+        return group
+
+    def follow_targets(self):
+        """Show targets the session changed (a key press); the inputs must not write them back, rounding would alter the target."""
+        session = self.panel.session
+        self.following = True
+        try:
+            for uid,(spin,factor,scale,offset) in self.joint_inputs.items():
+                if uid in session.targets:
+                    spin.setValue((session.targets[uid]*scale+offset)*factor)
+            for control_id,(kind,widget) in self.virtual_inputs.items():
+                if control_id not in session.virtual_values:
+                    continue
+                value = session.virtual_values[control_id]
+                if kind == "switch":
+                    button = widget.button(int(value))
+                    if button:
+                        button.setChecked(True)
+                else:
+                    widget.setValue(value*100)
+        finally:
+            self.following = False
 
     def refresh_icons(self):
         self.start_button.setIcon(icon("pause" if self.panel.session.running else "play"))

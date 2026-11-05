@@ -347,7 +347,7 @@ def test_preferences_organize_and_stage_global_simulation(panel):
     saved = {key:st.value("newton/"+key) for key in keys}
     try:
         page = NewtonPreferences(panel)
-        assert page.tabs.count() == 4
+        assert page.tabs.count() == 5
         explained = [page.colliders,page.shortcuts_button,page.quality,page.gravity.parentWidget(),
                      page.floor,page.linear,page.angular,page.python.parentWidget()]
         texts = [w.toolTip() for w in explained]
@@ -1796,7 +1796,7 @@ def test_sidebar_rows_keep_their_height_at_every_width(panel,qtapp,width):
     vp.history.execute(AddDemo([anchor,rope]))
     apply_connection(panel,door,dict(target=anchor.uid,point=[0,0,2],type="hinge",axis=[0,0,1]))
     vp.history.execute(Configure([door],dict(simulation_override=dict(gravity=[0,0,-1])),partial=True))
-    panel.app.window.resize(1500,1100);panel.app.window.show();panel.show_sidebar()
+    panel.app.window.resize(1500,2500);panel.app.window.show();panel.show_sidebar()
     panel.setFixedWidth(width)
     # Switching from a body without a connection to one with it changes which rows show.
     for body in (anchor,door,rope,door):
@@ -2248,7 +2248,7 @@ def test_settings_descriptions_are_readable(panel,mode):
     app.setPalette(theme.dark_palette() if mode == "dark" else theme.light_palette())
     try:
         page = NewtonPreferences(panel)
-        descriptions = [l for l in page.tabs.widget(3).findChildren(QLabel)
+        descriptions = [l for l in page.tabs.widget(4).findChildren(QLabel)
                         if l.text().startswith("Creates the runtime")]
         assert descriptions
         for label in descriptions:
@@ -2266,9 +2266,9 @@ def test_runtime_tab_links_to_the_manual_guide(panel):
     from newton.runtime_ui import MANUAL_GUIDE_URL
     assert MANUAL_GUIDE_URL == "https://github.com/d1rty-pixel/ingetrazo-newton/blob/main/docs/runtime-setup.md#method-c-manual"
     page = NewtonPreferences(panel)
-    links = [l for l in page.tabs.widget(3).findChildren(QLabel) if MANUAL_GUIDE_URL in l.text()]
+    links = [l for l in page.tabs.widget(4).findChildren(QLabel) if MANUAL_GUIDE_URL in l.text()]
     assert links and all(l.openExternalLinks() and "docs/runtime-setup.md." not in l.text() for l in links)
-    headings = [l.text() for l in page.tabs.widget(3).findChildren(QLabel)]
+    headings = [l.text() for l in page.tabs.widget(4).findChildren(QLabel)]
     assert "Manual installation" in headings and headings.index("Manual installation")>headings.index("Set up automatically")
     page.deleteLater()
 
@@ -2328,7 +2328,7 @@ def test_check_runtime_sits_with_the_python_field_and_the_log_below_it(panel):
     from PySide6.QtWidgets import QPushButton
     from newton.preferences import NewtonPreferences
     page = NewtonPreferences(panel)
-    runtime = page.tabs.widget(3)
+    runtime = page.tabs.widget(4)
     check = [b for b in runtime.findChildren(QPushButton) if b.text() == "Check runtime"][0]
     assert check.parentWidget() is page.python.parentWidget()
     page.deleteLater()
@@ -2607,7 +2607,7 @@ def test_manual_fold_holds_until_the_selection_changes_and_is_not_stored(panel):
 def test_sidebar_sections_follow_the_agreed_order(panel):
     select_demo_axis(panel)
     titles = [f.header.text() for f in panel.sections]
-    assert titles==["Generic","Profile","Material","Body","Collisions","Motion","Mechanical connection","Axis coupling","Simulation overrides"]
+    assert titles==["Generic","Profile","Material","Body","Collisions","Motion","Mechanical connection","Axis coupling","Key bindings","Simulation overrides"]
     layout = panel.sections[0].parentWidget().layout()
     assert [layout.itemAt(i).widget() for i in range(len(titles))]==list(panel.sections)
 

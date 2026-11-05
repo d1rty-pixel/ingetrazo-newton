@@ -4,11 +4,14 @@ import json
 import uuid
 from weakref import WeakKeyDictionary,ref
 from PySide6.QtCore import QObject,QEvent,QSettings,QTimer,Qt
+from PySide6.QtGui import QKeySequence
 from PySide6.QtWidgets import (QWidget,QComboBox,QVBoxLayout,QHBoxLayout,QGridLayout,QFrame,QCheckBox,QPushButton,
                                QLabel,QTabWidget,QScrollArea,QLineEdit,QFileDialog)
 from .i18n import tr
 from . import profiles
 from . import help_texts as help
+from .key_caps import KeyCaps
+from .key_slots import MAX_COUNT,MAX_LABEL,slot_label,slot_name
 
 
 class ProfileDraft:
@@ -125,6 +128,19 @@ class NewtonPreferences(QWidget):
         page.setting("angular_damping",tr("Angular damping"),self.angular,tr(help.ANGULAR_DAMPING))
         page.finish()
 
+        page = SettingsPage(self.tabs,tr("Key slots"),tr(help.KEY_SLOTS))
+        self.slot_rows = QWidget();self.slot_list = QVBoxLayout(self.slot_rows);self.slot_list.setContentsMargins(0,0,0,0)
+        self.slot_list.setSpacing(8)
+        page.box.addWidget(self.slot_rows)
+        self.add_slot_button = QPushButton(tr("Add slot"));self.add_slot_button.clicked.connect(self.add_slot)
+        self.remove_slot_button = QPushButton(tr("Remove last slot"));self.remove_slot_button.clicked.connect(self.remove_slot)
+        slot_buttons = QWidget();slot_row = QHBoxLayout(slot_buttons);slot_row.setContentsMargins(0,0,0,0)
+        slot_row.addWidget(self.add_slot_button);slot_row.addWidget(self.remove_slot_button);slot_row.addStretch()
+        page.setting(None,None,slot_buttons,tr(help.KEY_SLOT_COUNT))
+        self.refresh_slots()
+        self.panel.key_slots.changed.connect(self.update_slot_heads)
+        page.finish()
+
         from .profile_ui import ProfileEditor
         self.profiles = ProfileEditor(panel,repository=self.draft)
         # Preferences manage presets; applying them stays in the model sidebar.
@@ -183,6 +199,76 @@ class NewtonPreferences(QWidget):
         dialog = self.window()
         if hasattr(dialog,"show_shortcut_of"):
             dialog.show_shortcut_of(self.panel.collision_action)
+
+    def showEvent(self,event):
+        super().showEvent(event)
+        self.refresh_slots()    # keys may have changed on the host's shortcut page
+
+    def refresh_slots(self):
+        while self.slot_list.count():
+            item = self.slot_list.takeAt(0)
+            if item.widget() is not None:
+                item.widget().hide();item.widget().deleteLater()
+        slots = self.panel.key_slots
+        self.slot_heads = []
+        for n,action in enumerate(slots.actions,1):
+            row = QWidget();column = QVBoxLayout(row);column.setContentsMargins(0,0,0,0);column.setSpacing(3)
+            head = QHBoxLayout();column.addLayout(head)
+            name = QLabel(slot_name(n));font = name.font();font.setBold(True);name.setFont(font)
+            caps = QHBoxLayout();caps.setContentsMargins(0,0,0,0)
+            head.addWidget(name);head.addLayout(caps);head.addStretch()
+            self.slot_heads.append((name,caps))
+            line = QHBoxLayout();column.addLayout(line)
+            label = QLineEdit(slot_label(n));label.setMaxLength(MAX_LABEL);label.setPlaceholderText(tr("Label"))
+            label.setToolTip(tr(help.KEY_SLOT_LABEL))
+            label.editingFinished.connect(lambda n=n,edit=label:self.label_slot(n,edit.text()))
+            button = QPushButton(tr("Assign…"));button.clicked.connect(lambda _=False,a=action:self.assign_slot(a))
+            line.addWidget(label,1);line.addWidget(button)
+            self.slot_list.addWidget(row)
+        self.update_slot_heads()
+        self.add_slot_button.setEnabled(len(slots.actions)<MAX_COUNT)
+        self.remove_slot_button.setEnabled(bool(slots.actions))
+
+    def update_slot_heads(self):
+        # In place: a rebuild would delete the label field whose editingFinished is running.
+        for (name,caps),action,n in zip(self.slot_heads,self.panel.key_slots.actions,range(1,10**4)):
+            name.setText(slot_name(n))
+            while caps.count():
+                item = caps.takeAt(0)
+                if item.widget() is not None:
+                    item.widget().hide();item.widget().deleteLater()
+            key = action.shortcut().toString(QKeySequence.NativeText)
+            caps.addWidget(KeyCaps(key) if key else QLabel(tr("No key")))
+
+    def label_slot(self,n,text):
+        if self.panel.key_slots.set_label(n,text):
+            refresh_shortcut_page(self.window())    # the shortcut page shows the action text
+
+    def assign_slot(self,action):
+        dialog = self.window()
+        if hasattr(dialog,"show_shortcut_of"):
+            dialog.show_shortcut_of(action)
+
+    def add_slot(self):
+        self.panel.key_slots.add()
+        self.after_slots_changed()
+
+    def remove_slot(self):
+        self.panel.key_slots.remove()
+        self.after_slots_changed()
+
+    def after_slots_changed(self):
+        refresh_shortcut_page(self.window())
+        self.refresh_slots()
+
+
+def refresh_shortcut_page(dialog):
+    """Host adapter: the shortcut page lists its actions once, so new slots would miss clash checks."""
+    page = getattr(dialog,"_shortcuts",None)
+    if page is None:return
+    from views.shortcuts import collect_actions
+    page._actions = collect_actions(page._window)
+    page._fill()
 
 
 _panels = WeakKeyDictionary()

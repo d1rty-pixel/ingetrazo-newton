@@ -130,13 +130,42 @@ In the section **Collisions** under **Collision exemptions**: select a body, pre
 - On start the separate **control panel** opens automatically if it is not already open. It also shows the simulation time. Every actuator card is titled **group/component name actuator name**. The actual value is at the far left, the wide slider in the middle and the small setpoint input field on the right. Slider style, height, spacing and the 104-pixel input field match the min/max sliders of the sidebar. A shared actual-value column width keeps all controls aligned, even with different units or long numbers. It opens at the top right corner of the 3D view, next to the sidebar, with equal distance to the top and right; under Wayland the compositor decides the position. It is only as tall as its controls and scrolls as soon as they are taller than the 3D view. The toolbar command reopens the control panel at any time. Error messages carry a red, warnings a yellow exclamation mark; plain notes appear without a sign.
 - While paused, a new control target is approached only on resume. Reset discards the runtime targets. Permanent start values are set in the sidebar.
 - Speed and acceleration limit the setpoint profile; the actual body follows it according to force limit, loads and contacts. The simulation stays physical, so this is no guarantee of an exactly limited real acceleration.
-- Saving in the simulation workspace points to reset and then saving the original. Taking over the simulated end position is not yet included.
+- Saving in the simulation workspace points to reset and then saving the original.
+- **Keep the pose on reset** (checkbox in the control panel, off by default, remembered): Reset then writes the simulated position and rotation of the bodies into the model instead of restoring the original pose. It is one undo step; each body's axis object, joint frame and attachment point move with it, joint start angles are not changed. Nothing is kept, and the original model is restored with a note, if a body is flexible, locked or contains groups, or if the geometry changed. A reset after an error never keeps the pose.
 
 The control panel shows the simulation speed actually reached as **× real time**. While paused, no waiting time is counted in the measurement. A tooltip names Newton time, display processing, response time of the process, contact count, solver iterations and internal sub-steps. The display processing measures applying the poses and UI signals, not the pure GPU drawing time.
 
 Under **Preferences → Newton → Simulation → Quality** there are **Quick**, **Balanced** and **Precise**. The choice applies at the next start. Long cable mechanisms use a CG solver with elliptic friction at Quick/Balanced; Precise uses Newton with a tighter tolerance. Collision geometry, cable resolution and the time steps required for stability are not simplified. After a compute batch only the position-dependent data is refreshed, instead of solving the full system of equations again for the output.
 
 Speed motors use PI control with acceleration feed-forward and protection against integrator wind-up at the force limit. The motor thereby compensates loads without exceeding its set force/torque limit. In the control panel **Limit** marks a limit that has been reached; the actual-value tooltip contains setpoint, current ramp value and utilisation. Blocked or too weak motors stay physically limited.
+
+## Virtual controls
+
+A virtual control moves several axes with one switch or slider, for example a flap that is "closed" or "open", or a gripper whose jaws and wrist move together. **Virtual controls…** in the control panel opens the editor; it is available only while no simulation runs.
+
+- **Add switch** or **Add slider** creates a control; its name is what the control panel shows.
+- **Add axis** takes an axis with a control of its own into the control. Passive axes and following axes of a coupling cannot be added; a coupling's leading axis can, and its followers move with it. An axis belongs to at most one virtual control.
+- The table has one column per **state** and one row per axis. The first row holds the state names, the other rows the target of each axis in that state, in the axis's unit. **Add state** copies the last state; a control keeps at least two.
+- **At start** chooses the state (switch) or position (slider) the control takes when the simulation starts. It replaces the start targets of its axes.
+- **Move the axes one after another** (switches only, off by default): each axis starts when the ramp of the previous one has reached its target, in the order of the table rows. Switching again during such a move drops the rest of the old order. Off, all axes start together; each still moves at its own speed, so a short move ends earlier than a long one. The state at start always applies at once.
+- **OK** stores all changes as one undo step; **Cancel** discards them.
+
+In the control panel a switch shows one button per state; a click moves every axis to that state's targets. A slider runs from 0 % (first state) to 100 % (last state) and moves smoothly from state to state in between. The axes of a virtual control have no control of their own in the control panel. They still move at their own speed and acceleration and stop at their limits.
+
+Virtual controls are saved in the `.igz`. If a body of a control is deleted, the control keeps working with the remaining axes; the editor lists the missing body until it is removed from the control. A copied body is not part of the original's control.
+
+## Key bindings
+
+A key binding lets a key move an axis or a virtual control while a simulation runs.
+
+- **Key slots** are commands named *Newton: Key 1*, *Newton: Key 2* and so on. They are listed on their own tab, *Preferences → Newton → Key slots*, with the assigned key drawn as a key cap. **Assign…** opens IngeTrazo's keyboard shortcut settings at the slot. No slot has a key by default. Slots react only while a simulation runs, so their keys stay free for modelling.
+- Each slot can have a **label** (up to 40 characters, for example *Gripper*). It applies to all models and is shown in the command's name (*Newton: Key 1 – Gripper*) and in the slot choices of the bindings (*Key 1 – Gripper (G)*).
+- An axis is bound in the sidebar section **Key bindings**, shown when a single body with an axis is selected and the axis can be used by virtual controls. A virtual control is bound only on its card in the control panel; every card also has the binding row, so every axis there is bindable too. The row has the slot (*No key* removes the binding), the mode and the mode's values. Each change is its own undo step. Both places are available only while no simulation runs.
+- **Toggle**: a press sets the first value; a press while the control is at that value sets the second (rest) value. A value changed by hand in between leads to the first value on the next press.
+- **Step**: each press adds the step, within the range the control panel offers; an optional second slot subtracts it. A switch steps from state to state.
+- Values are shown like the control panel shows them: in the axis's unit and display mapping, as state names for a switch, in percent for a slider.
+
+An axis or virtual control has at most one binding; one slot may serve several. A held key acts once. Bindings are saved in the `.igz`. A binding whose axis was deleted, joined a virtual control or whose slot was removed is skipped at Start and kept until it is changed.
 
 ## Profiles
 
@@ -152,7 +181,7 @@ Under **Preferences → Newton → Profiles → Synchronise linked bodies (N)** 
 
 ## Preferences, toolbar and language
 
-**Window → Preferences → Newton** contains four tabs: **Appearance**, **Simulation**, **Profiles** and **Runtime**. They hold the collision display, global gravity/ground/damping, profile management and the Python path. Changes are applied only with OK, global simulation values are used at the next start. The sidebar no longer contains global simulation or runtime configuration.
+**Window → Preferences → Newton** contains five tabs: **Appearance**, **Simulation**, **Key slots**, **Profiles** and **Runtime**. They hold the collision display, global gravity/ground/damping, the key slots and their labels, profile management and the Python path. Changes are applied only with OK, global simulation values are used at the next start. The sidebar no longer contains global simulation or runtime configuration.
 
 Every page is divided into headed categories separated by a line. Every setting has its own explanation, which also appears as a tooltip. Settings that change a physical quantity (gravity, ground, damping) additionally show a pictogram of that quantity. **Show collision shapes in new windows** sets whether the collision display is switched on when a window opens.
 
