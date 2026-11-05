@@ -27,7 +27,7 @@ class ProfileParameters(QWidget):
             field = QComboBox()
             for text,key in values:field.addItem(tr(text),key)
             decorate(field,pictograms)
-            form.addRow(tr(title),field);self.choices.append(field)
+            form.addRow(physical_label(tr(title)),field);self.choices.append(field)
             field.currentIndexChanged.connect(callback);return field
         def numeric(form,title,low,high,callback,art):
             field = number(low,high);form.addRow(physical_label(tr(title),art),field);self.numbers.append(field)

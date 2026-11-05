@@ -2,9 +2,9 @@
 import weakref
 from collections.abc import Mapping
 import shiboken6
-from PySide6.QtCore import QSize
-from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QToolBar,QWidget
+from PySide6.QtCore import QRect,QSize,Qt
+from PySide6.QtGui import QAction,QIcon
+from PySide6.QtWidgets import QCheckBox,QToolBar,QWidget
 from .i18n import tr
 from .icons import attach,icon,repaint
 
@@ -51,18 +51,82 @@ def redecorate():
     repaint()
 
 
-def physical_label(text,art):
-    """Form label with a small drawing of the physical quantity at its right end, so label texts stay aligned."""
+def physical_label(text,art=None):
+    """Form label with the drawing left of the text; a wrapped text stays beside the drawing, not below it.
+
+    Without ``art`` the drawing's column stays empty so the texts of all rows start at the same x."""
     from PySide6.QtWidgets import QWidget,QLabel,QHBoxLayout
     widget = QWidget();row = QHBoxLayout(widget);row.setContentsMargins(0,0,0,0);row.setSpacing(6)
-    row.addWidget(QLabel(text));row.addStretch()
-    row.addWidget(attach(QLabel(),art))
+    image = QLabel();image.setFixedSize(20,20)
+    if art:attach(image,art)
+    name = QLabel(text);name.setWordWrap(True)
+    row.addWidget(image,0,Qt.AlignTop);row.addWidget(name,1,Qt.AlignVCenter)
+    widget.icon_label,widget.text_label = image,name
     return widget
 
 
+class IconCheck(QCheckBox):
+    """Checkbox drawn as "drawing, box, text", like the checkboxes of the preferences pages.
+
+    QCheckBox cannot wrap its text, so a label child carries it; that keeps long texts from
+    widening the sidebar."""
+    GAP = 6
+
+    def __init__(self,text):
+        super().__init__()
+        from PySide6.QtWidgets import QLabel,QSizePolicy
+        self._icon = QIcon()
+        self.label = QLabel(text,self);self.label.setWordWrap(True);self.label.setAttribute(Qt.WA_TransparentForMouseEvents)
+        policy = QSizePolicy(QSizePolicy.Preferred,QSizePolicy.Preferred);policy.setHeightForWidth(True)
+        self.setSizePolicy(policy);self.setAccessibleName(text)
+
+    def text(self):
+        return self.label.text()
+
+    def setIcon(self,icon):
+        self._icon = icon;self.update()
+
+    def _indicator(self):
+        from PySide6.QtWidgets import QStyle
+        style = self.style()
+        return style.pixelMetric(QStyle.PM_IndicatorWidth,None,self),style.pixelMetric(QStyle.PM_IndicatorHeight,None,self)
+
+    def _left(self):
+        return 20+self.GAP+self._indicator()[0]+self.GAP
+
+    def hasHeightForWidth(self):
+        return True
+
+    def heightForWidth(self,width):
+        return max(self._indicator()[1],self.label.heightForWidth(max(width-self._left(),1)))+2
+
+    def sizeHint(self):
+        hint = self.label.sizeHint()
+        return QSize(self._left()+hint.width(),max(self._indicator()[1],hint.height())+2)
+
+    def minimumSizeHint(self):
+        return QSize(self._left()+self.label.minimumSizeHint().width(),self._indicator()[1]+2)
+
+    def resizeEvent(self,event):
+        left = self._left();width = max(self.width()-left,1)
+        self.label.setGeometry(left,1,width,self.label.heightForWidth(width))
+
+    def paintEvent(self,event):
+        from PySide6.QtWidgets import QStylePainter,QStyleOptionButton,QStyle
+        painter = QStylePainter(self);option = QStyleOptionButton();self.initStyleOption(option)
+        option.text = ""
+        line = self.label.fontMetrics().height()+2
+        width,height = self._indicator()
+        option.rect = QRect(20+self.GAP,(line-height)//2,width,height)
+        painter.drawPrimitive(QStyle.PE_IndicatorCheckBox,option)
+        if self.hasFocus():
+            option.rect = self.rect();painter.drawPrimitive(QStyle.PE_FrameFocusRect,option)
+        mode = QIcon.Normal if self.isEnabled() else QIcon.Disabled
+        self._icon.paint(painter,QRect(0,(line-20)//2,20,20),Qt.AlignCenter,mode)
+
+
 def pictogram_check(checkbox,art):
-    checkbox.setIconSize(QSize(20,20))
-    return attach(checkbox,art)
+    return attach(IconCheck(checkbox.text()),art)
 
 
 class Actions(Mapping):
