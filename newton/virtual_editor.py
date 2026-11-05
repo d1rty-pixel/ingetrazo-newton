@@ -69,6 +69,7 @@ class VirtualControlEditor(QDialog):
         self.kind = QLabel()
         form.addRow(tr("Kind"), self.kind)
         self.initial_state = scroll_safe(QComboBox())
+        self.initial_state.setSizeAdjustPolicy(QComboBox.AdjustToContents)
         self.initial_state.activated.connect(self.set_initial)
         self.initial_position = scroll_safe(QDoubleSpinBox())
         self.initial_position.setRange(0, 100)
