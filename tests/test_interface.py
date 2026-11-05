@@ -1,4 +1,4 @@
-from demo_support import seed_demo
+from demo_support import seed_demo,set_units
 import math
 import sys
 import time
@@ -42,6 +42,7 @@ def test_connect_tool_places_a_pin_and_sidebar_edits_it_live(panel,qtapp,monkeyp
     from newton.model import box,AddDemo
     from newton.connections import ConnectionTool
     a,b = box("Link",(.5,0,2),(1,.1,.1)),box("Anchor",(0,0,2),(.1,.1,.1),mode="static")
+    set_units(panel,"mm")
     vp = panel.app.viewport;vp.history.execute(AddDemo([a,b]));vp.scene.select([a]);panel.refresh()
     assert all(panel.actions[k].isEnabled() for k in ("connect_ball","connect_hinge","connect_fixed"))
     before = len(vp.history.undo_stack);panel.actions["connect_hinge"].trigger()
@@ -410,6 +411,7 @@ def panel(qtapp, monkeypatch,request):
     ("Linear carriage","Carriage position",400,.4,"mm")])
 def test_named_controls_drive_real_session_and_reset_without_saving_runtime_target(
         panel,qtapp,kind,name,display_target,native_target,suffix):
+    set_units(panel,"mm")
     seed_demo(panel,kind)
     source = panel.app.scene
     row = next(j for j in joint_rows(source) if j["name"] == name)
@@ -1021,6 +1023,7 @@ def seed_coupled_robot(panel):
 
 
 def test_shared_opening_control_maps_mm_to_both_jaws_and_resets(panel,qtapp):
+    set_units(panel,"mm")
     groups = seed_coupled_robot(panel)
     left,right = groups[-2:]
     assert len(panel.controls.rows)==5
@@ -1279,6 +1282,7 @@ def test_axis_placement_uses_the_native_line_geometry_and_world_axis_snaps(panel
 
 
 def test_sidebar_position_slider_uses_linear_limits_and_one_undo_per_drag(panel):
+    set_units(panel,"mm")
     group = select_demo_axis(panel,"Linear carriage")
     control = panel.ranges["target"]
     assert (control.a,control.b)==pytest.approx((-700,700))
@@ -2293,3 +2297,152 @@ def test_axis_plate_values_are_lighter_than_the_name(panel):
     from PySide6.QtGui import QFontMetrics
     need = QFontMetrics(name).height()+3*QFontMetrics(value).height()+10
     assert panel.axis_label_hits[0][0].height()==need
+
+
+UNIT_CASES = [("m",1.0,3," m"),("mm",1000.0,1," mm"),("ft",1/.3048,3,"'")]
+
+
+def length_fields(panel):
+    from newton.worker import joint_settings  # noqa: F401
+    return dict(lower=panel.lower,upper=panel.upper,target=panel.target,max_speed=panel.max_speed,
+                acceleration=panel.acceleration,deceleration=panel.deceleration)
+
+
+@pytest.mark.parametrize("unit,factor,decimals,suffix",UNIT_CASES)
+def test_slide_axis_fields_follow_the_document_unit_and_store_metres(panel,unit,factor,decimals,suffix):
+    from newton.worker import joint_settings
+    set_units(panel,unit)
+    group = select_demo_axis(panel,"Linear carriage")
+    joint = joint_settings(group.ext[KEY]["joint"])
+    fields = length_fields(panel)
+    rates = dict(max_speed="/s",acceleration="/s²",deceleration="/s²")
+    for key,field in fields.items():
+        assert field.suffix()==suffix+rates.get(key,"") and field.decimals()==decimals
+        assert field.value()==pytest.approx(joint[key]*factor,abs=10**-decimals)
+    span = panel.ranges["upper"].b
+    assert span==pytest.approx(factor,abs=10**-decimals) or span==pytest.approx(joint["upper"]*factor,abs=10**-decimals)
+    # The typed number is rounded to the box's precision, then converted back to metres.
+    panel.upper.setValue(round(.3*factor,decimals))
+    assert group.ext[KEY]["joint"]["upper"]==pytest.approx(round(.3*factor,decimals)/factor,abs=1e-12)
+    panel.max_speed.setValue(round(.2*factor,decimals))
+    assert group.ext[KEY]["joint"]["max_speed"]==pytest.approx(round(.2*factor,decimals)/factor,abs=1e-12)
+    # Opening the same value again does not move the stored one.
+    stored = group.ext[KEY]["joint"]["upper"]
+    panel.refresh()
+    assert group.ext[KEY]["joint"]["upper"]==stored
+
+
+def test_rotation_axis_stays_in_degrees_in_every_unit(panel):
+    set_units(panel,"mm")
+    group = select_demo_axis(panel)
+    assert panel.upper.suffix()==" °" and panel.max_speed.suffix()==" °/s" and panel.acceleration.suffix()==" °/s²"
+    assert panel.upper.value()==pytest.approx(math.degrees(group.ext[KEY]["joint"]["upper"]))
+
+
+def test_sidebar_follows_a_unit_change_while_the_axis_stays_selected(panel):
+    from newton.worker import joint_settings
+    group = select_demo_axis(panel,"Linear carriage")
+    upper = joint_settings(group.ext[KEY]["joint"])["upper"]
+    assert panel.upper.suffix()==" m" and panel.upper.value()==pytest.approx(upper,abs=1e-3)
+    set_units(panel,"mm")
+    assert panel.upper.suffix()==" mm" and panel.upper.value()==pytest.approx(upper*1000,abs=.1)
+    set_units(panel,"ft")
+    assert panel.upper.suffix()=="'" and panel.upper.value()==pytest.approx(upper/.3048,abs=1e-3)
+    assert group.ext[KEY]["joint"]["upper"]==upper
+
+
+@pytest.mark.parametrize("unit,factor,decimals,suffix",UNIT_CASES)
+def test_control_panel_row_of_a_slide_axis_uses_the_document_unit(panel,monkeypatch,unit,factor,decimals,suffix):
+    from newton.worker import joint_settings
+    set_units(panel,unit)
+    group = select_demo_axis(panel,"Linear carriage")
+    joint = next(j for j in joint_rows(panel.app.scene) if j["body"]==group.name)
+    panel.show_controls()
+    value = panel.controls.findChild(QDoubleSpinBox)
+    assert value.suffix()==suffix
+    assert value.decimals()==decimals
+    assert value.maximum()==pytest.approx(joint["upper"]*factor,abs=10**-decimals)
+    sent = {}
+    monkeypatch.setattr(panel.session,"set_target",lambda uid,target:sent.update({uid:target}))
+    value.setValue(round(.2*factor,decimals))
+    assert sent[joint["uid"]]==pytest.approx(round(.2*factor,decimals)/factor,abs=1e-12)
+    label = panel.controls.rows[joint["uid"]][0]
+    panel.controls.telemetry({joint["uid"]:dict(position=.25,target=.2,command=.2,load=0)})
+    assert label.text()==f"Actual: {.25*factor:.{decimals}f} {suffix.strip()}"
+
+
+def test_control_panel_rebuilds_when_the_unit_changes(panel):
+    group = select_demo_axis(panel,"Linear carriage")
+    panel.show_controls()
+    assert panel.controls.findChild(QDoubleSpinBox).suffix()==" m"
+    set_units(panel,"mm")
+    assert panel.controls.findChild(QDoubleSpinBox).suffix()==" mm"
+
+
+@pytest.mark.parametrize("unit,factor,decimals,suffix",UNIT_CASES)
+def test_connection_point_softening_velocity_and_rope_radius_use_the_document_unit(panel,unit,factor,decimals,suffix):
+    from newton.model import box,AddDemo
+    from newton.connections import apply_connection
+    from newton.flexible import make
+    set_units(panel,unit)
+    vp = panel.app.viewport
+    a,b = box("Link",(.5,0,2),(1,.1,.1)),box("Anchor",(0,0,2),(.1,.1,.1),mode="static")
+    rope = make("Rope",[[i*.1,3,2] for i in range(12)])
+    vp.history.execute(AddDemo([a,b,rope]))
+    apply_connection(panel,a,dict(target=b.uid,point=[.1,0,2],type="ball"))
+    vp.scene.select([a]);vp.notify_scene_changed();panel.refresh()
+    point = panel.connection_editor.point
+    assert point[0].suffix()==suffix and point[0].decimals()==decimals
+    assert point[0].value()==pytest.approx(.1*factor,abs=10**-decimals)
+    point[2].setValue(round(.25*factor,decimals))
+    assert a.ext[KEY]["point_attachment"]["point"][2]==pytest.approx(round(.25*factor,decimals)/factor,abs=1e-12)
+    assert a.ext[KEY]["point_attachment"]["point"][0]==.1
+    environment = panel.environment
+    assert environment.softening.suffix()==suffix and environment.velocity[0].suffix()==suffix+"/s"
+    # The default softening reads as .01 m in every unit and is not stored.
+    assert environment.softening.value()==pytest.approx(.01*factor,abs=10**-decimals)
+    environment.softening.setValue(round(.05*factor,decimals))
+    environment.velocity[1].setValue(round(.5*factor,decimals))
+    override = a.ext[KEY]["simulation_override"]
+    assert override["softening"]==pytest.approx(round(.05*factor,decimals)/factor,abs=1e-12)
+    assert override["initial_velocity"][1]==pytest.approx(round(.5*factor,decimals)/factor,abs=1e-12)
+    environment.reset(next(r for r in environment.rows if r[0]=="softening"))
+    assert "softening" not in (a.ext[KEY].get("simulation_override") or {})
+    vp.scene.select([rope]);vp.notify_scene_changed();panel.refresh()
+    radius = panel.flexible_editor.radius
+    assert radius.suffix()==suffix and radius.value()==pytest.approx(.015*factor,abs=10**-decimals)
+    radius.setValue(round(.02*factor,decimals))
+    assert rope.ext[KEY]["flexible"]["radius"]==pytest.approx(round(.02*factor,decimals)/factor,abs=1e-12)
+
+
+def test_physical_constants_stay_in_si_in_every_unit(panel):
+    set_units(panel,"mm")
+    select_demo_axis(panel,"Linear carriage")
+    assert panel.environment.attraction.suffix()==" m³/s²"
+    assert panel.environment.gravity[0].suffix()==" m/s²" and panel.force.suffix()==" N"
+
+
+def test_profile_editor_shows_slide_values_in_the_document_unit_and_follows_changes(panel):
+    from newton import profiles
+    group = select_demo_axis(panel,"Linear carriage")
+    panel.show_profiles()
+    parameters = panel.profile_manager.editor.parameters
+    value = next(v for v in profiles.builtins() if v["id"]=="builtin_slide_position")
+    parameters.load(value)
+    assert parameters.motion["upper"].suffix()==" m" and parameters.override_numbers["softening"].suffix()==" m"
+    assert parameters.motion["upper"].value()==pytest.approx(value["joint"]["upper"],abs=1e-3)
+    set_units(panel,"mm")
+    assert parameters.motion["upper"].suffix()==" mm" and parameters.motion["max_speed"].suffix()==" mm/s"
+    assert parameters.motion["upper"].value()==pytest.approx(value["joint"]["upper"]*1000,abs=.1)
+    assert parameters.velocity[0].suffix()==" mm/s" and parameters.factor("max_speed")==1000
+    assert parameters.motion["force"].suffix()==" N"
+
+
+def test_axis_plate_labels_of_a_slide_axis_use_the_document_unit(panel):
+    from newton.axis_guides import guide_geometry
+    group = select_demo_axis(panel,"Linear carriage")
+    j = next(r for r in joint_rows(panel.app.scene) if r["body"]==group.name)
+    texts = lambda:[t for _,t,_ in guide_geometry(panel,panel.app.viewport,j,True)[1]]
+    assert all(t.endswith(" m") for t in texts()) and texts()
+    set_units(panel,"mm")
+    assert all(t.endswith(" mm") for t in texts())

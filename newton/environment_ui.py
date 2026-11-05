@@ -7,7 +7,7 @@ from .i18n import tr
 from .toolbar import physical_label,pictogram_check
 from .icons import attach
 from .range_control import scroll_safe
-from . import help_texts as help
+from . import help_texts as help,units
 
 
 def global_damping():
@@ -25,8 +25,8 @@ def number(low,high,value=0):
 TOLERANCE = 5e-4
 
 
-def same(a,b):
-    return a==b if isinstance(a,bool) or isinstance(b,bool) else abs(a-b)<=TOLERANCE
+def same(a,b,tolerance=TOLERANCE):
+    return a==b if isinstance(a,bool) or isinstance(b,bool) else abs(a-b)<=tolerance
 
 
 def dim(widget,on):
@@ -71,12 +71,11 @@ class EnvironmentOverrides(QWidget):
         form = QFormLayout();form.setContentsMargins(0,0,0,0);form.setRowWrapPolicy(QFormLayout.WrapLongRows)
         layout.addLayout(form)
         self.attraction = number(0,1e12);self.attraction.setSuffix(" m³/s²")
-        self.softening = number(0,1e6,.01);self.softening.setSuffix(" m")
+        self.softening = number(0,1e6,.01)
         self.add(form,tr("Attraction"),"attraction",self.attraction,"attraction")
         self.add(form,tr("Softening radius"),"softening",self.softening,"softening")
         self.velocity = [number(-1e6,1e6) for _ in range(3)]
         for i,(axis,widget) in enumerate(zip(("X","Y","Z"),self.velocity)):
-            widget.setSuffix(" m/s")
             self.add(form,tr("Initial velocity {axis}",axis=axis),"velocity",widget,"initial_velocity",i)
         # Inherited values show the global default, so they follow it.
         panel.gravity.valueChanged.connect(self.follow_default);panel.floor.toggled.connect(self.follow_default)
@@ -94,6 +93,10 @@ class EnvironmentOverrides(QWidget):
         signal = widget.toggled if isinstance(widget,QCheckBox) else widget.valueChanged
         signal.connect(self.write)
 
+    def apply_units(self):
+        scale = units.length();units.apply(self.softening,scale)
+        for field in self.velocity:units.apply(field,units.speed())
+
     def defaults(self):
         linear,angular = global_damping()
         return dict(gravity=[0,0,self.panel.gravity.value()],linear_damping=linear,angular_damping=angular,
@@ -101,7 +104,7 @@ class EnvironmentOverrides(QWidget):
 
     @staticmethod
     def current(widget):
-        return widget.isChecked() if isinstance(widget,QCheckBox) else widget.value()
+        return widget.isChecked() if isinstance(widget,QCheckBox) else units.stored(widget)
 
     def follow_default(self,*args):
         if self.group is not None:self.refresh(self.group)
@@ -110,7 +113,7 @@ class EnvironmentOverrides(QWidget):
         defaults = self.defaults()
         for key,index,widget,button,dimmed in self.rows:
             default = defaults[key][index] if key in self.VECTORS else defaults[key]
-            at_default = same(self.current(widget),default)
+            at_default = same(self.current(widget),default,units.tolerance(widget))
             dim(dimmed,at_default);button.setEnabled(not at_default and widget.isEnabled())
 
     def refresh(self,group):
@@ -118,9 +121,10 @@ class EnvironmentOverrides(QWidget):
         try:
             cfg = settings(group).get("simulation_override") if group else None
             values = {**self.defaults(),**(cfg or {})}
+            self.apply_units()
             for key,index,widget,button,dimmed in self.rows:
                 value = values[key][index] if key in self.VECTORS else values[key]
-                widget.setChecked(value) if isinstance(widget,QCheckBox) else widget.setValue(value)
+                widget.setChecked(value) if isinstance(widget,QCheckBox) else units.show(widget,value)
             free = not settings(group).get("joint") and not settings(group).get("reference") and settings(group)["mode"]=="dynamic" if group else False
             for field in self.velocity:field.setEnabled(free)
         finally:self.updating = False
@@ -130,17 +134,18 @@ class EnvironmentOverrides(QWidget):
         key,index,widget,_,_ = row
         default = self.defaults()[key]
         default = default[index] if key in self.VECTORS else default
-        widget.setChecked(default) if isinstance(widget,QCheckBox) else widget.setValue(default)
+        widget.setChecked(default) if isinstance(widget,QCheckBox) else units.show(widget,default)
 
     def write(self,*args):
         if self.updating or self.group is None or self.panel.session.workspace:return
         defaults = self.defaults();values = {}
         for key,index,widget,_,_ in self.rows:
-            if key in self.VECTORS:values.setdefault(key,[0,0,0])[index] = widget.value()
+            if key in self.VECTORS:values.setdefault(key,[0,0,0])[index] = units.stored(widget)
             else:values[key] = self.current(widget)
+        tolerance = {key:units.tolerance(widget) for key,_,widget,_,_ in self.rows if not isinstance(widget,QCheckBox)}
         # A value equal to the default is left out, so the body inherits it again.
         value = {key:values[key] for key in self.KEYS if not (
-            all(same(a,b) for a,b in zip(values[key],defaults[key])) if key in self.VECTORS else same(values[key],defaults[key]))}
+            all(same(a,b,tolerance[key]) for a,b in zip(values[key],defaults[key])) if key in self.VECTORS else same(values[key],defaults[key],tolerance.get(key,TOLERANCE)))}
         patch = dict(simulation_override=value or None)
         if KEY not in (self.group.ext or {}):patch["mode"] = "ignore" if self.group.billboard else "static"
         self.panel.patch(patch,[self.group])

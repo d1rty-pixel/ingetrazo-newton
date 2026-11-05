@@ -21,6 +21,7 @@ from .icons import attach,icon
 from .toolbar import build,decorate,redecorate,physical_label,pictogram_check,compact
 from .range_control import scroll_safe
 from .i18n import tr
+from .units import signature as units_signature
 from . import profiles
 from . import help_texts as help
 
@@ -454,21 +455,36 @@ class NewtonPanel(QWidget):
         groups = self.selected()
         return settings(groups[0]).get("joint") if len(groups)==1 else None
 
+    def apply_units(self,rotation):
+        """Suffix and precision of the motion fields, in the document's unit for a slide axis."""
+        from . import units
+        position,rate,acceleration = (units.ANGLE,units.ANGLE_RATE,units.ANGLE_ACCELERATION) if rotation else (units.length(),units.speed(),units.acceleration())
+        for w in (self.lower,self.upper,self.target):
+            units.apply(w,position)
+        for w,scale in ((self.max_speed,rate),(self.acceleration,acceleration),(self.deceleration,acceleration)):
+            units.apply(w,scale,.01 if rotation else scale.step)
+
+    @staticmethod
+    def joint_scales(kind,key):
+        """Scale of a stored motion value: degrees for a hinge, the document's length unit for a slide."""
+        from . import units
+        if kind=="hinge":
+            return units.ANGLE_RATE if key=="max_speed" else units.ANGLE_ACCELERATION if key in ("acceleration","deceleration") else units.ANGLE
+        return units.speed() if key=="max_speed" else units.acceleration() if key in ("acceleration","deceleration") else units.length()
+
     def update_units(self,*args):
+        from . import units
         j = self.current_joint()
         rotation = not j or j.get("type","hinge")=="hinge"
-        unit = " °" if rotation else " mm"
-        for w in (self.lower,self.upper):
-            w.setSuffix(unit)
-        self.target.setSuffix(unit+("/s" if self.drive.currentData()=="velocity" else ""))
-        self.max_speed.setSuffix(unit+"/s")
-        self.acceleration.setSuffix(unit+"/s²")
-        self.deceleration.setSuffix(unit+"/s²")
+        self.apply_units(rotation)
+        span = 180 if rotation else units.length().show(units.SPAN_METRES)
+        velocity = self.drive.currentData()=="velocity"
+        self.target.setSuffix(self.max_speed.suffix() if velocity else self.lower.suffix())
         self.force.setSuffix(" Nm" if rotation else " N")
         self.drive.setItemText(1,tr("Servo / angle") if rotation else tr("Position / distance"))
         self.joint_form.setRowVisible(self.ranges["target"],self.drive.currentData()!="free")
-        self.ranges["lower"].set_span(-180 if rotation else -1000,0)
-        self.ranges["upper"].set_span(0,180 if rotation else 1000)
+        self.ranges["lower"].set_span(-span,0)
+        self.ranges["upper"].set_span(0,span)
         drive = self.drive.currentData()
         if drive=="position" and self.limited.isChecked() and self.upper.value()>self.lower.value():
             low,high = self.lower.value(),self.upper.value()
@@ -477,7 +493,7 @@ class NewtonPanel(QWidget):
             low,high = -self.max_speed.value(),self.max_speed.value()
             bounded = True
         else:
-            low,high = (-180,180) if rotation else (-1000,1000)
+            low,high = -span,span
             bounded = False
         previous = self.target.blockSignals(True)
         self.target.setRange(low,high) if bounded else self.target.setRange(-1e6,1e6)
@@ -513,7 +529,7 @@ class NewtonPanel(QWidget):
         original = joint_settings(self.current_joint())
         changed = dict(original)
         if key in ("lower","upper","target","max_speed","acceleration","deceleration"):
-            value *= math.pi/180 if changed["type"]=="hinge" else .001
+            value = self.joint_scales(changed["type"],key).si(value)
         if key=="limit_hardness":
             value /= 100
         if key=="name":
@@ -616,7 +632,7 @@ class NewtonPanel(QWidget):
         self.profile_box.body.setEnabled(not active and len(groups)==1)
         if not active:self.refresh_profile_link()
         if self.profile_manager is not None:
-            self.profile_manager.update_buttons()
+            self.profile_manager.update_buttons();self.profile_manager.parameters.follow_units()
         for widget in self.selection_widgets:
             widget.setVisible(bool(groups))
         for key in ("rotate","slide","link","unlink","free","fixed"):
@@ -641,7 +657,7 @@ class NewtonPanel(QWidget):
         sync_loaded(self,self.app.viewport)
         from .axis_edit import install as install_axis_edit
         install_axis_edit(self)
-        signature = (id(self.app.scene),tuple(g.uid for g in groups),
+        signature = (id(self.app.scene),units_signature(),tuple(g.uid for g in groups),
             tuple((g.uid,g.name,repr((g.ext or {}).get(KEY)),bool(getattr(g,"locked",False))) for g in self.app.scene.groups))
         if signature==self.selection_signature:
             self.controls.refresh(self.control_rows,False)
@@ -693,14 +709,14 @@ class NewtonPanel(QWidget):
             previous = self.target.blockSignals(True)
             self.target.setRange(-1e6,1e6)
             self.target.blockSignals(previous)
-            factor = 180/math.pi if j["type"]=="hinge" else 1000
+            self.apply_units(j["type"]=="hinge")
             self.kind_label.setText(tr("Rotation axis") if j["type"]=="hinge" else tr("Linear axis"))
             self.name_edit.setText(j["name"])
             self.drive.setCurrentIndex(self.drive.findData(j["drive"]))
             self.limited.setChecked(j["limited"])
             for w,key in ((self.lower,"lower"),(self.upper,"upper"),(self.target,"target"),
                           (self.max_speed,"max_speed"),(self.acceleration,"acceleration"),(self.deceleration,"deceleration")):
-                w.setValue(j[key]*factor)
+                w.setValue(self.joint_scales(j["type"],key).show(j[key]))
             self.deceleration_sync.setChecked(j["deceleration_sync"])
             self.hardness.setValue(j["limit_hardness"]*100)
             self.force.setValue(j["force"])
@@ -747,12 +763,12 @@ class NewtonPanel(QWidget):
         if len(groups)!=1 or not self.current_joint():
             return
         j = joint_settings(self.current_joint())
-        factor = math.pi/180 if j["type"]=="hinge" else .001
+        stored = lambda key,widget:self.joint_scales(j["type"],key).si(widget.value())
         j.update(name=self.name_edit.text().strip() or groups[0].name,drive=self.drive.currentData(),
-            limited=self.limited.isChecked(),lower=self.lower.value()*factor,upper=self.upper.value()*factor,
+            limited=self.limited.isChecked(),lower=stored("lower",self.lower),upper=stored("upper",self.upper),
             limit_hardness=self.hardness.value()/100,
-            target=self.target.value()*factor,max_speed=self.max_speed.value()*factor,
-            acceleration=self.acceleration.value()*factor,deceleration=self.deceleration.value()*factor,
+            target=stored("target",self.target),max_speed=stored("max_speed",self.max_speed),
+            acceleration=stored("acceleration",self.acceleration),deceleration=stored("deceleration",self.deceleration),
             deceleration_sync=self.deceleration_sync.isChecked(),force=self.force.value())
         try:
             validated = joint_settings(j)

@@ -1,18 +1,17 @@
 """Typed, categorized values for built-in inspection and custom profile editing."""
 import copy
-import math
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPalette
 from PySide6.QtWidgets import QWidget,QVBoxLayout,QFormLayout,QTabWidget,QScrollArea,QLineEdit,QLabel,QComboBox,QCheckBox
 from .i18n import tr
-from . import profiles,help_texts as help
+from . import profiles,units,help_texts as help
 from .environment_ui import number,global_damping
 from .toolbar import decorate,physical_label,pictogram_check
 
 
 class ProfileParameters(QWidget):
     def __init__(self,panel,changed):
-        super().__init__();self.panel = panel;self.changed = changed;self.profile = None;self.updating = False;self.error = None
+        super().__init__();self.panel = panel;self.changed = changed;self.profile = None;self.updating = False;self.error = None;self.shown_units = None
         layout = QVBoxLayout(self);layout.setContentsMargins(0,0,0,0)
         self.name = QLineEdit();layout.addWidget(self.name)
         self.notice = QLabel();self.notice.setWordWrap(True);layout.addWidget(self.notice)
@@ -64,24 +63,29 @@ class ProfileParameters(QWidget):
             field = numeric(of,tr("Gravity {axis}",axis=axis),-1e6,1e6,lambda v,n=i:self.edit_vector("gravity",n,v),"gravity");field.setSuffix(" m/s²");self.gravity.append(field)
         self.override_numbers = {}
         for key,title,high,suffix in (("linear_damping","Linear damping",100," /s"),("angular_damping","Angular damping",100," /s"),
-                                     ("attraction","Attraction",1e12," m³/s²"),("softening","Softening radius",1e6," m")):
+                                     ("attraction","Attraction",1e12," m³/s²"),("softening","Softening radius",1e6,"")):
             field = numeric(of,title,0,high,lambda v,k=key:self.edit("override",k,v),key);field.setSuffix(suffix);self.override_numbers[key] = field
         self.floor = pictogram_check(QCheckBox(tr("Ground contact at Z = 0")),"ground");of.addRow(self.floor);self.choices.append(self.floor)
         self.floor.toggled.connect(lambda v:self.edit("override","floor",v))
         for i,axis in enumerate("XYZ"):
-            field = numeric(of,tr("Initial velocity {axis}",axis=axis),-1e6,1e6,lambda v,n=i:self.edit_vector("initial_velocity",n,v),"velocity");field.setSuffix(" m/s");self.velocity.append(field)
+            field = numeric(of,tr("Initial velocity {axis}",axis=axis),-1e6,1e6,lambda v,n=i:self.edit_vector("initial_velocity",n,v),"velocity");self.velocity.append(field)
         self.name.editingFinished.connect(lambda:self.edit("name",None,self.name.text()))
 
     def factor(self,key):
         joint = (self.profile or {}).get("joint") or {}
-        return 1 if key=="force" else 100 if key=="limit_hardness" else 180/math.pi if joint.get("type")=="hinge" else 1000
+        if key in ("force","limit_hardness"):return 1 if key=="force" else 100
+        return self.panel.joint_scales(joint.get("type"),key).factor
 
     def defaults(self):
         linear,angular = global_damping()
         return dict(gravity=[0,0,self.panel.gravity.value()],linear_damping=linear,angular_damping=angular,
             floor=self.panel.floor.isChecked(),attraction=0,softening=.01,initial_velocity=[0,0,0])
 
+    def follow_units(self):
+        if self.profile and self.shown_units!=units.signature():self.load(self.profile)
+
     def load(self,profile):
+        self.shown_units = units.signature()
         self.updating = True;self.profile = copy.deepcopy(profile);self.error = None
         try:
             if not profile:self.hide();return
@@ -102,16 +106,18 @@ class ProfileParameters(QWidget):
                 self.drive.setCurrentIndex(self.drive.findData(joint["drive"]));self.limited.setChecked(joint["limited"]);self.sync.setChecked(joint["deceleration_sync"])
                 angle = joint["type"]=="hinge"
                 for key,field in self.motion.items():
-                    unit = (" Nm" if angle else " N") if key=="force" else " %" if key=="limit_hardness" else ("°" if angle else " mm")
-                    if key=="max_speed" or (key=="target" and joint["drive"]=="velocity"):unit += "/s"
-                    if key in ("acceleration","deceleration"):unit += "/s²"
-                    field.setSuffix(unit);field.setValue(joint[key]*self.factor(key))
+                    if key in ("force","limit_hardness"):
+                        field.setSuffix((" Nm" if angle else " N") if key=="force" else " %");field.setValue(joint[key]*self.factor(key));continue
+                    scale = self.panel.joint_scales(joint["type"],"max_speed" if key=="target" and joint["drive"]=="velocity" else key)
+                    units.apply(field,scale);field.setValue(joint[key]*scale.factor)
                 self.motion["deceleration"].setReadOnly(builtin or joint["deceleration_sync"])
             own = body.get("simulation_override");self.own.setChecked(own is not None);self.override_fields.setVisible(own is not None)
             values = {**self.defaults(),**(own or {})}
             for field,value in zip(self.gravity,values["gravity"]):field.setValue(value)
-            for field,value in zip(self.velocity,values["initial_velocity"]):field.setValue(value)
-            for key,field in self.override_numbers.items():field.setValue(values[key])
+            speed = units.speed()
+            for field,value in zip(self.velocity,values["initial_velocity"]):units.apply(field,speed);units.show(field,value)
+            units.apply(self.override_numbers["softening"],units.length())
+            for key,field in self.override_numbers.items():units.show(field,values[key])
             self.floor.setChecked(values["floor"])
         finally:self.updating = False
 
@@ -131,6 +137,7 @@ class ProfileParameters(QWidget):
         if section=="name":p["name"] = value
         elif section=="override":
             if p["body"]["simulation_override"] is None:return
+            if key=="softening":value = units.length().si(value)
             p["body"]["simulation_override"][key] = value
         elif section=="joint" and p["joint"] is None:return
         else:p[section][key] = value
@@ -140,6 +147,7 @@ class ProfileParameters(QWidget):
         if self.updating or not self.profile or self.profile["builtin"]:return
         p = copy.deepcopy(self.profile);override = p["body"]["simulation_override"]
         if override is None:return
+        if key=="initial_velocity":value = units.speed().si(value)
         override[key] = list(override.get(key,self.defaults()[key]));override[key][index] = value;self.accept(p)
 
     def enable_overrides(self,enabled):

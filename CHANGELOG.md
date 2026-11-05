@@ -19,6 +19,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ### Changed
 
+- Length values follow the unit set under *Window → Units* (slide axis limits, target, speed and acceleration, connection points, rope and cable radius, softening radius, initial velocity), in the sidebar, the control panel and the profile editor; the fields update when the unit changes. Documents in metres now see these values in metres instead of millimetres. Gravity, attraction, pressures, damping, forces and mass stay in SI units, rotations in degrees.
 - *Simulation overrides* no longer has a switch: every setting is shown and editable, values equal to the global default are greyed (and inherited), a changed value is drawn normally, and a button beside each value resets it to the default.
 - The axis plates in the 3D view are lighter: the name stays bold, while minimum, maximum and actual position are drawn in a smaller regular weight.
 - Messages in the control panel are complete sentences that say what happened and what to do, for example when the Newton process stops or does not answer, and when saving, editing or deleting is refused during a simulation. German texts follow.
