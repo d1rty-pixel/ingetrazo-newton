@@ -4,6 +4,14 @@ Bugs and observations that are known but not yet fixed. Each entry states what i
 
 Status values: **open** (confirmed, not fixed), **observation** (reported, cause unknown), **fixed** (kept until the fix is released).
 
+## Simulation override rows are squashed at narrow widths with the Key bindings section visible
+
+- **Status:** observation
+- **Reported:** 2026-11-05, while adding the sidebar section *Key bindings*
+- **Symptom:** In `test_sidebar_rows_keep_their_height_at_every_width`, the rows of *Simulation overrides* lose their height at narrow sidebar widths once the *Key bindings* section is visible for the selected body. The test window was raised from 1100 to 2500 px, which makes it pass.
+- **Checked:** Only that the taller window removes the symptom.
+- **Unverified:** The cause. It may be a real height-for-width problem of the sidebar (see AGENTS.md, "Icons, pictograms and layout") or an artefact of the test window being too small for the added section; this was not distinguished. Check in the live sidebar before relying on the larger window.
+
 ## Starting a large model copies all geometry
 
 - **Status:** fixed

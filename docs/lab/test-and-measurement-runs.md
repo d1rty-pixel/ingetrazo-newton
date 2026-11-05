@@ -1,5 +1,18 @@
 # Test and measurement runs
 
+## Key bindings (Linux)
+
+Checked on 5 November 2026 on Linux x86_64 (Ubuntu), offscreen, same environment as "Limit hardness" below; host reference IngeTrazo v0.6.0, commit `e61132a7`.
+
+```text
+.venv/bin/python -m pytest tests -q --basetemp=.test-state/pytest
+404 passed in 89 s
+```
+
+- Covers key slots, the bindings runtime (toggle, step, second step slot, skipped targets), the binding fields on the control panel cards (one undo step per change, no rebuild of the edited card) the *Key bindings* sidebar section for a single selected axis, and the *Key slots* preferences tab (labels, key caps).
+- Run after removing the *Key bindings…* table, adding the sidebar section and the *Key slots* tab. Four tests needed their preferences tab index moved by one (*Runtime* is now tab 4); `test_sidebar_rows_keep_their_height_at_every_width` uses a 2500 px window instead of 1100 px (see `docs/known-issues.md`).
+- Not yet checked live in IngeTrazo.
+
 ## Limit hardness (Linux)
 
 Checked on 5 November 2026 on Linux x86_64 (Ubuntu), offscreen, with Python 3.12.14, PySide6 6.11.3, numpy 2.5.4 and MuJoCo 3.3.7; host reference IngeTrazo v0.6.0, commit `e61132a7`.

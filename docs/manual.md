@@ -153,6 +153,19 @@ In the control panel a switch shows one button per state; a click moves every ax
 
 Virtual controls are saved in the `.igz`. If a body of a control is deleted, the control keeps working with the remaining axes; the editor lists the missing body until it is removed from the control. A copied body is not part of the original's control.
 
+## Key bindings
+
+A key binding lets a key move an axis or a virtual control while a simulation runs.
+
+- **Key slots** are commands named *Newton: Key 1*, *Newton: Key 2* and so on. They are listed on their own tab, *Preferences → Newton → Key slots*, with the assigned key drawn as a key cap. **Assign…** opens IngeTrazo's keyboard shortcut settings at the slot. No slot has a key by default. Slots react only while a simulation runs, so their keys stay free for modelling.
+- Each slot can have a **label** (up to 40 characters, for example *Gripper*). It applies to all models and is shown in the command's name (*Newton: Key 1 – Gripper*) and in the slot choices of the bindings (*Key 1 – Gripper (G)*).
+- An axis is bound in the sidebar section **Key bindings**, shown when a single body with an axis is selected and the axis can be used by virtual controls. A virtual control is bound only on its card in the control panel; every card also has the binding row, so every axis there is bindable too. The row has the slot (*No key* removes the binding), the mode and the mode's values. Each change is its own undo step. Both places are available only while no simulation runs.
+- **Toggle**: a press sets the first value; a press while the control is at that value sets the second (rest) value. A value changed by hand in between leads to the first value on the next press.
+- **Step**: each press adds the step, within the range the control panel offers; an optional second slot subtracts it. A switch steps from state to state.
+- Values are shown like the control panel shows them: in the axis's unit and display mapping, as state names for a switch, in percent for a slider.
+
+An axis or virtual control has at most one binding; one slot may serve several. A held key acts once. Bindings are saved in the `.igz`. A binding whose axis was deleted, joined a virtual control or whose slot was removed is skipped at Start and kept until it is changed.
+
 ## Profiles
 
 The insertable example models were removed from the interface. Instead there are eight predefined profiles: free rotation axis, rotation motor, rotation servo, free linear axis, linear motor, linear positioning, and free and fixed body.
@@ -167,7 +180,7 @@ Under **Preferences → Newton → Profiles → Synchronise linked bodies (N)** 
 
 ## Preferences, toolbar and language
 
-**Window → Preferences → Newton** contains four tabs: **Appearance**, **Simulation**, **Profiles** and **Runtime**. They hold the collision display, global gravity/ground/damping, profile management and the Python path. Changes are applied only with OK, global simulation values are used at the next start. The sidebar no longer contains global simulation or runtime configuration.
+**Window → Preferences → Newton** contains five tabs: **Appearance**, **Simulation**, **Key slots**, **Profiles** and **Runtime**. They hold the collision display, global gravity/ground/damping, the key slots and their labels, profile management and the Python path. Changes are applied only with OK, global simulation values are used at the next start. The sidebar no longer contains global simulation or runtime configuration.
 
 Every page is divided into headed categories separated by a line. Every setting has its own explanation, which also appears as a tooltip. Settings that change a physical quantity (gravity, ground, damping) additionally show a pictogram of that quantity. **Show collision shapes in new windows** sets whether the collision display is switched on when a window opens.
 

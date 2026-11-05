@@ -97,3 +97,12 @@ Refines the "Key bindings" boundary above before it is built. Where it differs, 
 - **No auto-repeat.** A held key acts once (`QAction.setAutoRepeat(False)`): a slot can serve toggle and step bindings at once, and a repeating toggle would flicker.
 - **Momentary is deferred.** A `QAction` shortcut reports only the press, never the release; detecting the release would need an application-wide key event filter beside the host's shortcut handling. See [backlog.md](../backlog.md) and the host proposal "Press and release for shortcut actions" in [host-proposals.md](../host-proposals.md).
 - **Editing** happens both on the control panel cards and in a table of all bindings opened from the control panel; both edit the same document data and, like the virtual control editor, only outside a simulation.
+
+## Addendum 2026-11-05: key binding editors revised
+
+Decided after the first build of the editors, before release. Where it differs, this addendum replaces the "Editing" point of the key bindings design above.
+
+- **No table dialog.** The *Key bindings…* table is dropped: as a modal dialog it is attached to the main window on GNOME and cannot be moved, and binding an axis belongs with the axis. Instead the sidebar gets its own section *Key bindings* for the selected body's axis (same fields as on the cards). Virtual controls are bound only on their control panel cards; they serve the simulation, so the control panel is their place.
+- **The cards keep their binding row**, so every target stays bindable from the control panel.
+- **Slot labels.** Each slot can carry a label (for example "Gripper"), a global preference like the slot count (QSettings, not the document). It is part of the action text ("Newton: Key 1 – Gripper"), so IngeTrazo's shortcut settings show it too, and the slot choices in the binding fields show it.
+- **Own preferences page.** The key slots move from the *Simulation* page to a page of their own, with the explanation above the slot list and each assigned key drawn as a key cap.

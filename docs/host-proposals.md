@@ -128,7 +128,7 @@ Each entry states: what was found in the host, the proposal, what Newton could r
 - **Found:** 2026-11-05, designing key bindings for Newton's controls
 - **Host today:** keyboard shortcuts are `QAction` shortcuts, managed by the shortcut page (`views/shortcuts.py`: stored per action under `shortcuts/<key>`, clashes resolved by `assign`, reapplied after `load_extensions` in `views/main_window.py`, line 2986). A `QAction` reports only `triggered` on the press (repeated while the key is held); nothing reports the release. Tools get raw key events only through the viewport (`views/viewport.py`, around line 18126).
 - **Proposal:** let an action opt in to hold semantics, for example a host signal `pressed(action)` / `released(action)` for actions with a flag such as `action.setProperty("ingetrazo_hold", True)`, fired once per press (no auto-repeat) and once on release, also when the window loses focus while the key is held.
-- **Newton:** enables the trigger mode *momentary* (a control holds its key value while the key is down) without an application-wide key event filter beside the host's shortcut handling ([backlog.md](backlog.md), "Virtual controls and key bindings", item 3).
+- **Newton:** enables the trigger mode *momentary* (a control holds its key value while the key is down) without an application-wide key event filter beside the host's shortcut handling ([backlog.md](backlog.md), "Virtual controls and key bindings", item *momentary*).
 - **Others:** any extension or tool with hold-to-act keys (temporary views, push-to-talk style modifiers, jog controls).
 
 ## Shortcut page that follows added and removed actions
