@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from PySide6.QtCore import QObject,QProcess,QTimer,Signal,Qt,QPointF
 from PySide6.QtGui import QMatrix4x4,QQuaternion,QVector3D,QColor,QPen,QPolygonF
-from .model import prepare
+from .model import prepare,hidden_mode
 from .i18n import tr
 
 
@@ -73,7 +73,7 @@ class CollisionView(QObject):
     def inspect(self):
         if not self.active() or self.panel.session.workspace:return
         try:
-            _,specs,_ = prepare(self.panel.app.scene,require_movable=False)
+            _,specs,_ = prepare(self.panel.app.scene,require_movable=False,hidden=hidden_mode())
             python = self.panel.python.text().strip()
             if not Path(python).is_file():raise ValueError()
             process = self.process = QProcess(self)

@@ -29,10 +29,10 @@ def advance(world, seconds):
     return result
 
 
-def specs(groups):
+def specs(groups, hidden="needed"):
     scene = Scene()
     scene.groups = groups
-    return prepare(scene)
+    return prepare(scene, hidden=hidden)
 
 
 def test_falling_body_lands_on_floor_and_static_does_not_move(world):
@@ -207,12 +207,42 @@ def test_unconfigured_groups_are_static_ignored_and_hidden_simulated():
     ignored = box("ignored", (6,0,2), (1,1,1), mode="ignore")
     hidden = box("hidden", (9,0,2), (1,1,1))
     hidden.hidden = True
-    scene, bodies, movers = specs([dynamic, unconfigured, ignored, hidden])
+    scene, bodies, movers = specs([dynamic, unconfigured, ignored, hidden], hidden="always")
     assert len(scene.groups) == 4
     assert len(bodies) == 3
     assert bodies[1]["mass"] == 0
     assert ignored.uid not in movers
     assert movers[hidden.uid].hidden and bodies[2]["mass"] > 0
+
+
+def test_hidden_bodies_are_simulated_only_when_needed():
+    from core.layers import Layer
+    visible = box("visible", (0,0,2), (1,1,1), reference="parent")
+    parent = box("parent", (0,0,4), (1,1,1), reference="grandparent")
+    grandparent = box("grandparent", (0,0,6), (1,1,1))
+    loose = box("loose", (3,0,2), (1,1,1), reference="visible")
+    exempt = box("exempt", (6,0,2), (1,1,1))
+    visible.ext[KEY]["no_collision"] = ["exempt"]
+    frame = box("frame", (9,0,2), (1,1,1), mode="static", reference="carrier")
+    carrier = box("carrier", (12,0,2), (1,1,1))
+    groups = [visible, parent, grandparent, loose, exempt, frame, carrier]
+    for g in groups:
+        g.uid = g.name
+    for g in groups[1:]:
+        g.hidden = True
+    grandparent.hidden = False
+    grandparent.layer = "Off"
+    scene = Scene()
+    scene.groups = groups
+    scene.layers.append(Layer("Off"))
+    scene.layers[-1].visible = False
+    simulated = lambda mode: {b["uid"] for b in prepare(scene, hidden=mode)[1]}
+    # Visible bodies keep their reference chain; hidden statics keep theirs as surroundings.
+    assert simulated("needed") == {"visible", "parent", "grandparent", "frame", "carrier"}
+    _, _, movers = prepare(scene, hidden="needed")
+    assert "loose" not in movers and "exempt" not in movers
+    assert simulated("always") == {g.uid for g in groups}
+    assert simulated("never") == {"visible"}
 
 
 def test_worker_protocol_recovers_from_invalid_command():

@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QPushButton, QComboBox, QDoubleSpinBox, QCheckBox, QLineEdit,
     QFileDialog, QScrollArea)
 from views.fold_section import FoldSection
-from .model import KEY, settings, Configure, prepare, joint_rows, reference_id,remove_axes_command,ensure_axis_layer,unlink_followers,with_zero,fit_limits
+from .model import KEY, settings, Configure, prepare, hidden_mode, joint_rows, reference_id,remove_axes_command,ensure_axis_layer,unlink_followers,with_zero,fit_limits
 from .session import Session
 from .controls import Controls
 from .joints import PlacementTool
@@ -909,7 +909,7 @@ class NewtonPanel(QWidget):
         try:
             self.app.viewport.end_group_edit()
             self.refresh()
-            scene,specs,movers = prepare(self.app.scene)
+            scene,specs,movers = prepare(self.app.scene,hidden=hidden_mode())
             python = self.python.text().strip()
             QSettings().setValue("newton/python",python)
             from .environment_ui import global_damping

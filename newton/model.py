@@ -34,6 +34,55 @@ def settings(group):
     return {**DEFAULTS, **(group.ext or {}).get(KEY, {})}
 
 
+HIDDEN_MODES = ("needed","always","never")
+
+
+def hidden_mode():
+    from PySide6.QtCore import QSettings
+    mode = QSettings().value("newton/hidden_geometry","needed")
+    return mode if mode in HIDDEN_MODES else "needed"
+
+
+def is_hidden(group,scene):
+    return group.hidden or any(l.name==group.layer and not l.visible for l in scene.layers)
+
+
+def linked_uids(group,uids):
+    """Bodies named anywhere in the body's Newton data, so new link kinds count without a list."""
+    found = set()
+    def walk(value):
+        if isinstance(value,str):
+            if value in uids:found.add(value)
+        elif isinstance(value,dict):
+            # Exemptions only switch contacts off; they never need the other body.
+            for key,item in value.items():
+                if key!="no_collision":walk(item)
+        elif isinstance(value,(list,tuple)):
+            for item in value:walk(item)
+    walk((group.ext or {}).get(KEY,{}))
+    found.discard(group.uid)
+    return found
+
+
+def skipped_hidden(source,mode):
+    """Hidden groups left out of the simulation; "needed" keeps what visible bodies and hidden static surroundings depend on."""
+    if mode=="always":return set()
+    groups = [g for g in source.groups if not ((g.ext or {}).get(KEY,{}).get("axis_of") or (g.ext or {}).get(KEY,{}).get("connection_of"))]
+    hidden = {g.uid for g in groups if is_hidden(g,source)}
+    if mode=="never" or not hidden:return hidden
+    uids = {g.uid for g in groups}
+    by_uid = {g.uid:g for g in groups}
+    def static(g):
+        return settings(g)["mode"]=="static" if KEY in (g.ext or {}) else not g.billboard
+    needed = {g.uid for g in groups if g.uid in hidden and static(g)}
+    stack = [g for g in groups if (g.uid not in hidden and settings(g)["mode"]!="ignore") or g.uid in needed]
+    while stack:
+        for uid in linked_uids(stack.pop(),uids):
+            if uid not in needed:
+                needed.add(uid);stack.append(by_uid[uid])
+    return hidden-needed
+
+
 def reference_id(group):
     cfg = settings(group)
     return cfg.get("reference", (cfg.get("joint") or {}).get("parent"))
@@ -94,12 +143,14 @@ class AddDemo(Command):
         scene.version += 1
 
 
-def prepare(source,require_movable=True):
+def prepare(source,require_movable=True,hidden="needed"):
     """Independent world-space copies, recentered at each body's initial frame.
 
     Unconfigured groups remain static. Loose mesh is displayed, but omitted from
     newton; the UI calls this out. Nested children form one top-level body.
+    Hidden groups follow ``hidden`` (see ``HIDDEN_MODES``); skipped ones are not copied at all.
     """
+    skipped = skipped_hidden(source,hidden)
     scene = Scene()
     scene.materials = copy.deepcopy(source.materials)
     scene.layers = copy.deepcopy(source.layers)
@@ -110,6 +161,8 @@ def prepare(source,require_movable=True):
         cfg = (group.ext or {}).get(KEY,{})
         if cfg.get("axis_of") or cfg.get("connection_of"):
             continue  # Axis and connection objects only mirror body data.
+        if group.uid in skipped:
+            continue
         mesh = world_mesh(group)
         if not mesh.vertices:
             continue
@@ -141,7 +194,7 @@ def prepare(source,require_movable=True):
         clone.material = copy.deepcopy(group.material)
         clone.billboard = group.billboard
         clone.layer = group.layer
-        # Hidden only for the eye: a hidden body still takes part, like a hidden link of a chain.
+        # A hidden body that is still simulated stays hidden in the workspace.
         clone.hidden = group.hidden
         clone.xform = QMatrix4x4()
         clone.xform.translate(*origin)

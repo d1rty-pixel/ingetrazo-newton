@@ -1,5 +1,17 @@
 # Verification log
 
+## Hidden geometry (Linux)
+
+Checked on 5 November 2026 on Linux x86_64 with the worker run in-process (no GUI drawing time). The CR10 sliding electronics compartment model has 208 groups, 120 of them hidden (101 movable). Each figure is a single run on this machine and is no general speed guarantee.
+
+| Include hidden geometry | `prepare()` | Simulated bodies | Degrees of freedom | Speed |
+|---|---|---|---|---|
+| Always (previous behaviour) | 15.9 s | 113 | 27 | 13× real time |
+| When needed | 10.0 s | 12 | 4 | 102× real time |
+| Never | 11.3 s | 10 | 4 | 98× real time |
+
+No visible body of this model depends on a hidden movable body. The remaining start time is mostly the copy of visible geometry for the temporary simulation (see known issues).
+
 ## Control panel height (Linux)
 
 Checked on 4 November 2026 on Linux x86_64 (Ubuntu, GNOME/Wayland), IngeTrazo 0.6.0 Flatpak, toolbar icons 40 px, with Python 3.12.14 and PySide6 6.11.3.

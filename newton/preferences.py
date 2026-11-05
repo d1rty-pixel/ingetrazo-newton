@@ -102,6 +102,12 @@ class NewtonPreferences(QWidget):
         for label,key in (("Quick","quick"),("Balanced","balanced"),("Precise","precise")):self.quality.addItem(tr(label),key)
         self.quality.setCurrentIndex(max(0,self.quality.findData(QSettings().value("newton/quality","balanced"))))
         page.setting(None,tr("Quality"),self.quality,tr(help.QUALITY))
+        page.category(tr("Hidden geometry"))
+        from .model import hidden_mode
+        self.hidden = scroll_safe(QComboBox())
+        for label,key in (("When needed","needed"),("Always","always"),("Never","never")):self.hidden.addItem(tr(label),key)
+        self.hidden.setCurrentIndex(max(0,self.hidden.findData(hidden_mode())))
+        page.setting(None,tr("Include"),self.hidden,tr(help.HIDDEN_GEOMETRY))
         from .environment_ui import number,global_damping
         page.category(tr("Gravity and ground"))
         self.gravity = number(-100,100,panel.gravity.value());self.gravity.setSuffix(" m/s²")
@@ -142,6 +148,7 @@ class NewtonPreferences(QWidget):
         st.setValue("newton/gravity_z",self.gravity.value())
         st.setValue("newton/floor",self.floor.isChecked())
         st.setValue("newton/quality",self.quality.currentData())
+        st.setValue("newton/hidden_geometry",self.hidden.currentData())
         st.setValue("newton/linear_damping",self.linear.value())
         st.setValue("newton/angular_damping",self.angular.value())
         st.setValue("newton/python",self.python.text().strip())
