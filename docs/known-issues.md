@@ -82,11 +82,6 @@ Status values: **open** (confirmed, not fixed), **observation** (reported, cause
 - **Where:** `scripts/setup-runtime.ps1`, `scripts/install-local.ps1`
 - **Symptom:** Linux installation is a manual sequence of commands (see README). There is no update/backup path on Linux.
 
-## Worker protocol prefix still uses the old name
-
-- **Status:** observation
-- **Where:** `newton/worker.py` (`PREFIX = "IGPHYSICS:"`), `newton/session.py`
-- **Note:** Version 0.14.0 renamed everything to Newton, but the line prefix of the worker protocol kept `IGPHYSICS:`. It is internal and harmless; unknown whether it was kept on purpose.
 
 ## Axis and connection objects: known gaps
 

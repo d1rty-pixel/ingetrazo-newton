@@ -16,6 +16,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 - Start is much faster on large models: the temporary simulation shares the document's meshes and nested placements instead of copying them. `prepare()` on the CR10 model (about 250 000 vertices) went from 11.3 s to 0.84 s.
 - Limits are hard by default (limit hardness 100 %), also in existing models. Before, they gave way under load: in a cable drag chain of 10 g links by 13–17° at rest and by over 100° while moving; now by less than 0.3°. Mechanisms that rested on soft limits can behave slightly stiffer; the drag-chain demo's carriage stops up to 5 cm short of its target (known issue: the position drive has no integral term).
 - The temporary simulation refuses every edit: commands are refused before they run, groups cannot be opened, and a geometry change made anyway is reported after Reset.
+- The worker's protocol lines use the prefix `NEWTON:` instead of `IGPHYSICS:` (internal, no effect for users).
 
 ### Fixed
 

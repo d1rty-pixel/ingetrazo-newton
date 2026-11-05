@@ -94,9 +94,9 @@ class CollisionView(QObject):
         self.buffer += bytes(process.readAllStandardOutput())
         while b"\n" in self.buffer:
             line,self.buffer = self.buffer.split(b"\n",1)
-            if not line.startswith(b"IGPHYSICS:"):continue
+            if not line.startswith(b"NEWTON:"):continue
             try:
-                result = json.loads(line[len(b"IGPHYSICS:"):])
+                result = json.loads(line[len(b"NEWTON:"):])
                 if not result.get("ok"):raise ValueError()
                 self.colliders,self.poses = result["colliders"],result["poses"]
                 self.stop();self.changed.emit()

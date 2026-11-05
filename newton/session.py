@@ -198,10 +198,10 @@ class Session(QObject):
         self.buffer += bytes(self.process.readAllStandardOutput())
         while b"\n" in self.buffer:
             line, self.buffer = self.buffer.split(b"\n", 1)
-            if not line.startswith(b"IGPHYSICS:"):
+            if not line.startswith(b"NEWTON:"):
                 continue
             try:
-                result = json.loads(line[len(b"IGPHYSICS:"):])
+                result = json.loads(line[len(b"NEWTON:"):])
                 if not result.get("ok"):
                     raise ValueError(result.get("error", tr("Unknown Newton error.")))
                 self.pending = False
