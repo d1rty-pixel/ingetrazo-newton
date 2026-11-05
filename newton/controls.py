@@ -96,7 +96,9 @@ class Controls(QDialog):
         virtual = self.panel.virtual_controls()
         taken = managed(virtual)
         joints = [j for j in joints if j["drive"]!="free" and not j.get("coupling") and j["uid"] not in taken]
-        signature = (repr(joints), repr(virtual), active, units_signature())
+        from .binding_fields import slot_labels
+        bindings = self.bindings()
+        signature = (repr(joints), repr(virtual), active, units_signature(), repr(slot_labels(self.panel)), repr(bindings))
         if signature != self.signature:
             self.signature = signature
             widget = QWidget()
@@ -112,7 +114,7 @@ class Controls(QDialog):
                 label.setWordWrap(True)
                 layout.addWidget(label)
             for control in virtual:
-                layout.addWidget(self.virtual_card(control,active))
+                layout.addWidget(self.virtual_card(control,active,bindings))
             for joint in joints:
                 group = QGroupBox(joint["body"]+" "+joint["name"])
                 gl = QVBoxLayout(group)
@@ -155,6 +157,7 @@ class Controls(QDialog):
                     gl.addLayout(row)
                     slider.setEnabled(active)
                     value.setEnabled(active)
+                    gl.addWidget(self.key_fields("joint",joint["uid"],joint,bindings,active))
                 self.rows[joint["uid"]] = (actual, joint, shown)
                 layout.addWidget(group)
             layout.addStretch()
@@ -172,11 +175,39 @@ class Controls(QDialog):
             self.time_label.setText(tr("Time: {seconds:.2f} s",seconds=0))
         self.refresh_icons()
 
-    def virtual_card(self, control, active):
+    def bindings(self):
+        """The document's key bindings; None when damaged (Start reports it, the fields stay disabled)."""
+        from .key_bindings import stored
+        try:
+            return stored(self.panel.app.document_data())
+        except ValueError:
+            return None
+
+    def key_fields(self, kind, ident, subject, bindings, active):
+        from .binding_fields import BindingFields
+        from .key_bindings import find
+        fields = BindingFields(self.panel,kind,ident,subject,find(bindings or [],kind,ident))
+        fields.setEnabled(not active and bindings is not None)
+        fields.changed.connect(lambda binding:self.store_binding(kind,ident,binding))
+        return fields
+
+    def store_binding(self, kind, ident, binding):
+        from .binding_fields import store
+        from .key_bindings import replaced
+        previous = self.signature
+        # The fields already show the change; a rebuild would delete the sending widget and take its focus.
+        # Set before writing: the host refreshes the panel inside set_document_data.
+        self.signature = previous[:-1]+(repr(replaced(self.bindings(),kind,ident,binding)),)
+        if not store(self.panel,kind,ident,binding):
+            self.signature = previous
+
+    def virtual_card(self, control, active, bindings):
         from .virtual_controls import clamp
         from .range_control import RangeControl
         group = QGroupBox(control["name"])
-        row = QHBoxLayout(group)
+        card = QVBoxLayout(group)
+        row = QHBoxLayout()
+        card.addLayout(row)
         value = clamp(control,self.panel.session.virtual_values.get(control["id"],control["initial"]))
         def change(v,control_id=control["id"]):
             if not self.following:
@@ -206,6 +237,7 @@ class Controls(QDialog):
             number.setEnabled(active)
             self.range_controls.append(slider)
             row.addWidget(slider,1)
+        card.addWidget(self.key_fields("control",control["id"],control,bindings,active))
         self.virtual_cards[control["id"]] = group
         return group
 

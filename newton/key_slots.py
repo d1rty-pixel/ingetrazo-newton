@@ -1,12 +1,14 @@
 """Key slots: shortcut actions the user maps to keys in IngeTrazo's own shortcut settings."""
-from PySide6.QtCore import QObject, QSettings
-from PySide6.QtGui import QAction
+from PySide6.QtCore import QObject, QSettings, Signal
+from PySide6.QtGui import QAction, QKeySequence
 
 from .i18n import tr
 
 DEFAULT_COUNT = 5
 MAX_COUNT = 999
 SETTING = "newton/key_slots"
+LABEL_SETTING = "newton/key_slot_label_{n}"
+MAX_LABEL = 40
 
 
 def slot_count():
@@ -17,7 +19,24 @@ def slot_count():
     return count if 0 <= count <= MAX_COUNT else DEFAULT_COUNT
 
 
+def slot_label(n):
+    return str(QSettings().value(LABEL_SETTING.format(n=n), "") or "").strip()
+
+
+def action_text(n):
+    label = slot_label(n)
+    return tr("Newton: Key {n} – {label}", n=n, label=label) if label else tr("Newton: Key {n}", n=n)
+
+
+def slot_name(n):
+    """How every list shows a slot: "Key 1 – Gripper", or "Key 1" without a label."""
+    label = slot_label(n)
+    return tr("Key {n} – {label}", n=n, label=label) if label else tr("Key {n}", n=n)
+
+
 class KeySlots(QObject):
+    changed = Signal()    # a name or key of a slot changed, or a slot was added or removed
+
     def __init__(self, panel):
         super().__init__(panel)
         self.panel = panel
@@ -29,14 +48,32 @@ class KeySlots(QObject):
 
     def _create(self, n):
         window = self.panel.app.window
-        action = QAction(tr("Newton: Key {n}", n=n), window)
+        action = QAction(action_text(n), window)
         action.setObjectName(f"newton_key_slot_{n}")
         action.setAutoRepeat(False)
+        shown = [action.text(), action.shortcut().toString()]
+
+        def follow():
+            # QAction.changed also fires for enabling and checking, which must not rebuild the panel.
+            now = [action.text(), action.shortcut().toString()]
+            if now != shown:
+                shown[:] = now
+                self.changed.emit()
+        action.changed.connect(follow)
         action.triggered.connect(lambda _checked=False, n=n: self.panel.session.press(n))
         window.addAction(action)
         self.panel.controls.addAction(action)   # the non-modal control panel window has the focus while driving
         self.actions.append(action)
         return action
+
+    def set_label(self, n, text):
+        """Store the label of slot ``n`` and show it in the action text; False when nothing changed."""
+        text = " ".join(text.split())[:MAX_LABEL]
+        if not 1 <= n <= len(self.actions) or text == slot_label(n):
+            return False
+        QSettings().setValue(LABEL_SETTING.format(n=n), text)
+        self.actions[n-1].setText(action_text(n))
+        return True
 
     def update_enabled(self):
         session = self.panel.session
@@ -52,6 +89,7 @@ class KeySlots(QObject):
         self._persist()
         from views.shortcuts import apply_user_shortcuts
         apply_user_shortcuts(self.panel.app.window)
+        self.changed.emit()
         return action
 
     def remove(self):
@@ -61,12 +99,14 @@ class KeySlots(QObject):
         # A key left behind would clash with, or silently return to, a later slot with this number.
         from views.shortcuts import save_shortcut
         save_shortcut(action, [])
+        QSettings().remove(LABEL_SETTING.format(n=len(self.actions)+1))   # a later slot with this number starts unlabelled
         action.setShortcuts([])
         self.panel.app.window.removeAction(action)
         self.panel.controls.removeAction(action)
         action.setParent(None)    # still a window child until deleteLater runs, so collect_actions would list it
         action.deleteLater()
         self._persist()
+        self.changed.emit()
         return True
 
     def _persist(self):

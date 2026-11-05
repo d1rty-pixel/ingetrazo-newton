@@ -78,6 +78,47 @@ def with_bindings(data, bindings):
     return data or None
 
 
+def find(bindings, kind, ident):
+    return next((b for b in bindings if target_of(b) == (kind, ident)), None)
+
+
+def replaced(bindings, kind, ident, binding):
+    """``bindings`` with the target's binding replaced, added or (``binding`` None) removed; order kept."""
+    result, done = [], False
+    for old in bindings:
+        if target_of(old) != (kind, ident):
+            result.append(old)
+        elif binding is not None and not done:
+            result.append(binding)
+            done = True
+    if binding is not None and not done:
+        result.append(binding)
+    return result
+
+
+def target_range(kind, subject):
+    """``(low, high, integer)`` of a joint row or a virtual control, in internal units."""
+    if kind == "joint":
+        return (*joint_range(subject), False)
+    if subject["kind"] == "switch":
+        return (0, len(subject["states"])-1, True)
+    return (0, 1, False)
+
+
+def fresh(kind, ident, subject, slot, mode="toggle"):
+    """A new binding with values that do something visible: toggle between the rest position and the far end."""
+    low, high, integer = target_range(kind, subject)
+    binding = dict(target={kind: ident}, slot=slot, mode=mode)
+    if mode == "step":
+        binding["step"] = 1 if integer else (high-low)/10
+    elif kind == "joint":
+        rest = max(low, min(high, subject["target"]))
+        binding.update(value=high if abs(high-rest) > 1e-9 else low, rest=rest)
+    else:
+        binding.update(value=1, rest=0)
+    return binding
+
+
 def joint_range(row):
     """The internal range the control panel offers for a joint, before its display mapping."""
     if row["drive"] == "velocity":
@@ -102,14 +143,13 @@ def resolve(bindings, rows, controls):
         if kind == "joint":
             if ident not in available or ident in taken:
                 continue
-            extent, integer = joint_range(available[ident]), False
+            subject = available[ident]
         else:
-            control = by_id.get(ident)
-            if control is None:
+            subject = by_id.get(ident)
+            if subject is None:
                 continue
-            integer = control["kind"] == "switch"
-            extent = (0, len(control["states"])-1) if integer else (0, 1)
-        result.append(dict(binding, range=extent, integer=integer))
+        low, high, integer = target_range(kind, subject)
+        result.append(dict(binding, range=(low, high), integer=integer))
     return result
 
 

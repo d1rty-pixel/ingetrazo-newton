@@ -10,7 +10,8 @@ from PySide6.QtWidgets import (QWidget,QComboBox,QVBoxLayout,QHBoxLayout,QGridLa
 from .i18n import tr
 from . import profiles
 from . import help_texts as help
-from .key_slots import MAX_COUNT
+from .key_caps import KeyCaps
+from .key_slots import MAX_COUNT,MAX_LABEL,slot_label,slot_name
 
 
 class ProfileDraft:
@@ -125,15 +126,19 @@ class NewtonPreferences(QWidget):
         self.linear.setSuffix(" /s");self.angular.setSuffix(" /s")
         page.setting("linear_damping",tr("Linear damping"),self.linear,tr(help.LINEAR_DAMPING))
         page.setting("angular_damping",tr("Angular damping"),self.angular,tr(help.ANGULAR_DAMPING))
-        page.category(tr("Key slots"))
+        page.finish()
+
+        page = SettingsPage(self.tabs,tr("Key slots"),tr(help.KEY_SLOTS))
         self.slot_rows = QWidget();self.slot_list = QVBoxLayout(self.slot_rows);self.slot_list.setContentsMargins(0,0,0,0)
-        page.setting(None,None,self.slot_rows,tr(help.KEY_SLOTS))
+        self.slot_list.setSpacing(8)
+        page.box.addWidget(self.slot_rows)
         self.add_slot_button = QPushButton(tr("Add slot"));self.add_slot_button.clicked.connect(self.add_slot)
         self.remove_slot_button = QPushButton(tr("Remove last slot"));self.remove_slot_button.clicked.connect(self.remove_slot)
         slot_buttons = QWidget();slot_row = QHBoxLayout(slot_buttons);slot_row.setContentsMargins(0,0,0,0)
         slot_row.addWidget(self.add_slot_button);slot_row.addWidget(self.remove_slot_button);slot_row.addStretch()
         page.setting(None,None,slot_buttons,tr(help.KEY_SLOT_COUNT))
         self.refresh_slots()
+        self.panel.key_slots.changed.connect(self.update_slot_heads)
         page.finish()
 
         from .profile_ui import ProfileEditor
@@ -205,15 +210,39 @@ class NewtonPreferences(QWidget):
             if item.widget() is not None:
                 item.widget().hide();item.widget().deleteLater()
         slots = self.panel.key_slots
-        for action in slots.actions:
-            row = QWidget();line = QHBoxLayout(row);line.setContentsMargins(0,0,0,0)
-            keys = action.shortcut().toString(QKeySequence.NativeText)
-            line.addWidget(QLabel(action.text()),1);line.addWidget(QLabel(keys or tr("No key")))
+        self.slot_heads = []
+        for n,action in enumerate(slots.actions,1):
+            row = QWidget();column = QVBoxLayout(row);column.setContentsMargins(0,0,0,0);column.setSpacing(3)
+            head = QHBoxLayout();column.addLayout(head)
+            name = QLabel(slot_name(n));font = name.font();font.setBold(True);name.setFont(font)
+            caps = QHBoxLayout();caps.setContentsMargins(0,0,0,0)
+            head.addWidget(name);head.addLayout(caps);head.addStretch()
+            self.slot_heads.append((name,caps))
+            line = QHBoxLayout();column.addLayout(line)
+            label = QLineEdit(slot_label(n));label.setMaxLength(MAX_LABEL);label.setPlaceholderText(tr("Label"))
+            label.setToolTip(tr(help.KEY_SLOT_LABEL))
+            label.editingFinished.connect(lambda n=n,edit=label:self.label_slot(n,edit.text()))
             button = QPushButton(tr("Assign…"));button.clicked.connect(lambda _=False,a=action:self.assign_slot(a))
-            line.addWidget(button)
+            line.addWidget(label,1);line.addWidget(button)
             self.slot_list.addWidget(row)
+        self.update_slot_heads()
         self.add_slot_button.setEnabled(len(slots.actions)<MAX_COUNT)
         self.remove_slot_button.setEnabled(bool(slots.actions))
+
+    def update_slot_heads(self):
+        # In place: a rebuild would delete the label field whose editingFinished is running.
+        for (name,caps),action,n in zip(self.slot_heads,self.panel.key_slots.actions,range(1,10**4)):
+            name.setText(slot_name(n))
+            while caps.count():
+                item = caps.takeAt(0)
+                if item.widget() is not None:
+                    item.widget().hide();item.widget().deleteLater()
+            key = action.shortcut().toString(QKeySequence.NativeText)
+            caps.addWidget(KeyCaps(key) if key else QLabel(tr("No key")))
+
+    def label_slot(self,n,text):
+        if self.panel.key_slots.set_label(n,text):
+            refresh_shortcut_page(self.window())    # the shortcut page shows the action text
 
     def assign_slot(self,action):
         dialog = self.window()

@@ -9,7 +9,7 @@ from test_interface import panel, seed_coupled_robot, wait  # noqa: F401 (fixtur
 @pytest.fixture(autouse=True)
 def clean_settings():
     st = QSettings()
-    keys = [key_slots.SETTING] + [f"shortcuts/newton_key_slot_{n}" for n in range(1, 12)]
+    keys = [key_slots.SETTING] + [key_slots.LABEL_SETTING.format(n=n) for n in range(1, 12)] + [f"shortcuts/newton_key_slot_{n}" for n in range(1, 12)]
     old = {k: st.value(k) for k in keys}
     for k in keys:
         st.remove(k)
@@ -100,3 +100,51 @@ def test_preferences_list_the_slots_and_add_one(panel):
     assert page.slot_list.count() == 5
     assert not any(a.objectName() == "newton_key_slot_6" for a in dialog._shortcuts._actions)
     dialog.deleteLater()
+
+
+def test_a_label_is_part_of_the_action_text_and_the_binding_choices(panel):
+    from newton.binding_fields import slot_labels
+    slots = panel.key_slots
+    assert slots.set_label(1, "  Gripper  ")
+    assert not slots.set_label(1, "Gripper")
+    assert slots.actions[0].text().endswith("Key 1 \u2013 Gripper")
+    assert slots.actions[1].text().endswith("Key 2")
+    assert QSettings().value(key_slots.LABEL_SETTING.format(n=1)) == "Gripper"
+    assert dict(slot_labels(panel))[1] == "Key 1 \u2013 Gripper"
+    assert slots.set_label(1, "")
+    assert slots.actions[0].text().endswith("Key 1")
+
+
+def test_a_removed_slot_loses_its_label(panel):
+    slots = panel.key_slots
+    slots.add()
+    slots.set_label(6, "Lift")
+    slots.remove()
+    slots.add()
+    assert slots.actions[-1].text().endswith("Key 6")
+
+
+def test_preferences_edit_labels_and_draw_key_caps_on_their_own_page(panel):
+    from PySide6.QtWidgets import QLineEdit, QWidget
+    from views.preferences_dialog import PreferencesDialog
+    from newton.key_caps import key_names
+    from views.shortcuts import save_shortcut
+    save_shortcut(panel.key_slots.actions[0], [QKeySequence("Ctrl+F9")])
+    panel.key_slots.actions[0].setShortcuts([QKeySequence("Ctrl+F9")])
+    dialog = PreferencesDialog(panel.app.window)
+    page = dialog.newton_page
+    tabs = page.tabs
+    area = page.slot_rows
+    while tabs.indexOf(area) < 0:
+        area = area.parentWidget()
+    assert tabs.tabText(tabs.indexOf(area)) == "Key slots"
+    assert not page.quality.parentWidget().isAncestorOf(page.slot_rows)
+    caps = [w for w in page.slot_rows.findChildren(QWidget) if type(w).__name__ == "KeyCaps"]
+    assert len(caps) == 1 and caps[0].names == ["Ctrl", "F9"]
+    edit = page.slot_rows.findChildren(QLineEdit)[0]
+    edit.setText("Gripper")
+    edit.editingFinished.emit()
+    assert panel.key_slots.actions[0].text().endswith("Key 1 \u2013 Gripper")
+    assert any(a.text().endswith("Gripper") for a in dialog._shortcuts._actions)
+    dialog.deleteLater()
+    assert key_names("Ctrl++") == ["Ctrl", "+"] and key_names("") == []
