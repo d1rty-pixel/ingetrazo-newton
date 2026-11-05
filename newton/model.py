@@ -190,6 +190,8 @@ def prepare(source,require_movable=True,hidden="needed"):
     scene.materials = copy.deepcopy(source.materials)
     scene.layers = copy.deepcopy(source.layers)
     scene.display_style = copy.deepcopy(source.display_style)
+    # The host's readouts take the unit from the active scene, which is this copy during the simulation.
+    scene.units = copy.deepcopy(source.units)
     scene.mesh = transformed_mesh(source.loose_mesh, QMatrix4x4())
     specs, movers = [], {}
     for group in source.groups:
