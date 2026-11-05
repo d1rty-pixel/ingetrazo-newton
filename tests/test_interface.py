@@ -2672,3 +2672,76 @@ def test_profile_with_stored_override_loads_and_applies_the_same(custom_profile_
     panel.app.scene.select([group]);panel.app.viewport.notify_scene_changed()
     panel.apply_profile(legacy)
     assert group.ext[KEY]["simulation_override"]==legacy["body"]["simulation_override"]
+
+
+def test_axis_object_follows_hiding_and_renaming_while_another_group_is_open(panel):
+    from core.history import HideCommand,RenameGroupCommand
+    from core.group import Group
+    from core.mesh import Mesh
+    from newton.axis_objects import markers,owner_id
+    group = select_demo_axis(panel)
+    scene,history = panel.app.scene,panel.app.viewport.history
+    [marker] = [m for m in markers(scene) if owner_id(m)==group.uid]
+    other = Group(Mesh(),"Other")
+    scene.groups.append(other)
+    scene.begin_group_edit(other)
+    assert scene.edit_group is other
+    steps = len(history.undo_stack)
+    history.execute(HideCommand([group]))
+    assert marker.hidden and len(history.undo_stack)==steps+1
+    history.undo()
+    assert not marker.hidden
+    history.redo()
+    assert marker.hidden
+    history.execute(RenameGroupCommand(group,"Renamed"))
+    assert marker.name.endswith("· Renamed")
+    history.undo()
+    assert not marker.name.endswith("· Renamed")
+    scene.end_group_edit()
+
+
+def test_grouping_an_axis_object_with_other_objects_keeps_one_valid_object(panel):
+    from core.history import MakeNestedGroupCommand
+    from newton.axis_objects import markers,owner_id
+    group = select_demo_axis(panel)
+    scene,history = panel.app.scene,panel.app.viewport.history
+    [marker] = [m for m in markers(scene) if owner_id(m)==group.uid]
+    other = next(g for g in scene.groups if g is not group and not owner_id(g))
+    history.execute(MakeNestedGroupCommand([],[],[marker,other]))
+    def everywhere():
+        found,todo = [],list(scene.groups)
+        while todo:
+            g = todo.pop()
+            todo += list(getattr(g,"children",None) or [])
+            if owner_id(g)==group.uid:
+                found.append(g)
+        return found
+    assert everywhere()==[marker] and marker in scene.groups,"the object stays and is not duplicated"
+    assert group.ext[KEY]["joint"] is not None
+    history.undo()
+    assert everywhere()==[marker] and marker in scene.groups
+    history.redo()
+    assert everywhere()==[marker] and marker in scene.groups
+
+
+def test_grouping_a_connection_object_with_other_objects_keeps_one_valid_object(panel):
+    from core.history import MakeNestedGroupCommand
+    from newton.model import box,AddDemo
+    from newton.connections import apply_connection
+    from newton.axis_objects import CONNECTION,markers,owner_id,placement
+    a,b = box("Link",(.5,0,2),(1,.1,.1)),box("Anchor",(0,0,2),(.1,.1,.1),mode="static")
+    scene,history = panel.app.scene,panel.app.viewport.history
+    history.execute(AddDemo([a,b]));panel.refresh()
+    apply_connection(panel,a,dict(target=b.uid,point=[0,0,2],type="ball"))
+    [marker] = markers(scene,CONNECTION)
+    before = placement(marker)[0]
+    steps = len(history.undo_stack)
+    history.execute(MakeNestedGroupCommand([],[],[marker,b]))
+    def ok():
+        assert markers(scene,CONNECTION)==[marker] and marker in scene.groups
+        assert not any(marker in (getattr(g,"children",None) or []) for g in scene.groups)
+        assert a.ext[KEY]["point_attachment"] is not None
+    ok()
+    assert len(history.undo_stack)==steps+1 and placement(marker)[0]==pytest.approx(before,abs=1e-5)
+    history.undo();ok()
+    history.redo();ok()

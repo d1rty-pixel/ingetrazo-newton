@@ -9,7 +9,7 @@ otherwise the object follows the data.
 """
 from PySide6.QtGui import QMatrix4x4,QVector3D
 from core.group import Group,group_frame,carry_axes
-from core.history import Command,CompoundCommand,DeleteGroupCommand
+from core.history import Command,CompoundCommand,DeleteGroupCommand,ReparentGroupsCommand
 from core.mesh import Mesh
 from .model import KEY,AXES_LAYER,Configure,settings,remove_axes_command,ensure_axis_layer,project_zero,with_zero
 from .i18n import tr
@@ -220,6 +220,17 @@ def deletes_groups(cmd):
     return any(deletes_groups(c) for c in children if c is not None)
 
 
+def buried(scene):
+    """Objects that a command (Make Group) moved below the top level."""
+    found,todo = [],[c for g in scene.groups for c in (getattr(g,"children",None) or [])]
+    while todo:
+        g = todo.pop()
+        todo += list(getattr(g,"children",None) or [])
+        if owner_key(g):
+            found.append(g)
+    return found
+
+
 def capture(scene):
     """Placement and owner of each axis and connection object before a command."""
     return {id(g):(placement(g),(owner_key(g),owner_id(g))) for g in markers(scene)}
@@ -269,6 +280,17 @@ def plan(scene,before=None,cmd=None,size=lambda g:.2):
     return commands
 
 
+def appearance_plan(scene):
+    """Name and visibility only: the one part of the sync that is safe while a group is open."""
+    bodies = {g.uid:g for g in scene.groups if not owner_id(g)}
+    commands = []
+    for g in markers(scene):
+        body = bodies.get(owner_id(g))
+        if body is not None and data(body,owner_key(g)) and (g.name,bool(g.hidden))!=(marker_name(body,owner_key(g)),bool(body.hidden)):
+            commands.append(Appearance(g,marker_name(body,owner_key(g)),body.hidden))
+    return commands
+
+
 class SyncAxes(CompoundCommand):
     """Applied after the command it belongs to; replayed on redo."""
 
@@ -281,18 +303,26 @@ def install(panel,viewport):
 
     def execute(cmd):
         scene = history.scene
-        active = panel.session.workspace is None and getattr(scene,"edit_group",None) is None
+        idle = panel.session.workspace is None
+        active = idle and getattr(scene,"edit_group",None) is None
         before = capture(scene) if active else None
         top = history.undo_stack[-1] if history.undo_stack else None
         result = original(cmd)
         done = history.undo_stack[-1] if history.undo_stack else None
-        if active and done is not None and done is not top and not isinstance(done,SyncAxes):
-            commands = plan(scene,before,cmd,size=gizmo_size)
-            if commands:
+        if idle and done is not None and done is not top and not isinstance(done,SyncAxes):
+            # Pulled back first, so the plan sees one top-level object and creates no duplicate.
+            pull = ReparentGroupsCommand(buried(scene),None) if active and buried(scene) else None
+            if pull:
+                pull.do(scene)
+            commands = plan(scene,before,cmd,size=gizmo_size) if active else appearance_plan(scene)
+            if commands or pull:
                 ensure_axis_layer(scene)
-                sync = SyncAxes(commands)
-                sync.do(scene)
-                entry = CompoundCommand([done,sync])
+                steps = [done]+([pull] if pull else [])
+                if commands:
+                    sync = SyncAxes(commands)
+                    sync.do(scene)
+                    steps.append(sync)
+                entry = CompoundCommand(steps)
                 entry._history_mesh = getattr(done,"_history_mesh",None)
                 history.undo_stack[-1] = entry
         return result

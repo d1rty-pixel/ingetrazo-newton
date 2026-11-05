@@ -41,6 +41,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ### Fixed
 
+- Axis and connection objects now follow hiding and renaming of their body while a group is open for editing, instead of catching up after leaving the group. Grouping an axis or connection object together with other objects (Make Group) no longer captures it: it stays a top-level object in the same undo step, and no duplicate is created.
 - The installation scripts copy `runtime-requirements.txt` and `LICENSE`; without the requirements file *Set up runtime* failed after a script installation.
 - *Preferences → Runtime*: the status line is no longer cut off and the descriptions on every preferences page use the normal text colour instead of a pale grey. The page now links to the manual installation guide on GitHub instead of naming a repository file.
 - The default runtime lookup finds `.venv/bin/python` on Linux and macOS, not only `.venv/Scripts/python.exe` on Windows; one helper in `runtime_setup.py` serves both lookups.
