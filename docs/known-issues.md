@@ -12,13 +12,6 @@ Status values: **open** (confirmed, not fixed), **observation** (reported, cause
 - **Checked:** Only that the taller window removes the symptom.
 - **Unverified:** The cause. It may be a real height-for-width problem of the sidebar (see AGENTS.md, "Icons, pictograms and layout") or an artefact of the test window being too small for the added section; this was not distinguished. Check in the live sidebar before relying on the larger window.
 
-## Starting a large model copies all geometry
-
-- **Status:** fixed
-- **Reported:** 2026-11-05, CR10 sliding electronics compartment model (about 250 000 vertices)
-- **Symptom:** Pressing Start takes about 10 s before the simulation runs; the simulation itself is fast.
-- **Checked:** `prepare()` (`newton/model.py`) copied every included group for the temporary simulation with `transformed_mesh`, which welds the whole mesh again; groups with children were welded into one mesh first. The clones now share the document's mesh and nested placements, and all points are read without a copy; on this model `prepare()` dropped from 11.3 s to 0.84 s (see `docs/lab/test-and-measurement-runs.md`).
-- **Unverified:** the display cost per frame: a clone with children now draws as its nested placements (up to 141 on this model) instead of one merged mesh. Live runs in the Flatpak (see `docs/lab/test-and-measurement-runs.md`) were too noisy to decide it: 22 and 17 frames per second shared against 28 and 2 merged, with the IngeTrazo window in the background. A repeatable benchmark with the window in front is still needed.
 
 ## The temporary simulation's edit guard has gaps
 
@@ -57,12 +50,6 @@ Status values: **open** (confirmed, not fixed), **observation** (reported, cause
 - **Unverified:** whether an integral term (as the speed motor has) keeps the drive stable with couplings and stiff mechanisms.
 - **Next step:** add an anti-windup integral term to the position drive, then tighten the carrier test again.
 
-## Worker inherited the host's `PYTHONPATH` (Flatpak)
-
-- **Status:** fixed (unreleased)
-- **Symptom:** Start failed with "Importing the numpy C-extensions failed … `_multiarray_umath.cpython-313-x86_64-linux-gnu.so`".
-- **Cause:** The Flatpak launcher exports `PYTHONPATH=/app/lib/python3.13/site-packages`. The worker process inherited it, so the external Python 3.12 loaded IngeTrazo's numpy built for Python 3.13.
-- **Fix:** The worker is started with `python -E` (`newton/session.py`, `newton/collision_view.py`), which ignores all `PYTHON*` environment variables.
 
 ## Axis and connection objects: known gaps
 
