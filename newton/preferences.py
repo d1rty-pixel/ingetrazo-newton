@@ -101,13 +101,13 @@ class NewtonPreferences(QWidget):
         self.quality = scroll_safe(QComboBox())
         for label,key in (("Quick","quick"),("Balanced","balanced"),("Precise","precise")):self.quality.addItem(tr(label),key)
         self.quality.setCurrentIndex(max(0,self.quality.findData(QSettings().value("newton/quality","balanced"))))
-        page.setting(None,tr("Quality"),self.quality,tr(help.QUALITY))
+        page.setting("quality",tr("Quality"),self.quality,tr(help.QUALITY))
         page.category(tr("Hidden geometry"))
         from .model import hidden_mode
         self.hidden = scroll_safe(QComboBox())
         for label,key in (("When needed","needed"),("Always","always"),("Never","never")):self.hidden.addItem(tr(label),key)
         self.hidden.setCurrentIndex(max(0,self.hidden.findData(hidden_mode())))
-        page.setting(None,tr("Include"),self.hidden,tr(help.HIDDEN_GEOMETRY))
+        page.setting("hidden_geometry",tr("Include"),self.hidden,tr(help.HIDDEN_GEOMETRY))
         from .environment_ui import number,global_damping
         page.category(tr("Gravity and ground"))
         self.gravity = number(-100,100,panel.gravity.value());self.gravity.setSuffix(" m/s²")

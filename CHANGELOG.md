@@ -13,6 +13,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 - Claude Code skill `skills/ingetrazo-newton/` for modelling with Newton: objects and their effects, grouping for correct and fast simulations, performance options and limits.
 - *Limit hardness* (0–100 %) per axis, as a slider below the limits and in profiles: how firmly the limits hold. 0 % is MuJoCo's default softness, 100 % a hard stop.
 
+- Pictograms for *Quality* and *Include* (hidden geometry) in *Preferences → Simulation*, so every setting on that page has one.
 - `scripts/install-local.sh`: Linux counterpart of `install-local.ps1` (Flatpak target by default, `--update` with backup in `.backups`, `--destination` and `--python` overrides).
 
 ### Changed
