@@ -1,8 +1,17 @@
 # Newton
 
-Newton is a physics extension for the 3D modeller [IngeTrazo](https://github.com/ingelibre/ingetrazo). It picks up the idea of SketchyPhysics: the groups and components of a model become bodies that fall, collide, rotate or slide on axes and are driven by motors. The simulation runs directly in the model and can be reset to the original state at any time.
+[![Release](https://img.shields.io/github/v/release/d1rty-pixel/ingetrazo-newton)](https://github.com/d1rty-pixel/ingetrazo-newton/releases)
+[![Downloads](https://img.shields.io/github/downloads/d1rty-pixel/ingetrazo-newton/total)](https://github.com/d1rty-pixel/ingetrazo-newton/releases)
+[![Licence](https://img.shields.io/github/license/d1rty-pixel/ingetrazo-newton)](LICENSE)
+[![Last commit](https://img.shields.io/github/last-commit/d1rty-pixel/ingetrazo-newton)](https://github.com/d1rty-pixel/ingetrazo-newton/commits/main)
+[![Open issues](https://img.shields.io/github/issues/d1rty-pixel/ingetrazo-newton)](https://github.com/d1rty-pixel/ingetrazo-newton/issues)
+![IngeTrazo](https://img.shields.io/badge/IngeTrazo-0.6.0-blue)
+![Extension API](https://img.shields.io/badge/Extension%20API-2-blue)
+![MuJoCo](https://img.shields.io/badge/MuJoCo-3.3.7-informational)
+![Python](https://img.shields.io/badge/Python-3.12-informational)
+![Tested on](https://img.shields.io/badge/tested%20on-Linux%20%28Flatpak%29-success)
 
-Version 0.14.0 · for IngeTrazo 0.6.0 (Extension API 2) · physics by [MuJoCo](https://mujoco.org) 3.3.7 · licence GPL-3.0-or-later
+Newton is a physics extension for the 3D modeller [IngeTrazo](https://github.com/ingelibre/ingetrazo). It picks up the idea of SketchyPhysics: the groups and components of a model become bodies that fall, collide, rotate or slide on axes and are driven by motors. The simulation runs directly in the model and can be reset to the original state at any time.
 
 ## What Newton can do
 
