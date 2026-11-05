@@ -21,6 +21,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 - The "unknown collision shape" error has a translatable English text.
 - Render flags of the document's meshes that were still pending at Start are restored after Reset, so the model view does not keep old paint.
+- The default runtime lookup finds `.venv/bin/python` on Linux and macOS, not only `.venv/Scripts/python.exe` on Windows; one helper in `runtime_setup.py` serves both lookups.
 
 ### Documentation
 
