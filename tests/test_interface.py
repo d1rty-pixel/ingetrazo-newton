@@ -1901,3 +1901,42 @@ def test_control_panel_grows_when_the_speed_line_appears(qtapp,panel):
     controls.show_performance(dict(speed=1.0))
     qtapp.processEvents()
     assert controls.scroll.height()>=room
+
+
+def test_simulation_refuses_every_edit_and_never_opens_a_group(panel,qtapp):
+    from core.history import FlipFacesCommand
+    from newton.session import changed_meshes
+    seed_demo(panel,"Servo door")
+    panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+    ws,win,vp = panel.session.workspace,panel.app.window,panel.app.viewport
+    clone = next(g for g in ws.scene.groups if g.name=="Door leaf")
+    loops = {id(m):[tuple(v.position.toTuple() for v in f.loop) for f in m.faces] for m,*_ in ws.marks.values()}
+    def edit_everything():
+        vp.scene.select([clone])
+        for handler in ("_on_reverse_faces","_on_orient_faces","_on_heal_overlaps","_on_rebuild_planar",
+                        "_on_explode_group","_on_split_into_pieces","_on_hide","_on_make_group"):
+            getattr(win,handler)()
+        vp.scene.select([clone])
+        QApplication.sendEvent(vp,QKeyEvent(QEvent.KeyPress,Qt.Key_Delete,Qt.NoModifier))
+        vp.history.execute(FlipFacesCommand(list(clone.mesh.faces)))
+        vp.begin_group_edit(clone)
+        ws.scene.begin_group_edit(clone)
+    edit_everything()
+    assert vp.history is ws.history and not ws.history.undo_stack
+    assert ws.history.last_rejected==panel.controls.hint.text()=="Reset the simulation to edit the model."
+    assert ws.scene.edit_group is None and clone in ws.scene.groups and not clone.hidden
+    assert not changed_meshes(ws.marks)
+    assert loops=={id(m):[tuple(v.position.toTuple() for v in f.loop) for f in m.faces] for m,*_ in ws.marks.values()}
+    panel.session.reset()
+    assert "begin_group_edit" not in vp.__dict__
+    assert panel.controls.hint.text()=="Original model restored."
+
+
+def test_geometry_changed_during_simulation_is_reported_after_reset(panel,qtapp):
+    from PySide6.QtGui import QVector3D
+    seed_demo(panel,"Servo door")
+    panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+    clone = panel.session.workspace.scene.groups[0]
+    clone.mesh.move_vertex(clone.mesh.vertices[0],QVector3D(0,0,.1))
+    panel.session.reset()
+    assert panel.controls.hint.text()=="Geometry changed during the simulation. Check the model before saving."

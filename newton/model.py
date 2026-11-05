@@ -143,6 +143,17 @@ class AddDemo(Command):
         scene.version += 1
 
 
+class SimulationScene(Scene):
+    """The temporary simulation's scene; its groups never open for editing.
+
+    Opening a group bakes a container's matrix into its meshes and shares an
+    instance's edit back into its mesh, both outside the undo history.
+    """
+
+    def begin_group_edit(self, group):
+        return
+
+
 def prepare(source,require_movable=True,hidden="needed"):
     """Independent world-space copies, recentered at each body's initial frame.
 
@@ -151,7 +162,7 @@ def prepare(source,require_movable=True,hidden="needed"):
     Hidden groups follow ``hidden`` (see ``HIDDEN_MODES``); skipped ones are not copied at all.
     """
     skipped = skipped_hidden(source,hidden)
-    scene = Scene()
+    scene = SimulationScene()
     scene.materials = copy.deepcopy(source.materials)
     scene.layers = copy.deepcopy(source.layers)
     scene.display_style = copy.deepcopy(source.display_style)

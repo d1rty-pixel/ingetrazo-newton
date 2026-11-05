@@ -22,13 +22,52 @@ def worker_environment():
     return env
 
 
+class ReadOnlyHistory(History):
+    """Refuses every command before it runs.
+
+    The host's rollback only restores the active mesh, so a command that
+    touched any other mesh could not be taken back once it had run.
+    """
+
+    def __init__(self, scene, refused):
+        super().__init__(scene)
+        self.refused = refused
+
+    def execute(self, cmd):
+        self.last_error = None
+        self.last_rejected = tr("Reset the simulation to edit the model.")
+        self.refused(self.last_rejected)
+
+
+def mesh_marks(scene):
+    """What every mesh in ``scene`` looks like now, cheaply (see ``changed_meshes``)."""
+    from core.purge import iter_groups
+    meshes = {id(scene.mesh): scene.mesh}
+    for g in iter_groups(scene.groups):
+        if g.mesh is not None:
+            meshes[id(g.mesh)] = g.mesh
+    return {key: (m, m._mut_serial, len(m.vertices), len(m.edges), len(m.faces))
+            for key, m in meshes.items()}
+
+
+def changed_meshes(marks):
+    """Meshes whose geometry changed since ``mesh_marks``.
+
+    Winding and face attributes change without a mark; ReadOnlyHistory is
+    what keeps those out.
+    """
+    return [m for m, *mark in marks.values()
+            if mark != [m._mut_serial, len(m.vertices), len(m.edges), len(m.faces)]]
+
+
 class Workspace:
     allowed_tools = {"select"}  # navigation/selection, no modelling tools
 
     def __init__(self, session, scene):
         self.session = session
         self.scene = scene
-        self.history = History(scene)
+        self.history = ReadOnlyHistory(scene, lambda text: session.message.emit(text, "warning"))
+        self.marks = mesh_marks(scene)
 
     def title(self):
         return tr("Newton — temporary simulation")
@@ -52,6 +91,9 @@ class Workspace:
         self.session.stop_worker()
         self.session.workspace = None
         self.session.changed.emit()
+        # After changed: the panel then says "Original model restored.", which must not hide this.
+        if changed_meshes(self.marks):
+            self.session.message.emit(tr("Geometry changed during the simulation. Check the model before saving."), "error")
 
 
 class Session(QObject):
@@ -102,6 +144,9 @@ class Session(QObject):
         if not self.app.enter_workspace(self.workspace):
             self.workspace = None
             raise ValueError(tr("Could not open the simulation workspace."))
+        # SimulationScene refuses too; this only replaces the host's "Editing …" status.
+        self.app.viewport.begin_group_edit = lambda group: self.message.emit(
+            tr("Reset the simulation to edit the model."), "warning")
         self.ready, self.running, self.pending = False, True, False
         self.meter.reset();self.performance = {}
         self.buffer, self.stderr = b"", ""
@@ -260,6 +305,7 @@ class Session(QObject):
         self.drag = None
         self.specs = {}
         self.meter.reset();self.performance = {};self.metrics.emit({})
+        self.app.viewport.__dict__.pop("begin_group_edit", None)
         if self.original_set_tool:
             self.app.viewport.set_active_tool = self.original_set_tool
             self.original_set_tool = None
