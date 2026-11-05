@@ -180,3 +180,26 @@ def test_command_line(root, tmp_path, monkeypatch, capsys):
 
 def test_requirements_pin_mujoco():
     assert f"mujoco=={rs.MUJOCO_VERSION}" in rs.REQUIREMENTS.read_text()
+
+
+def test_uninstall_refuses_a_symlinked_folder_and_keeps_the_target(root, tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "keep").write_text("")
+    (outside / rs.MARKER).write_text("")
+    root.parent.mkdir(parents=True, exist_ok=True)
+    root.symlink_to(outside, target_is_directory=True)
+    with pytest.raises(rs.SetupError):
+        rs.uninstall(root)
+    assert (outside / "keep").exists() and not rs.is_managed(root)
+
+
+def test_uninstall_removes_links_inside_without_following_them(root, tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "keep").write_text("")
+    root.mkdir()
+    (root / rs.MARKER).write_text("")
+    (root / "link").symlink_to(outside, target_is_directory=True)
+    rs.uninstall(root)
+    assert not root.exists() and (outside / "keep").exists()

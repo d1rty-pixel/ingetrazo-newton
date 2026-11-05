@@ -46,30 +46,33 @@ class RuntimeSetupBox(QWidget):
         box = QVBoxLayout(self);box.setContentsMargins(0,0,0,0)
         self.status = QLabel();self.status.setWordWrap(True)
         box.addWidget(self.status)
+        # Check and the log belong to the Python environment setting, which exists in every build.
+        self.verify = QPushButton(tr("Check runtime"));self.verify.clicked.connect(self.start_check)
+        self.log = QPlainTextEdit();self.log.setReadOnly(True);self.log.setMaximumBlockCount(200);self.log.setMaximumHeight(110)
+        self.log.hide();self.destroyed.connect(self.abandon)
         if not runtime_setup.RUNTIME_SETUP_ENABLED:
             self.status.hide()
             box.addWidget(link_label(tr("Automatic setup is disabled in this build. Follow the {link}.")))
             return
         row = QHBoxLayout();box.addLayout(row)
         self.setup = QPushButton(tr("Set up runtime"));self.setup.clicked.connect(self.start_setup)
-        self.verify = QPushButton(tr("Check runtime"));self.verify.clicked.connect(self.start_check)
         self.remove = QPushButton(tr("Remove runtime"));self.remove.clicked.connect(self.remove_runtime)
         self.cancel = QPushButton(tr("Cancel"));self.cancel.clicked.connect(self.cancel_task);self.cancel.hide()
-        for button in (self.setup,self.verify,self.remove,self.cancel):
+        for button in (self.setup,self.remove,self.cancel):
             row.addWidget(button)
         row.addStretch()
-        self.log = QPlainTextEdit();self.log.setReadOnly(True);self.log.setMaximumBlockCount(200);self.log.setMaximumHeight(110)
-        self.log.hide();box.addWidget(self.log)
-        self.destroyed.connect(self.abandon)
         self.refresh()
 
     def refresh(self):
         path = runtime_setup.resolve()
         self.status.setText(tr("Interpreter: {path}").format(path=path) if path else tr("No runtime found."))
-        self.remove.setEnabled((runtime_setup.runtime_dir()/runtime_setup.MARKER).is_file())
+        self.remove.setEnabled(runtime_setup.is_managed())
 
     def busy(self,running):
-        for button in (self.setup,self.verify,self.remove):
+        self.verify.setEnabled(not running)
+        if not hasattr(self,"setup"):
+            return
+        for button in (self.setup,self.remove):
             button.setEnabled(not running)
         self.cancel.setVisible(running)
         if not running:
@@ -112,7 +115,11 @@ class RuntimeSetupBox(QWidget):
 
     def remove_runtime(self):
         folder = runtime_setup.runtime_dir()
-        if QMessageBox.question(self,tr("Remove runtime"),tr("Delete {folder}?").format(folder=folder)) != QMessageBox.Yes:
+        text = tr("Delete Newton's own runtime folder {folder}?").format(folder=folder)
+        current = self.python_field.text().strip()
+        if current and not Path(current).is_relative_to(folder):
+            text += "\n\n"+tr("The interpreter you use now, {path}, is not inside this folder and stays untouched.").format(path=current)
+        if QMessageBox.question(self,tr("Remove runtime"),text) != QMessageBox.Yes:
             return
         try:
             runtime_setup.uninstall()

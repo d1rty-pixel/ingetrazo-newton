@@ -51,7 +51,7 @@ class SettingsPage:
         font = heading.font();font.setBold(True);font.setPointSizeF(font.pointSizeF()*1.1);heading.setFont(font)
         self.box.addWidget(heading)
 
-    def setting(self,art,label,control,description):
+    def setting(self,art,label,control,description,extra=None):
         from .icons import attach
         row = QWidget();grid = QGridLayout(row);grid.setContentsMargins(0,2,0,2)
         grid.setHorizontalSpacing(12);grid.setVerticalSpacing(3);grid.setColumnStretch(2,1)
@@ -61,11 +61,13 @@ class SettingsPage:
             grid.addWidget(image,0,0,2,1)
         if label:
             name = QLabel(label);name.setMinimumWidth(150);name.setBuddy(control)
-            grid.addWidget(name,0,1);grid.addWidget(control,0,2)
+            grid.addWidget(name,0,1,Qt.AlignTop);grid.addWidget(control,0,2)
         else:
             grid.addWidget(control,0,1,1,2)
         text = QLabel(description);text.setWordWrap(True)
-        grid.addWidget(text,1,1,1,2)
+        if extra is not None:        # full-width content between the control and its explanation
+            grid.addWidget(extra,1,1,1,2)
+        grid.addWidget(text,2,1,1,2)
         control.setToolTip(description)
         self.box.addWidget(row)
 
@@ -133,12 +135,15 @@ class NewtonPreferences(QWidget):
         page.category(tr("Python environment"))
         self.python = QLineEdit(panel.python.text())
         browse = QPushButton(tr("Choose runtime…"));browse.clicked.connect(self.browse)
-        row = QWidget();box = QHBoxLayout(row);box.setContentsMargins(0,0,0,0)
-        box.addWidget(self.python,1);box.addWidget(browse)
-        page.setting(None,tr("Python with MuJoCo"),row,tr(help.RUNTIME))
         from .runtime_ui import RuntimeSetupBox
+        setup = RuntimeSetupBox(self.python)
+        control = QWidget();column = QVBoxLayout(control);column.setContentsMargins(0,0,0,0)
+        column.addWidget(self.python)       # buttons below: one row does not fit the 420 px page
+        row = QHBoxLayout();column.addLayout(row)
+        row.addWidget(browse);row.addWidget(setup.verify);row.addStretch()
+        page.setting(None,tr("Python with MuJoCo"),control,tr(help.RUNTIME),extra=setup.log)
         page.category(tr("Set up automatically"))
-        page.setting(None,None,RuntimeSetupBox(self.python),tr(help.RUNTIME_SETUP))
+        page.setting(None,None,setup,tr(help.RUNTIME_SETUP))
         page.category(tr("Manual installation"))
         from .runtime_ui import link_label
         page.setting(None,None,link_label(tr("Follow the {link} to set up Python and MuJoCo yourself.")),tr(help.RUNTIME_MANUAL))
