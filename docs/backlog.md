@@ -8,8 +8,9 @@ Agreed in [ADR 0001](adr/0001-virtual-controls.md); one step per item, in this o
 
 Virtual controls (switch and slider) are done. Remaining:
 
-1. Key bindings: key slots in the preferences, slot assignment and trigger mode (toggle, momentary, step) for every control.
+1. Key bindings: key slots in the preferences, slot assignment and trigger mode (toggle, step) for every control. Slots, document data and runtime are done; remaining: the editors (fields on the control panel cards and a table of all bindings, see the ADR addendum).
 2. Sidebar note "managed by virtual control …" with a button that opens the editor.
+3. Trigger mode *momentary* (key value while the key is held, rest value after). Deferred from item 1: the key slots are host shortcut actions, and a `QAction` shortcut only reports the press, never the release. Detecting the release would need an application-wide key event filter beside the host's shortcut handling; do not build it that way. Revisit when the host offers press and release for shortcut actions.
 
 ## Control panel redesign
 

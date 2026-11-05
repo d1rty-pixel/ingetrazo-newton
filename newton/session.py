@@ -112,6 +112,7 @@ class Session(QObject):
     frame = Signal(float)
     telemetry = Signal(object)
     metrics = Signal(object)
+    targets_changed = Signal()
 
     def __init__(self, app, parent=None):
         super().__init__(parent)
@@ -128,6 +129,7 @@ class Session(QObject):
         self.targets = {}
         self.virtual = {}
         self.virtual_values = {}
+        self.bindings = []
         self.sequences = {}
         self.step_serial = 0
         self.joint_states = {}
@@ -145,7 +147,7 @@ class Session(QObject):
         self.watchdog.setSingleShot(True)
         self.watchdog.timeout.connect(lambda: self.fail(tr("The Newton process did not answer within 15 seconds. The simulation was reset.")))
 
-    def start(self, python, scene, specs, movers, gravity, floor,linear_damping=0,angular_damping=0,quality="balanced",controls=()):
+    def start(self, python, scene, specs, movers, gravity, floor,linear_damping=0,angular_damping=0,quality="balanced",controls=(),bindings=()):
         if self.workspace or self.app.workspace() is not None:
             raise ValueError(tr("The simulation cannot start while another workspace is open. Close that workspace first."))
         if not Path(python).is_file():
@@ -156,6 +158,7 @@ class Session(QObject):
                           for s in specs if s.get("joint") and not s["joint"].get("coupling")}
         self.virtual = {c["id"]: c for c in controls}
         self.virtual_values = {}
+        self.bindings = list(bindings)
         self.sequences = {}
         for control in controls:
             self.set_virtual(control["id"], control["initial"], one_by_one=False)
@@ -314,6 +317,33 @@ class Session(QObject):
         for uid, target in moves:
             self.set_target(uid, target)
 
+    def press(self, slot):
+        """A key slot was pressed: move every bound target one toggle or step."""
+        if not (self.ready and self.workspace):
+            return
+        from .key_bindings import next_value, target_of
+        changed = False
+        for binding in self.bindings:
+            if binding["slot"] == slot:
+                down = False
+            elif binding["mode"] == "step" and binding.get("slot_down") == slot:
+                down = True
+            else:
+                continue
+            kind, ident = target_of(binding)
+            if kind == "joint":
+                if ident not in self.targets:
+                    continue
+                self.set_target(ident, next_value(binding, self.targets[ident], down))
+            else:
+                control = self.virtual.get(ident)
+                if control is None:
+                    continue
+                self.set_virtual(ident, next_value(binding, self.virtual_values.get(ident, control["initial"]), down))
+            changed = True
+        if changed:
+            self.targets_changed.emit()
+
     def advance_sequences(self):
         """Start the next axis of a one-by-one switch once the previous axis's ramp has reached its target."""
         for control_id, sequence in list(self.sequences.items()):
@@ -361,6 +391,7 @@ class Session(QObject):
         self.targets = {}
         self.virtual = {}
         self.virtual_values = {}
+        self.bindings = []
         self.sequences = {}
         self.joint_states = {}
         self.colliders = {}

@@ -4,11 +4,13 @@ import json
 import uuid
 from weakref import WeakKeyDictionary,ref
 from PySide6.QtCore import QObject,QEvent,QSettings,QTimer,Qt
+from PySide6.QtGui import QKeySequence
 from PySide6.QtWidgets import (QWidget,QComboBox,QVBoxLayout,QHBoxLayout,QGridLayout,QFrame,QCheckBox,QPushButton,
                                QLabel,QTabWidget,QScrollArea,QLineEdit,QFileDialog)
 from .i18n import tr
 from . import profiles
 from . import help_texts as help
+from .key_slots import MAX_COUNT
 
 
 class ProfileDraft:
@@ -123,6 +125,15 @@ class NewtonPreferences(QWidget):
         self.linear.setSuffix(" /s");self.angular.setSuffix(" /s")
         page.setting("linear_damping",tr("Linear damping"),self.linear,tr(help.LINEAR_DAMPING))
         page.setting("angular_damping",tr("Angular damping"),self.angular,tr(help.ANGULAR_DAMPING))
+        page.category(tr("Key slots"))
+        self.slot_rows = QWidget();self.slot_list = QVBoxLayout(self.slot_rows);self.slot_list.setContentsMargins(0,0,0,0)
+        page.setting(None,None,self.slot_rows,tr(help.KEY_SLOTS))
+        self.add_slot_button = QPushButton(tr("Add slot"));self.add_slot_button.clicked.connect(self.add_slot)
+        self.remove_slot_button = QPushButton(tr("Remove last slot"));self.remove_slot_button.clicked.connect(self.remove_slot)
+        slot_buttons = QWidget();slot_row = QHBoxLayout(slot_buttons);slot_row.setContentsMargins(0,0,0,0)
+        slot_row.addWidget(self.add_slot_button);slot_row.addWidget(self.remove_slot_button);slot_row.addStretch()
+        page.setting(None,None,slot_buttons,tr(help.KEY_SLOT_COUNT))
+        self.refresh_slots()
         page.finish()
 
         from .profile_ui import ProfileEditor
@@ -183,6 +194,52 @@ class NewtonPreferences(QWidget):
         dialog = self.window()
         if hasattr(dialog,"show_shortcut_of"):
             dialog.show_shortcut_of(self.panel.collision_action)
+
+    def showEvent(self,event):
+        super().showEvent(event)
+        self.refresh_slots()    # keys may have changed on the host's shortcut page
+
+    def refresh_slots(self):
+        while self.slot_list.count():
+            item = self.slot_list.takeAt(0)
+            if item.widget() is not None:
+                item.widget().hide();item.widget().deleteLater()
+        slots = self.panel.key_slots
+        for action in slots.actions:
+            row = QWidget();line = QHBoxLayout(row);line.setContentsMargins(0,0,0,0)
+            keys = action.shortcut().toString(QKeySequence.NativeText)
+            line.addWidget(QLabel(action.text()),1);line.addWidget(QLabel(keys or tr("No key")))
+            button = QPushButton(tr("Assign…"));button.clicked.connect(lambda _=False,a=action:self.assign_slot(a))
+            line.addWidget(button)
+            self.slot_list.addWidget(row)
+        self.add_slot_button.setEnabled(len(slots.actions)<MAX_COUNT)
+        self.remove_slot_button.setEnabled(bool(slots.actions))
+
+    def assign_slot(self,action):
+        dialog = self.window()
+        if hasattr(dialog,"show_shortcut_of"):
+            dialog.show_shortcut_of(action)
+
+    def add_slot(self):
+        self.panel.key_slots.add()
+        self.after_slots_changed()
+
+    def remove_slot(self):
+        self.panel.key_slots.remove()
+        self.after_slots_changed()
+
+    def after_slots_changed(self):
+        refresh_shortcut_page(self.window())
+        self.refresh_slots()
+
+
+def refresh_shortcut_page(dialog):
+    """Host adapter: the shortcut page lists its actions once, so new slots would miss clash checks."""
+    page = getattr(dialog,"_shortcuts",None)
+    if page is None:return
+    from views.shortcuts import collect_actions
+    page._actions = collect_actions(page._window)
+    page._fill()
 
 
 _panels = WeakKeyDictionary()

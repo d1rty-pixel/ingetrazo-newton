@@ -82,6 +82,10 @@ class Controls(QDialog):
         panel.session.message.connect(self.message)
         self.rows = {}
         self.virtual_cards = {}
+        self.joint_inputs = {}
+        self.virtual_inputs = {}
+        self.following = False
+        panel.session.targets_changed.connect(self.follow_targets)
         self.actual_columns = []
         self.range_controls = []
         self.signature = None
@@ -99,6 +103,8 @@ class Controls(QDialog):
             layout = QVBoxLayout(widget)
             self.rows = {}
             self.virtual_cards = {}
+            self.joint_inputs = {}
+            self.virtual_inputs = {}
             self.actual_columns = []
             self.range_controls = []
             if not joints and not virtual:
@@ -138,8 +144,9 @@ class Controls(QDialog):
                     control = RangeControl(value,low,high)
                     control.set_span(low,high,expand=False)
                     slider = control.slider
-                    value.valueChanged.connect(lambda n, uid=joint["uid"], f=factor,s=scale,o=offset: self.panel.session.set_target(uid, (n/f-o)/s))
-                    value.valueChanged.connect(lambda n,uid=joint["uid"]:self.highlight_axis(uid))
+                    value.valueChanged.connect(lambda n, uid=joint["uid"], f=factor,s=scale,o=offset: None if self.following else self.panel.session.set_target(uid, (n/f-o)/s))
+                    value.valueChanged.connect(lambda n,uid=joint["uid"]:None if self.following else self.highlight_axis(uid))
+                    self.joint_inputs[joint["uid"]] = (value,factor,scale,offset)
                     slider.sliderPressed.connect(lambda uid=joint["uid"]:self.highlight_axis(uid))
                     self.actual_columns.append(actual)
                     self.range_controls.append(control)
@@ -172,7 +179,8 @@ class Controls(QDialog):
         row = QHBoxLayout(group)
         value = clamp(control,self.panel.session.virtual_values.get(control["id"],control["initial"]))
         def change(v,control_id=control["id"]):
-            self.panel.session.set_virtual(control_id,v)
+            if not self.following:
+                self.panel.session.set_virtual(control_id,v)
         if control["kind"] == "switch":
             buttons = QButtonGroup(group)
             for index,state in enumerate(control["states"]):
@@ -183,6 +191,7 @@ class Controls(QDialog):
                 buttons.addButton(button,index)
                 row.addWidget(button)
             buttons.idClicked.connect(change)
+            self.virtual_inputs[control["id"]] = ("switch",buttons)
         else:
             number = QDoubleSpinBox()
             number.setRange(0,100)
@@ -192,12 +201,34 @@ class Controls(QDialog):
             slider = RangeControl(number,0,100)
             slider.set_span(0,100,expand=False)
             number.valueChanged.connect(lambda n:change(n/100))
+            self.virtual_inputs[control["id"]] = ("slider",number)
             slider.slider.setEnabled(active)
             number.setEnabled(active)
             self.range_controls.append(slider)
             row.addWidget(slider,1)
         self.virtual_cards[control["id"]] = group
         return group
+
+    def follow_targets(self):
+        """Show targets the session changed (a key press); the inputs must not write them back, rounding would alter the target."""
+        session = self.panel.session
+        self.following = True
+        try:
+            for uid,(spin,factor,scale,offset) in self.joint_inputs.items():
+                if uid in session.targets:
+                    spin.setValue((session.targets[uid]*scale+offset)*factor)
+            for control_id,(kind,widget) in self.virtual_inputs.items():
+                if control_id not in session.virtual_values:
+                    continue
+                value = session.virtual_values[control_id]
+                if kind == "switch":
+                    button = widget.button(int(value))
+                    if button:
+                        button.setChecked(True)
+                else:
+                    widget.setValue(value*100)
+        finally:
+            self.following = False
 
     def refresh_icons(self):
         self.start_button.setIcon(icon("pause" if self.panel.session.running else "play"))

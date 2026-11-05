@@ -255,6 +255,8 @@ class NewtonPanel(QWidget):
         self._auto_state = {}
         self.selection_widgets = (intro,scroll)
         self.controls = Controls(self)
+        from .key_slots import KeySlots
+        self.key_slots = KeySlots(self)
         self.session.changed.connect(self.refresh)
         self.session.telemetry.connect(self.controls.telemetry)
         app.add_overlay(self.draw_joints)
@@ -988,14 +990,17 @@ class NewtonPanel(QWidget):
             self.app.viewport.end_group_edit()
             self.refresh()
             from .virtual_controls import resolve,stored
-            controls = resolve(stored(self.app.document_data()),joint_rows(self.app.scene))
+            rows = joint_rows(self.app.scene)
+            controls = resolve(stored(self.app.document_data()),rows)
+            from . import key_bindings
+            bindings = key_bindings.resolve(key_bindings.stored(self.app.document_data()),rows,controls)
             scene,specs,movers = prepare(self.app.scene,hidden=hidden_mode())
             python = self.python.text().strip()
             QSettings().setValue("newton/python",python)
             from .environment_ui import global_damping
             linear,angular = global_damping()
             quality = QSettings().value("newton/quality","balanced")
-            self.session.start(python,scene,specs,movers,self.gravity.value(),self.floor.isChecked(),linear,angular,quality,controls)
+            self.session.start(python,scene,specs,movers,self.gravity.value(),self.floor.isChecked(),linear,angular,quality,controls,bindings)
             self.controls.message(tr("Drag passive bodies with the mouse. Move actuators with the controls."))
             self.warn_ground_contact(specs,movers)
         except Exception as exc:
