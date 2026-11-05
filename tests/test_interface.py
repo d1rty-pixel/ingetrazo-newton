@@ -2221,6 +2221,8 @@ def test_runtime_tab_links_to_the_manual_guide(panel):
     page = NewtonPreferences(panel)
     links = [l for l in page.tabs.widget(3).findChildren(QLabel) if MANUAL_GUIDE_URL in l.text()]
     assert links and all(l.openExternalLinks() and "docs/runtime-setup.md." not in l.text() for l in links)
+    headings = [l.text() for l in page.tabs.widget(3).findChildren(QLabel)]
+    assert "Manual installation" in headings and headings.index("Manual installation")>headings.index("Set up automatically")
     page.deleteLater()
 
 

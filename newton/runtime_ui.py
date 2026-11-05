@@ -60,7 +60,6 @@ class RuntimeSetupBox(QWidget):
         row.addStretch()
         self.log = QPlainTextEdit();self.log.setReadOnly(True);self.log.setMaximumBlockCount(200);self.log.setMaximumHeight(110)
         self.log.hide();box.addWidget(self.log)
-        box.addWidget(link_label(tr("To install the runtime yourself, follow the {link}.")))
         self.destroyed.connect(self.abandon)
         self.refresh()
 

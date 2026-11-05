@@ -139,6 +139,9 @@ class NewtonPreferences(QWidget):
         from .runtime_ui import RuntimeSetupBox
         page.category(tr("Set up automatically"))
         page.setting(None,None,RuntimeSetupBox(self.python),tr(help.RUNTIME_SETUP))
+        page.category(tr("Manual installation"))
+        from .runtime_ui import link_label
+        page.setting(None,None,link_label(tr("Follow the {link} to set up Python and MuJoCo yourself.")),tr(help.RUNTIME_MANUAL))
         page.finish()
 
     def commit(self):
