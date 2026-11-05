@@ -357,6 +357,19 @@ def test_real_extension_loader_and_mainwindow_session(qtapp, monkeypatch):
         win.close()
 
 
+def test_position_drive_reaches_target_under_constant_load(world):
+    slider = box("Slider",(0,0,1),(.2,.2,.2),joint=dict(type="slide",drive="position",pivot=[0,0,1],axis=[1,0,0],
+                 target=.3,force=40,max_speed=.5,acceleration=1))
+    _,bodies,_ = specs([slider])
+    world.load(dict(bodies=bodies,gravity=0,floor=False))
+    motor = world.motors[slider.uid]
+    # Without an integral term this load would leave load/(100*inertia) = 3 cm.
+    load = 3*motor["inertia"]*100*.01
+    world.data.xfrc_applied[world.bodies[slider.uid],0] = -load
+    result = advance(world,6)
+    assert result["joints"][slider.uid]["position"]==pytest.approx(.3,abs=.002)
+
+
 def test_start_angle_makes_limits_and_targets_absolute(world):
     # A door modelled open at 90° whose 0° is "closed": closing drives it back by 90°.
     door = box("Door",(.5,0,1),(1,.1,2),joint=dict(type="hinge",drive="position",pivot=[0,0,1],axis=[0,0,1],

@@ -81,8 +81,8 @@ def test_carrier_keeps_cable_inside_while_carriage_moves_both_ways():
     try:
         for target in (.18,-.10,.20):
             result = advance(world,4,{carriage.uid:target})
-            # The servo has no integral term (30 N/m here): the chain's push of up to 1.6 N leaves up to 5.3 cm.
-            assert abs(result["joints"][carriage.uid]["position"]-target)<.06
+            # The integral term cancels the chain's push of up to 1.6 N (measured offset up to 0.2 cm).
+            assert abs(result["joints"][carriage.uid]["position"]-target)<.01
             assert np.max(np.abs(world.data.efc_pos[world.data.efc_type==0]))<.005
             lines = []
             for i,frame in enumerate(frames):

@@ -49,15 +49,6 @@ Status values: **open** (confirmed, not fixed), **observation** (reported, cause
 - **Unverified:** whether it also happens on Windows, with a docked toolbar, with other (native) floating toolbars, while paused, or without other toolbar extensions (`igz_toolbars`, `organize_toolbar`) installed. The offscreen platform does not reproduce real window-manager behaviour.
 - **Next step:** reproduce on a real display; compare a native IngeTrazo toolbar floated in the same way to separate a host/Qt-Wayland issue from a Newton issue.
 
-## Position drive keeps a steady offset under load
-
-- **Status:** open
-- **Reported:** 2026-11-05, with the limit hardness setting
-- **Where:** `newton/worker.py`, `World.step` (position drive: `kp = 100 * inertia`, no integral term)
-- **Symptom:** A servo stops short of its target by load / (100 × moved mass). In the drag-chain demo (`scripts/models/flexible_demos.py`, carriage 0.3 kg, 30 N/m) the chain pushes back with 0.4–1.6 N, so the carriage stays 1–4 cm off target; with hard limits (100 %, the default) the chain is stiffer and the offset slightly larger. `test_carrier_keeps_cable_inside_while_carriage_moves_both_ways` therefore allows 6 cm.
-- **Unverified:** whether an integral term (as the speed motor has) keeps the drive stable with couplings and stiff mechanisms.
-- **Next step:** add an anti-windup integral term to the position drive, then tighten the carrier test again.
-
 
 ## Axis and connection objects: known gaps
 
