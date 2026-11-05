@@ -6,10 +6,9 @@ Planned work that is agreed but not scheduled yet. Remove an item when it is don
 
 Agreed in [ADR 0001](adr/0001-virtual-controls.md); one step per item, in this order:
 
-Virtual controls (switch and slider), key bindings (toggle, step), the *Key bindings* sidebar section and the *Key slots* preferences tab are done. Remaining:
+Virtual controls (switch and slider), key bindings (toggle, step), the *Key bindings* sidebar section, the *Key slots* preferences tab and the sidebar note for managed axes are done. Remaining:
 
-1. Sidebar note "managed by virtual control …" with a button that opens the editor.
-2. Trigger mode *momentary* (key value while the key is held, rest value after). Deferred from the key bindings: the key slots are host shortcut actions, and a `QAction` shortcut only reports the press, never the release. Detecting the release would need an application-wide key event filter beside the host's shortcut handling; do not build it that way. Revisit when the host offers press and release for shortcut actions.
+1. Trigger mode *momentary* (key value while the key is held, rest value after). Deferred from the key bindings: the key slots are host shortcut actions, and a `QAction` shortcut only reports the press, never the release. Detecting the release would need an application-wide key event filter beside the host's shortcut handling; do not build it that way. Revisit when the host offers press and release for shortcut actions.
 
 ## Control panel redesign
 

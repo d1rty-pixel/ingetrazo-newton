@@ -152,6 +152,8 @@ A virtual control moves several axes with one switch or slider, for example a fl
 
 In the control panel a switch shows one button per state; a click moves every axis to that state's targets. A slider runs from 0 % (first state) to 100 % (last state) and moves smoothly from state to state in between. The axes of a virtual control have no control of their own in the control panel. They still move at their own speed and acceleration and stop at their limits.
 
+In the sidebar, the *Motion* section of an axis that a virtual control manages shows "Managed by virtual control …" with the button **Edit virtual control…**, which opens the editor on that control (not while a simulation runs).
+
 Virtual controls are saved in the `.igz`. If a body of a control is deleted, the control keeps working with the remaining axes; the editor lists the missing body until it is removed from the control. A copied body is not part of the original's control.
 
 ## Key bindings

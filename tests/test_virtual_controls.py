@@ -228,3 +228,23 @@ def test_editor_stores_one_by_one_only_for_switches_when_on(panel):
     editor.add("slider")
     assert editor.one_by_one.isHidden()
     editor.reject()
+
+
+def test_sidebar_notes_the_managing_control_and_opens_its_editor(panel, monkeypatch):
+    seed_coupled_robot(panel)
+    first, second = eligible_rows(panel)[:2]
+    by_uid = {g.uid: g for g in panel.app.scene.groups}
+    panel.app.set_document_data(with_controls(None, [control(joints=(first["uid"],), states=((0,), (1,)))]))
+    panel.app.scene.select([by_uid[second["uid"]]])
+    panel.refresh()
+    assert panel.managed_note.isHidden()
+    panel.app.scene.select([by_uid[first["uid"]]])
+    panel.refresh()
+    assert not panel.managed_note.isHidden() and "Flap" in panel.managed_label.text()
+    opened = []
+    monkeypatch.setattr(panel, "edit_virtual_controls", lambda select=None: opened.append(select))
+    panel.managed_button.click()
+    assert opened == ["c1"]
+    panel.app.set_document_data(None)
+    panel.refresh()
+    assert panel.managed_note.isHidden()
