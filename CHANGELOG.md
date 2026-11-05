@@ -50,6 +50,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 - New `docs/installation.md` (extension library, manual install per platform, release zip, verification) and `docs/ai-skill.md` (using the skill with Claude Code and Codex); `docs/runtime-setup.md` now starts with the automatic setup and has manual steps per platform; shorter README with a platform status table.
 - Test model `models/z0-contact-test.igz` and the decisions for the planned warning about bodies below the ground at Z = 0 (resting on Z = 0 does not count; the warning does not block the start).
+- New `SECURITY.md`: supported versions, private reporting through GitHub (first response within 7 days) and the scope of the policy.
 - Performance audit results (start time, per-frame redraw cost), shared-mesh measurements and a live check in the Flatpak in `docs/lab/test-and-measurement-runs.md` and `docs/known-issues.md`.
 - `docs/host-proposals.md` collects IngeTrazo improvements that would make Newton or other extensions simpler, safer or faster.
 - `scripts/lab/benchmark_overlays.py` times the overlay paint and the selection refresh for N jointed bodies.
