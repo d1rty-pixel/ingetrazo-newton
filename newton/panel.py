@@ -89,6 +89,7 @@ class NewtonPanel(QWidget):
         self.profile_manager = None
         self.reference_names = {}
         outer = QVBoxLayout(self)
+        outer.setContentsMargins(6,9,6,9)  # the narrowest dock width must still fit the widest unwrappable checkbox
         self.heading = intro = QLabel(tr("Newton properties"))
         intro.setTextFormat(Qt.PlainText)
         intro.setWordWrap(True)
@@ -101,6 +102,7 @@ class NewtonPanel(QWidget):
         scroll.setWidget(content)
         layout = QVBoxLayout(content)
         layout.setSpacing(12)
+        layout.setContentsMargins(0,0,0,0)
         self.profile_box = section(tr("Profile"),"profile")
         profile_outer = QVBoxLayout(self.profile_box.body)
         profile_layout = QHBoxLayout();profile_outer.addLayout(profile_layout)

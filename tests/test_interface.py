@@ -1716,7 +1716,7 @@ def squashed_widgets(root):
         and w.height()<w.minimumSizeHint().height()-1]
 
 
-@pytest.mark.parametrize("width",[600,400,300,280])
+@pytest.mark.parametrize("width",[600,400,300,280,260])
 def test_sidebar_rows_keep_their_height_at_every_width(panel,qtapp,width):
     from newton.model import box,AddDemo,Configure
     from newton.connections import apply_connection

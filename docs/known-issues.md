@@ -56,12 +56,6 @@ Status values: **open** (confirmed, not fixed), **observation** (reported, cause
 - **Unverified:** whether an integral term (as the speed motor has) keeps the drive stable with couplings and stiff mechanisms.
 - **Next step:** add an anti-windup integral term to the position drive, then tighten the carrier test again.
 
-## Narrow sidebar shows a small horizontal scrollbar
-
-- **Status:** observation
-- **Symptom:** Below roughly 280 px dock width the sidebar content (minimum about 232 px plus margins and the vertical scrollbar) is a few pixels wider than the viewport, so a horizontal scrollbar appears. Nothing is cut off.
-- **Checked:** offscreen only (dock widths 260–560 px).
-
 ## Worker inherited the host's `PYTHONPATH` (Flatpak)
 
 - **Status:** fixed (unreleased)

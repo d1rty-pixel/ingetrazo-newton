@@ -21,6 +21,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 ### Fixed
 
 - The "unknown collision shape" error has a translatable English text.
+- No horizontal scrollbar in the sidebar at a dock width of 260 px; the side margins are narrower to make room.
 - Render flags of the document's meshes that were still pending at Start are restored after Reset, so the model view does not keep old paint.
 
 ### Documentation
