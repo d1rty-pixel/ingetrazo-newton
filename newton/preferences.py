@@ -4,7 +4,6 @@ import json
 import uuid
 from weakref import WeakKeyDictionary,ref
 from PySide6.QtCore import QObject,QEvent,QSettings,QTimer,Qt
-from PySide6.QtGui import QPalette
 from PySide6.QtWidgets import (QWidget,QComboBox,QVBoxLayout,QHBoxLayout,QGridLayout,QFrame,QCheckBox,QPushButton,
                                QLabel,QTabWidget,QScrollArea,QLineEdit,QFileDialog)
 from .i18n import tr
@@ -64,9 +63,8 @@ class SettingsPage:
             name = QLabel(label);name.setMinimumWidth(150);name.setBuddy(control)
             grid.addWidget(name,0,1);grid.addWidget(control,0,2)
         else:
-            grid.addWidget(control,0,1,1,2,Qt.AlignLeft)
+            grid.addWidget(control,0,1,1,2)
         text = QLabel(description);text.setWordWrap(True)
-        palette = text.palette();palette.setColor(QPalette.WindowText,palette.color(QPalette.PlaceholderText));text.setPalette(palette)
         grid.addWidget(text,1,1,1,2)
         control.setToolTip(description)
         self.box.addWidget(row)

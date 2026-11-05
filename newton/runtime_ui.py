@@ -1,9 +1,11 @@
 """Runtime page widget: set up, check and remove the Newton runtime from the preferences."""
 from pathlib import Path
-from PySide6.QtCore import QThread, Signal
+from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QPlainTextEdit, QMessageBox
 from . import runtime_setup
 from .i18n import tr
+
+MANUAL_GUIDE_URL = "https://github.com/d1rty-pixel/ingetrazo-newton/blob/main/docs/runtime-setup.md#method-c-manual"
 
 _active = set()   # a running QThread must outlive a closed preferences dialog
 
@@ -25,6 +27,18 @@ class _Task(QThread):
             self.done.emit(False, f"{type(exc).__name__}: {exc}")
 
 
+def manual_link(sentence):
+    """Fills the {link} of a translated sentence with the guide link; the URL is never translated."""
+    link = f'<a href="{MANUAL_GUIDE_URL}">{tr("Manual installation guide")}</a>'
+    return sentence.format(link=link)
+
+
+def link_label(sentence):
+    label = QLabel(manual_link(sentence));label.setWordWrap(True)
+    label.setTextFormat(Qt.RichText);label.setOpenExternalLinks(True)
+    return label
+
+
 class RuntimeSetupBox(QWidget):
     def __init__(self, python_field):
         super().__init__()
@@ -33,7 +47,8 @@ class RuntimeSetupBox(QWidget):
         self.status = QLabel();self.status.setWordWrap(True)
         box.addWidget(self.status)
         if not runtime_setup.RUNTIME_SETUP_ENABLED:
-            self.status.setText(tr("Automatic setup is disabled in this build. Follow docs/runtime-setup.md."))
+            self.status.hide()
+            box.addWidget(link_label(tr("Automatic setup is disabled in this build. Follow the {link}.")))
             return
         row = QHBoxLayout();box.addLayout(row)
         self.setup = QPushButton(tr("Set up runtime"));self.setup.clicked.connect(self.start_setup)
@@ -45,6 +60,7 @@ class RuntimeSetupBox(QWidget):
         row.addStretch()
         self.log = QPlainTextEdit();self.log.setReadOnly(True);self.log.setMaximumBlockCount(200);self.log.setMaximumHeight(110)
         self.log.hide();box.addWidget(self.log)
+        box.addWidget(link_label(tr("To install the runtime yourself, follow the {link}.")))
         self.destroyed.connect(self.abandon)
         self.refresh()
 
