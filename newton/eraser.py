@@ -16,10 +16,10 @@ def axis_frame(panel,viewport,j):
         if zero is not None:zero = m.mapVector(zero)
     if panel.session.workspace:
         parent = j.get("parent")
-        mover = panel.session.movers.get(parent)
+        frame = panel.session.frame_of(parent)
         spec = panel.session.specs.get(parent)
-        if mover is not None and spec:
-            carry(mover.xform,QVector3D(*(spec["joint"]["pivot"] if spec.get("joint") else spec["center"])))
+        if frame is not None and spec:
+            carry(frame,QVector3D(*(spec["joint"]["pivot"] if spec.get("joint") else spec["center"])))
     if j["uid"] in getattr(viewport,"_newton_preview_axes",set()) and getattr(viewport,"_preview_groups",None):
         carry(viewport._groups_preview_transform())
     radius = panel.gizmo_sizes.get(j["uid"],.2)

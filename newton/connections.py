@@ -131,10 +131,10 @@ def begin(panel,kind=None):
 def point_in_view(panel,group,value):
     """The connection point carried along by its simulated body."""
     point = QVector3D(*value["point"])
-    spec = panel.session.specs.get(group.uid);mover = panel.session.movers.get(group.uid)
-    if spec and mover:
+    spec = panel.session.specs.get(group.uid);frame = panel.session.frame_of(group.uid)
+    if spec and frame is not None:
         origin = spec["joint"]["pivot"] if spec.get("joint") else spec["center"]
-        return mover.xform.map(point-QVector3D(*origin))
+        return frame.map(point-QVector3D(*origin))
     return point
 
 

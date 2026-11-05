@@ -178,6 +178,31 @@ def test_adapter_bakes_nested_mirrored_scaled_geometry_without_mutation():
     assert bodies[0]["mass"] == 2
 
 
+def test_clones_share_the_document_mesh_and_keep_its_world_placement():
+    plain = box("plain", (0,0,0), (1,2,3))
+    plain.mesh = world_mesh(plain)
+    plain.xform = None
+    instance = box("instance", (4,1,2), (1,1,2), shape="hull")
+    instance.xform.rotate(30,1,1,0)
+    instance.xform.scale(1,-2,.5)
+    hinged = box("hinged", (8,0,1), (2,.2,2), joint=dict(type="hinge",pivot=[7,0,1],axis=[0,0,1]))
+    scene, bodies, movers = specs([plain, instance, hinged])
+    for group in (plain, instance, hinged):
+        clone = movers[group.uid]
+        assert clone.mesh is group.mesh
+        placed = [x for v in world_mesh(clone).vertices for x in v.position.toTuple()]
+        source = [x for v in world_mesh(group).vertices for x in v.position.toTuple()]
+        assert placed == pytest.approx(source, abs=1e-5)
+    pivot = QMatrix4x4()
+    pivot.translate(7,0,1)
+    assert scene.frames[hinged.uid] == pivot
+    turned = QMatrix4x4(pivot)
+    turned.rotate(90,0,0,1)
+    movers[hinged.uid].xform = scene.place(hinged.uid, turned)
+    far_end = [v.position for v in world_mesh(movers[hinged.uid]).vertices if v.position.x() > 8.9]
+    assert all(p.x() == pytest.approx(7.1, abs=1e-5) and p.y() == pytest.approx(2, abs=1e-5) for p in far_end)
+
+
 def test_config_and_demo_are_undoable_and_settings_survive_igz(tmp_path):
     from formats import igz
     scene = Scene()

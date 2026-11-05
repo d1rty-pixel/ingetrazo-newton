@@ -150,12 +150,33 @@ class SimulationScene(Scene):
     instance's edit back into its mesh, both outside the undo history.
     """
 
+    def __init__(self):
+        super().__init__()
+        # A clone shares its source's mesh, so its xform is the body frame
+        # times this fixed offset back to the mesh's own coordinates.
+        self.frames, self.offsets = {}, {}
+
+    def place(self, uid, frame):
+        self.frames[uid] = frame
+        offset = self.offsets.get(uid)
+        return frame if offset is None else frame*offset
+
     def begin_group_edit(self, group):
         return
 
 
+def world_points(mesh, matrix=None):
+    """The mesh's vertex positions as an (n, 3) array, mapped through an affine ``matrix``."""
+    import numpy as np
+    points = np.array([v.position.toTuple() for v in mesh.vertices], dtype=float)
+    if matrix is not None:
+        m = np.array(matrix.data(), dtype=float).reshape(4, 4).T  # data() is column-major.
+        points = points@m[:3, :3].T+m[:3, 3]
+    return points
+
+
 def prepare(source,require_movable=True,hidden="needed"):
-    """Independent world-space copies, recentered at each body's initial frame.
+    """Clones that share their source's mesh, placed at each body's initial frame.
 
     Unconfigured groups remain static. Loose mesh is displayed, but omitted from
     newton; the UI calls this out. Nested children form one top-level body.
@@ -174,12 +195,14 @@ def prepare(source,require_movable=True,hidden="needed"):
             continue  # Axis and connection objects only mirror body data.
         if group.uid in skipped:
             continue
-        mesh = world_mesh(group)
+        if group.children:
+            mesh, base = world_mesh(group), None  # Already a fresh world-space copy.
+        else:
+            mesh, base = group.mesh, group.xform
         if not mesh.vertices:
             continue
-        xyz = [[v.position.x(), v.position.y(), v.position.z()] for v in mesh.vertices]
-        lo = [min(v[i] for v in xyz) for i in range(3)]
-        hi = [max(v[i] for v in xyz) for i in range(3)]
+        xyz = world_points(mesh, base)
+        lo, hi = xyz.min(axis=0).tolist(), xyz.max(axis=0).tolist()
         if not all(math.isfinite(x) for x in lo + hi):
             raise ValueError(tr("Invalid geometry: {name}").format(name=group.name))
         cfg = settings(group)
@@ -197,9 +220,7 @@ def prepare(source,require_movable=True,hidden="needed"):
         if joint:
             joint["parent"] = reference_id(group)
         origin = joint["pivot"] if joint else center
-        t = QMatrix4x4()
-        t.translate(*[-v for v in origin])
-        clone = Group(transformed_mesh(mesh, t), group.name)
+        clone = Group(mesh, group.name)
         clone.uid = group.uid
         clone.ext = copy.deepcopy(group.ext)
         clone.material = copy.deepcopy(group.material)
@@ -207,13 +228,19 @@ def prepare(source,require_movable=True,hidden="needed"):
         clone.layer = group.layer
         # A hidden body that is still simulated stays hidden in the workspace.
         clone.hidden = group.hidden
-        clone.xform = QMatrix4x4()
-        clone.xform.translate(*origin)
+        offset = QMatrix4x4()
+        offset.translate(*[-v for v in origin])
+        if base is not None:
+            offset = offset*base
+        scene.offsets[group.uid] = offset
+        frame = QMatrix4x4()
+        frame.translate(*origin)
+        clone.xform = scene.place(group.uid, frame)
         scene.groups.append(clone)
         if cfg["mode"] == "ignore":
             continue
         specs.append(dict(uid=group.uid, center=center, half=half,
-            vertices=[[p[i]-center[i] for i in range(3)] for p in xyz],
+            vertices=(xyz-center).tolist(),
             mass=cfg["mass"] if cfg["mode"] == "dynamic" else 0,
             shape=cfg["shape"], friction=cfg["friction"],
             restitution=cfg["restitution"], joint=joint))
@@ -226,9 +253,11 @@ def prepare(source,require_movable=True,hidden="needed"):
             matrix = group.xform or QMatrix4x4()
             parts = []
             for child in group.children:
-                part = transformed_mesh(world_mesh(child),matrix)
-                vertices = [[p-center[k] for k,p in enumerate(v.position.toTuple())] for v in part.vertices]
-                if vertices:parts.append(vertices)
+                if child.children:
+                    points = world_points(world_mesh(child),matrix)
+                else:
+                    points = world_points(child.mesh,matrix*child.xform if child.xform is not None else matrix)
+                if len(points):parts.append((points-center).tolist())
             if not parts:raise ValueError("Compound collision needs child groups or components.")
             specs[-1]["parts"] = parts
         if cfg.get("point_attachment"):specs[-1]["point_attachment"] = copy.deepcopy(cfg["point_attachment"])

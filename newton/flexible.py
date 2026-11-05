@@ -99,5 +99,5 @@ def expand(group,cfg,scene,specs,movers):
         clone.uid = segment_uid(group.uid,i);clone.layer = group.layer
         mass = cfg["mass"]/(len(points)-1)
         clone.ext = {KEY:dict(mode="dynamic",flex_owner=group.uid,mass=mass)}
-        scene.groups.append(clone);movers[clone.uid] = clone
+        scene.place(clone.uid,clone.xform);scene.groups.append(clone);movers[clone.uid] = clone
         specs.append(dict(uid=clone.uid,flex_segment=group.uid,mass=mass,joint=None))

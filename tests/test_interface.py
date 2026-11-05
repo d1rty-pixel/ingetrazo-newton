@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from PySide6.QtWidgets import QCheckBox, QDoubleSpinBox
 from PySide6.QtCore import QEvent, QSettings, Qt
-from PySide6.QtGui import QKeyEvent, QVector3D
+from PySide6.QtGui import QKeyEvent, QMatrix4x4, QVector3D
 from PySide6.QtWidgets import QApplication
 from types import SimpleNamespace
 from newton.model import KEY, joint_rows
@@ -1056,8 +1056,10 @@ def test_axis_guides_show_limits_and_live_parent_frame(panel,qtapp):
     assert len(labels)==3
     panel.start_or_pause()
     wait(qtapp,lambda:panel.session.ready)
-    parent = panel.session.movers[groups[1].uid]
-    parent.xform.translate(1,2,3)
+    uid = groups[1].uid
+    moved = QMatrix4x4(panel.session.frame_of(uid))
+    moved.translate(1,2,3)
+    panel.session.movers[uid].xform = panel.session.workspace.scene.place(uid,moved)
     anchor,*_ = axis_frame(panel,panel.app.viewport,j)
     assert anchor.x()==pytest.approx(1,abs=.001)
     assert anchor.y()==pytest.approx(2,abs=.001)
@@ -1940,3 +1942,14 @@ def test_geometry_changed_during_simulation_is_reported_after_reset(panel,qtapp)
     clone.mesh.move_vertex(clone.mesh.vertices[0],QVector3D(0,0,.1))
     panel.session.reset()
     assert panel.controls.hint.text()=="Geometry changed during the simulation. Check the model before saving."
+
+
+def test_render_flags_of_shared_meshes_survive_the_simulation(panel,qtapp):
+    groups = seed_demo(panel,"Servo door")
+    mesh = groups[0].mesh
+    mesh._attrs_dirty = True
+    panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+    assert panel.session.movers[groups[0].uid].mesh is mesh
+    mesh._chunk_dirty = mesh._attrs_dirty = False  # What drawing the clone does.
+    panel.session.reset()
+    assert mesh._chunk_dirty and mesh._attrs_dirty

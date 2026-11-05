@@ -114,7 +114,7 @@ class CollisionView(QObject):
             g = next((g for g in self.panel.app.scene.groups if g.uid==uid),None)
             if g is None or g.hidden or any(l.name==g.layer and not l.visible for l in self.panel.app.scene.layers):continue
             if session.workspace:
-                matrix = session.movers[uid].xform
+                matrix = session.frame_of(uid)
             else:
                 pos,q = self.poses[uid]
                 matrix = QMatrix4x4();matrix.translate(*pos);matrix.rotate(QQuaternion(q[3],*q[:3]))

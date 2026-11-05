@@ -50,6 +50,12 @@ def mesh_marks(scene):
             for key, m in meshes.items()}
 
 
+def pending_redraws(scene):
+    """Render flags the document view has not consumed yet; drawing a clone clears them on the shared mesh."""
+    defaults = {"_chunk_dirty": True, "_attrs_dirty": False}  # As the host's renderer reads them.
+    return [(g.mesh, flag) for g in scene.groups for flag, default in defaults.items() if getattr(g.mesh, flag, default)]
+
+
 def changed_meshes(marks):
     """Meshes whose geometry changed since ``mesh_marks``.
 
@@ -68,6 +74,7 @@ class Workspace:
         self.scene = scene
         self.history = ReadOnlyHistory(scene, lambda text: session.message.emit(text, "warning"))
         self.marks = mesh_marks(scene)
+        self.redraws = pending_redraws(session.app.scene)
 
     def title(self):
         return tr("Newton — temporary simulation")
@@ -90,6 +97,8 @@ class Workspace:
     def left(self):
         self.session.stop_worker()
         self.session.workspace = None
+        for mesh, flag in self.redraws:
+            setattr(mesh, flag, True)
         self.session.changed.emit()
         # After changed: the panel then says "Original model restored.", which must not hide this.
         if changed_meshes(self.marks):
@@ -218,12 +227,11 @@ class Session(QObject):
         for uid, (position, quaternion) in result["poses"].items():
             if not all(math.isfinite(v) for v in position + quaternion):
                 raise ValueError(tr("Invalid simulation poses."))
-            g = self.movers[uid]
             m = QMatrix4x4()
             m.translate(*position)
             x, y, z, w = quaternion
             m.rotate(QQuaternion(w, x, y, z))
-            g.xform = m
+            self.movers[uid].xform = self.workspace.scene.place(uid, m)
         # Only the throwaway scene changes. No history entry or model mutation.
         self.workspace.scene.version += 1
         self.app.viewport.update()
@@ -234,6 +242,10 @@ class Session(QObject):
             self.performance = dict(result["performance"],speed=speed,ui_ms=(time.perf_counter()-started)*1000,
                 roundtrip_ms=(started-getattr(self,"request_started",started))*1000,paused=not self.running)
             self.metrics.emit(self.performance)
+
+    def frame_of(self, uid):
+        """The body frame of a simulated body; its mover's xform also holds the shared mesh's offset."""
+        return self.workspace.scene.frames.get(uid) if self.workspace else None
 
     def tick(self):
         now = time.monotonic()
