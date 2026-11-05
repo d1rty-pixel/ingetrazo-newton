@@ -62,10 +62,10 @@ Checked on 5 November 2026 on Linux x86_64 (Ubuntu, GNOME/Wayland), Python 3.12,
 ```text
 .venv/bin/python -m pytest tests -q --basetemp=.test-state/pytest
 266 passed, 13 warnings in 51.66s
-.venv/bin/python scripts/benchmark_overlays.py --sizes=5,20,60 --repeat=3 --images=.test-state/overlays
+.venv/bin/python scripts/lab/benchmark_overlays.py --sizes=5,20,60 --repeat=3 --images=.test-state/overlays
 ```
 
-`scripts/benchmark_overlays.py` builds a static base with N hinged leaves in a separate offscreen window and times the overlay paint (`panel.draw_joints`) and the selection refresh. Paint time with all bodies selected, minimum of 3 runs:
+`scripts/lab/benchmark_overlays.py` builds a static base with N hinged leaves in a separate offscreen window and times the overlay paint (`panel.draw_joints`) and the selection refresh. Paint time with all bodies selected, minimum of 3 runs:
 
 | Bodies | Before | After |
 |---|---|---|
@@ -131,7 +131,7 @@ The full suite includes the coupling with negative ratio as well as the new cont
 
 Version 0.12.0 checks compound collision bodies with a test body that actually falls through: a common convex hull stops it above the opening, four sub-bodies let it fall through the opening to the ground. The collision display contains all four geometries; the total mass is preserved. The new energy chain has 22 rigid frames with four sub-bodies each and no blanket self-contact exemptions for non-adjacent links. The spatial separation of wheel body and connecting rod is checked with at least 39.9 mm of geometric clearance; a Newton run confirms the crank drive keeps working. The sidebar rejects a child-components collision shape on a simple body without subgroups.
 
-Four simulation seconds of contact audit: before 156 bodies, 156 geometries, on average 78 contacts, 7.818 s run time; after 90 bodies, 156 geometries, on average 47.63 contacts, 5.720 s run time. Degrees of freedom stay 201. The chain/chain category disappears in the checked run; remaining contacts are cable/bed, cable/chain and chain/bed. These are individual comparison runs, not a general speed guarantee. `scripts/audit_contacts.py` documents the active contact pairs and categories.
+Four simulation seconds of contact audit: before 156 bodies, 156 geometries, on average 78 contacts, 7.818 s run time; after 90 bodies, 156 geometries, on average 47.63 contacts, 5.720 s run time. Degrees of freedom stay 201. The chain/chain category disappears in the checked run; remaining contacts are cable/bed, cable/chain and chain/bed. These are individual comparison runs, not a general speed guarantee. `scripts/lab/audit_contacts.py` documents the active contact pairs and categories.
 
 The revised model passes the 24-second check: motor angle 15.02 rad, stroke −136.7 to +163.4 mm, crank deviation below 0.14 mm and maximum measured cable distance about 50.5 mm including the open chain ends. The rigid first frame attachment has a visible bracket; the additional bracket details are, like the bed screws, display only, the attachment is computed by the held first body.
 

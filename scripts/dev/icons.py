@@ -1,8 +1,8 @@
 """Export Newton's icons by name, as coloured SVG and PNG files and as an overview sheet.
 
-    .venv/bin/python scripts/icons.py                     # every icon to dist/icons/
-    .venv/bin/python scripts/icons.py rotate slide -s 64  # chosen icons, 64 px
-    .venv/bin/python scripts/icons.py --sheet             # dist/icons/overview.png only
+    .venv/bin/python scripts/dev/icons.py                     # every icon to dist/icons/
+    .venv/bin/python scripts/dev/icons.py rotate slide -s 64  # chosen icons, 64 px
+    .venv/bin/python scripts/dev/icons.py --sheet             # dist/icons/overview.png only
 
 The sheet shows each icon at 22 px (the dropdown size) and enlarged, on a light and a dark
 background, so line weight, accent split and alignment can be compared side by side.
@@ -12,7 +12,7 @@ import os
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT), str(ROOT / "ingetrazo-source")]
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 from PySide6.QtCore import Qt, QRect

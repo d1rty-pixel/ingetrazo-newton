@@ -62,7 +62,7 @@ def test_invalid_environment_override_rejected(raw):
 
 
 def test_sun_and_planet_orbit_around_shared_centre():
-    from scripts.solar_system import build,validate
+    from scripts.models.solar_system import build,validate
     validate(build())
 
 

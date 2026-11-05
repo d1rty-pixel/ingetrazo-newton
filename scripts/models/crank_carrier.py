@@ -2,7 +2,7 @@
 import math
 import sys
 from pathlib import Path
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT),str(ROOT/"ingetrazo-source")]
 from PySide6.QtGui import QMatrix4x4,QVector3D,QQuaternion
 from core.mesh import Mesh
@@ -12,7 +12,7 @@ from formats import igz
 from newton.model import KEY,DEFAULTS,box,prepare,ensure_axis_layer
 from newton.flexible import make,segment_group,segment_uid
 from newton.worker import World
-from scripts.flexible_demos import carrier,coloured
+from scripts.models.flexible_demos import carrier,coloured
 
 STEEL = (.66,.73,.78)
 DARK = (.12,.18,.23)
@@ -63,7 +63,7 @@ def resample(points,spacing=.10):
 
 
 def build():
-    from scripts.energy_chain import build as build_energy_chain
+    from scripts.models.energy_chain import build as build_energy_chain
     scene = build_energy_chain()
     base,slider = scene.groups[:2]
     old_cable = scene.groups.pop()

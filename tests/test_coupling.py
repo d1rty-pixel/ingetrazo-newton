@@ -1,7 +1,7 @@
 import copy
 import math
 import pytest
-from scripts.robot_arm import build
+from scripts.models.robot_arm import build
 from newton.model import KEY,prepare,box,ensure_axis_layer,AXES_LAYER
 from newton.worker import World,joint_settings,resolve_couplings
 

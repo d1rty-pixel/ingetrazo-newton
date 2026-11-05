@@ -2,7 +2,7 @@
 import math
 import sys
 from pathlib import Path
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT),str(ROOT/"ingetrazo-source")]
 from PySide6.QtGui import QMatrix4x4,QQuaternion,QVector3D
 from core.scene import Scene

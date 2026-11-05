@@ -1,8 +1,8 @@
 """Build and validate a wrecking ball that swings into a brick wall.
 
-python scripts/wrecking_ball.py
-python scripts/wrecking_ball.py --open
-python scripts/wrecking_ball.py --existing --open
+python scripts/models/wrecking_ball.py
+python scripts/models/wrecking_ball.py --open
+python scripts/models/wrecking_ball.py --existing --open
 """
 import colorsys
 import math
@@ -10,7 +10,7 @@ import random
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT),str(ROOT/"ingetrazo-source")]
 from PySide6.QtGui import QMatrix4x4,QVector3D
 from core.mesh import Mesh

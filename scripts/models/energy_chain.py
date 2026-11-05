@@ -5,11 +5,11 @@ from core.mesh import Mesh
 from core.group import Group
 from newton.model import KEY,DEFAULTS
 from newton.flexible import make
-from scripts.flexible_demos import carrier,coloured
+from scripts.models.flexible_demos import carrier,coloured
 
 
 def side_link(pitch,y,sign):
-    from scripts.crank_carrier import cylinder
+    from scripts.models.crank_carrier import cylinder
     radius = .045;thickness = .010;mesh = Mesh()
     outline = []
     for x,base in ((pitch,-math.pi/2),(0,math.pi/2)):

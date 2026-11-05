@@ -50,7 +50,7 @@ What helps, most effective first:
 - **Quality** (*Preferences → Newton → Simulation*): *Quick* for setting up big mechanisms, *Balanced* for daily work, *Precise* for demanding contacts. Large cable/chain models use the CG solver at Quick/Balanced.
 - **Cables:** stiffer and finer cables force internal sub-steps; reduce stiffness or segment count first.
 - The control panel shows the achieved **× real time**; its tooltip lists contacts, solver iterations, sub-steps and display time — check it before guessing.
-- `scripts/benchmark_newton.py` measures the worker for a model without GUI (`--profile`, `--quality=`).
+- `scripts/lab/benchmark_newton.py` measures the worker for a model without GUI (`--profile`, `--quality=`).
 
 ## Limits
 

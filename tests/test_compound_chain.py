@@ -27,7 +27,7 @@ def test_compound_opening_is_a_real_collision_opening(shape,expected_z):
 
 
 def test_energy_chain_links_are_single_rigid_open_frames():
-    from scripts.energy_chain import build
+    from scripts.models.energy_chain import build
     scene = build();_,specs,_ = prepare(scene);world = World();world.load(dict(bodies=specs,floor=False))
     links = [g for g in scene.groups if g.name.startswith("Link ")]
     try:
@@ -44,7 +44,7 @@ def test_energy_chain_links_are_single_rigid_open_frames():
 
 
 def test_crank_rod_is_outside_wheel_plane_and_motor_still_drives_it():
-    from scripts.crank_carrier import build
+    from scripts.models.crank_carrier import build
     scene = build()
     wheel = next(g for g in scene.groups if g.name.startswith("Spoked wheel"))
     rod = next(g for g in scene.groups if g.name=="Connecting rod bar")

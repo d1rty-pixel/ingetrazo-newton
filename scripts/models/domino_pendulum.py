@@ -1,14 +1,14 @@
 """Thirty upright dominoes triggered by a passive pendulum on a freestanding frame.
 
-python scripts/domino_pendulum.py --open
-python scripts/domino_pendulum.py --existing --open
+python scripts/models/domino_pendulum.py --open
+python scripts/models/domino_pendulum.py --existing --open
 """
 import math
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path[:0] = [str(ROOT),str(ROOT/"scripts"),str(ROOT/"ingetrazo-source")]
+ROOT = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(ROOT),str(ROOT/"ingetrazo-source")]
 from PySide6.QtGui import QMatrix4x4
 from core.mesh import Mesh
 from core.group import Group
@@ -16,8 +16,8 @@ from core.scene import Scene
 from formats import igz
 from newton.model import box,KEY,DEFAULTS,prepare,ensure_axis_layer
 from newton.worker import World
-from domino import build as domino_build,validate as validate_domino
-from robot_arm import beam,cylinder
+from scripts.models.domino import build as domino_build,validate as validate_domino
+from scripts.models.robot_arm import beam,cylinder
 
 
 def build(release_angle=-32):

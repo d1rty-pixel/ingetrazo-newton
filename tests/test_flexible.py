@@ -7,7 +7,7 @@ from formats import igz
 from newton.model import KEY,prepare
 from newton.flexible import make,segment_uid
 from newton.worker import World
-from scripts.flexible_demos import rope_cable,chain,carrier
+from scripts.models.flexible_demos import rope_cable,chain,carrier
 
 
 def loaded(scene):

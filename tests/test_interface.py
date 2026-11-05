@@ -1013,7 +1013,7 @@ def test_window_preferences_entry_uses_adapter_without_duplicate_pages(panel,mon
 
 
 def seed_coupled_robot(panel):
-    from scripts.robot_arm import build
+    from scripts.models.robot_arm import build
     from newton.model import AddDemo
     groups = build(True).groups
     panel.app.viewport.history.execute(AddDemo(groups))
@@ -1120,7 +1120,7 @@ def test_axis_guides_show_limits_and_live_parent_frame(panel,qtapp):
 
 
 def test_collision_inspection_uses_compiled_shapes_and_refreshes_after_edits(panel,qtapp):
-    from scripts.collision_demo import build
+    from scripts.models.collision_demo import build
     from newton.model import AddDemo
     groups = build().groups
     panel.app.viewport.history.execute(AddDemo(groups))
@@ -1145,7 +1145,7 @@ def test_collision_inspection_uses_compiled_shapes_and_refreshes_after_edits(pan
 
 
 def test_collision_pairs_restore_and_undo_preserve_body_mode_and_native_file(panel,tmp_path):
-    from scripts.collision_demo import build
+    from scripts.models.collision_demo import build
     from newton.model import AddDemo,prepare
     from newton.collision_ui import pair_command,excludes
     from formats import igz

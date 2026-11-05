@@ -46,7 +46,7 @@ Canonical full suite (about 45 s, 160 tests):
 - `tests/test_newton.py` runs the worker as a subprocess with `sys.executable`; keep the worker importable without IngeTrazo.
 - Record notable test suite runs, measurements and manual checks in [docs/lab/test-and-measurement-runs.md](docs/lab/test-and-measurement-runs.md).
 
-Useful scripts: `scripts/preview.py` (open a demo in a test window), `scripts/benchmark_newton.py`, `scripts/audit_contacts.py`, `scripts/package.py` (builds `dist/newton-<version>.zip`: one `newton/` folder, as the IngeTrazo catalog requires, reproducible hash).
+Useful scripts: `scripts/dev/preview.py` (open a demo in a test window), `scripts/lab/benchmark_newton.py`, `scripts/lab/audit_contacts.py`, `scripts/package.py` (builds `dist/newton-<version>.zip`: one `newton/` folder, as the IngeTrazo catalog requires, reproducible hash).
 
 ## User-visible text
 
@@ -73,7 +73,7 @@ Useful scripts: `scripts/preview.py` (open a demo in a test window), `scripts/be
   - The accent marks what the action, choice or setting changes. "None" choices (`no_axis`, `rigid`) have no accent; `play`, `pause` and `reset` are drawn in the accent only.
   - Leave stroke widths to the renderer, except deliberate thick bars (`stroke-width="4"`).
   - Names are lower-case snake case; a dropdown value's drawing is prefixed with its kind (`connection_ball`, `drive_free`). A toolbar action for a dropdown value uses that value's drawing (`connect_ball` shows `connection_ball`).
-- Adding an icon: write the SVG with the header and both groups, reference it by name (`icon()`, `attach()`, `CHOICES` or a physical pictogram), run `scripts/icons.py --sheet` and compare it with its neighbours at 22 px in light and dark, then run `tests/test_icons.py`.
+- Adding an icon: write the SVG with the header and both groups, reference it by name (`icon()`, `attach()`, `CHOICES` or a physical pictogram), run `scripts/dev/icons.py --sheet` and compare it with its neighbours at 22 px in light and dark, then run `tests/test_icons.py`.
 - Model overlays (axes, connection objects, rims) draw like the pictograms and share one colour language, defined in `axis_guides.COLOURS`:
   - sand (`axis`): the shape of an axis or connection; a connection object is drawn like its type's pictogram;
   - yellow (`actual`): current position, connection point and the rims of reference bodies, dependent bodies and coupling leaders linked to the selection;
@@ -85,7 +85,7 @@ Useful scripts: `scripts/preview.py` (open a demo in a test window), `scripts/be
   Do not give a colour a second meaning.
 - `newton/icons.py`: `icon(name)` (QIcon), `pixmap(name, size)`, `attach(widget, name)` for buttons and labels that must follow palette changes (`repaint()`, called via `toolbar.redecorate()` from `panel.refresh_icons`).
 - `newton/toolbar.py`: `CHOICES` maps fixed dropdown values to icon names and `decorate(combo, kind)` applies them; `physical_label()` puts a physical pictogram on form labels; only settings that change a physical quantity get one. `pictogram_check()` puts a pictogram on a checkbox; every checkbox in the sidebar and the profile editor has one.
-- `scripts/icons.py` exports icons by name as coloured SVG/PNG and writes `dist/icons/overview.png` (every icon small and enlarged, light and dark); check it after every drawing change. `tests/test_icons.py` fails on a referenced icon without a file, on a file nobody uses, and on a file that breaks the format.
+- `scripts/dev/icons.py` exports icons by name as coloured SVG/PNG and writes `dist/icons/overview.png` (every icon small and enlarged, light and dark); check it after every drawing change. `tests/test_icons.py` fails on a referenced icon without a file, on a file nobody uses, and on a file that breaks the format.
 - Preferences pages are built with `SettingsPage` (`newton/preferences.py`): headed categories separated by a line, each setting with its own explanation (also its tooltip). New settings need a text in `help_texts.py` and its German version.
 - Sidebar sections are the host's collapsibles (`views.fold_section.FoldSection`), created with `section()`/`settings_section()` in `panel.py`; the open state is stored under `newton/open_<key>`. Add new sections to `panel.sections` so they are disabled (but still foldable) during a simulation.
 - The sidebar is resizable. Keep its content narrow enough (about 240 px content, 280 px sidebar): use `toolbar.compact()` for dropdowns, `views.fold_section.narrow()` for fields side by side, `WrapLongRows` for nested forms, avoid fixed widths, and do not put word-wrapped labels inside a `QFormLayout` (they get too little height and are overlapped); place them between forms instead, as `settings_section()` does. Never cap a section's height (`QSizePolicy.Maximum`): wrapped rows need their height-for-width. `test_sidebar_rows_keep_their_height_at_every_width` checks this.

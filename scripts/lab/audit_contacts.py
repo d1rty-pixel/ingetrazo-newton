@@ -4,7 +4,7 @@ import sys
 import time
 from collections import Counter
 from pathlib import Path
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT),str(ROOT/"ingetrazo-source")]
 from core.scene import Scene
 from formats import igz

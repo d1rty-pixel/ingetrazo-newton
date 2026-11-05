@@ -13,7 +13,6 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 - Preference *Simulation → Hidden geometry* (*When needed*, *Always*, *Never*; default *When needed*): hidden bodies are left out of the simulation unless a visible body depends on them (reference body, attachment, connection, coupling); hidden fixed bodies stay as surroundings. On the CR10 example the simulation runs about 8× faster.
 - Claude Code skill `skills/ingetrazo-newton/` for modelling with Newton: objects and their effects, grouping for correct and fast simulations, performance options and limits.
 - *Limit hardness* (0–100 %) per axis, as a slider below the limits and in profiles: how firmly the limits hold. 0 % is MuJoCo's default softness, 100 % a hard stop.
-
 - Pictograms for *Quality* and *Include* (hidden geometry) in *Preferences → Simulation*, so every setting on that page has one.
 - `scripts/install-local.sh`: Linux counterpart of `install-local.ps1` (Flatpak target by default, `--update` with backup in `.backups`, `--destination` and `--python` overrides).
 
@@ -23,7 +22,6 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 - The sidebar section *Flexible material* is now called *Material*.
 - Profile editor: *Body & contact* is split into *Body* and *Collisions* like the sidebar, and *Simulation overrides* work as in the sidebar (no *Use own simulation settings* box; every value shown, defaults greyed, a reset button per row, only differing values stored). Existing profiles load and apply unchanged.
 - Sidebar: the collision settings (shape, *Show collision shape*, exemptions) moved out of *Body & contact* into their own section *Collisions*; *Body & contact* is now *Body* (mass, friction, bounce). The sections follow a new order: Generic, Profile, Material, Body, Collisions, Motion, Mechanical connection, Axis coupling, Simulation overrides.
-
 - Closing the control panel (window button or Esc) while a simulation runs or is paused now ends the simulation like Reset and restores the original model, so no simulation keeps running without its controls.
 - Sidebar texts: shorter section paragraphs and a hover text on every key row (labels and inputs) of Generic, Motion, Axis coupling, Mechanical connection, Material, Body, Collisions and Simulation overrides. The Motion section tooltip is replaced by the Actuator tooltip.
 - Length values follow the unit set under *Window → Units* (slide axis limits, target, speed and acceleration, connection points, rope and cable radius, softening radius, initial velocity), in the sidebar, the control panel and the profile editor; the fields update when the unit changes. Documents in metres now see these values in metres instead of millimetres. Gravity, attraction, pressures, damping, forces and mass stay in SI units, rotations in degrees.
@@ -52,7 +50,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 - Test model `models/z0-contact-test.igz` and the decisions for the planned warning about bodies below the ground at Z = 0 (resting on Z = 0 does not count; the warning does not block the start).
 - Performance audit results (start time, per-frame redraw cost), shared-mesh measurements and a live check in the Flatpak in `docs/lab/test-and-measurement-runs.md` and `docs/known-issues.md`.
 - `docs/host-proposals.md` collects IngeTrazo improvements that would make Newton or other extensions simpler, safer or faster.
-- `scripts/benchmark_overlays.py` times the overlay paint and the selection refresh for N jointed bodies.
+- `scripts/lab/benchmark_overlays.py` times the overlay paint and the selection refresh for N jointed bodies.
 - Known issue: the position drive keeps a steady offset under load (no integral term).
 - Known issue: cable tests fail when `tests/test_newton.py` runs before `tests/test_flexible.py` in one process.
 

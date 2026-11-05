@@ -1,7 +1,7 @@
 """Build a collision inspection exhibit without changing other test models."""
 import sys
 from pathlib import Path
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT),str(ROOT/"ingetrazo-source")]
 from core.scene import Scene
 from core.group import Group

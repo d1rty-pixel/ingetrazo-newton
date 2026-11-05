@@ -103,7 +103,7 @@ def test_non_rectangular_hull_is_not_replaced_with_a_box(world):
 
 def test_thirty_dominoes_fall_then_settle_without_persistent_rocking(world):
     import numpy as np
-    from scripts.domino import build
+    from scripts.models.domino import build
     _,bodies,_ = prepare(build())
     world.load(dict(bodies=bodies))
     positions,orientations = [],[]
@@ -118,7 +118,7 @@ def test_thirty_dominoes_fall_then_settle_without_persistent_rocking(world):
 
 
 def test_collision_demo_pair_exemptions_and_restore_change_real_contacts(world):
-    from scripts.collision_demo import build
+    from scripts.models.collision_demo import build
     from newton.collision_ui import pair_command
     scene = build()
     _,bodies,_ = prepare(scene)

@@ -5,7 +5,7 @@ Uses an isolated settings profile; does not open or alter the user's models.
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT), str(ROOT / "ingetrazo-source")]
 from PySide6.QtCore import QSettings, QTimer
 from PySide6.QtWidgets import QApplication,QScrollArea

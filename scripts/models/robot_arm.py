@@ -1,13 +1,13 @@
 """Build, validate and optionally open a three-servo industrial arm.
 
-python scripts/robot_arm.py --open
-python scripts/robot_arm.py --gripper --open
+python scripts/models/robot_arm.py --open
+python scripts/models/robot_arm.py --gripper --open
 """
 import math
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT),str(ROOT/"ingetrazo-source")]
 from PySide6.QtGui import QVector3D
 from core.mesh import Mesh
