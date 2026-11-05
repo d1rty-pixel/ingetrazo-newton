@@ -1,4 +1,4 @@
-"""Fields for one key binding, shared by the control panel cards and the sidebar section.
+"""Fields for one key binding, shown in the control panel's expanded rows.
 
 Values are shown like the control panel shows the target (display units and
 mapping for joints, state names for switches, percent for sliders) and stored
@@ -14,7 +14,6 @@ from .i18n import tr
 from .key_slots import slot_name
 from .key_bindings import fresh, replaced, stored, target_range, with_bindings
 from .range_control import scroll_safe
-from views.fold_section import narrow
 from .toolbar import compact
 
 
@@ -70,7 +69,7 @@ class BindingFields(QWidget):
     """Slot, mode and the mode's values of one target; ``changed`` carries the new binding or None."""
     changed = Signal(object)
 
-    def __init__(self, panel, kind, ident, subject, binding, parent=None, stacked=False):
+    def __init__(self, panel, kind, ident, subject, binding, parent=None):
         super().__init__(parent)
         self.kind, self.ident, self.subject = kind, ident, subject
         self.binding = binding
@@ -78,13 +77,10 @@ class BindingFields(QWidget):
         self.states = subject["states"] if kind == "control" and subject["kind"] == "switch" else None
         self.units = None if self.states else Scale(kind, subject)
         self.updating = False
-        self.stacked = stacked
         keep = (binding["slot"], binding.get("slot_down")) if binding else ()
         slots = slot_labels(panel, keep)
-        layout = QVBoxLayout(self) if stacked else QHBoxLayout(self)
+        layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        # The sidebar is too narrow for all fields in one row.
-        top = QHBoxLayout() if stacked else layout
         self.slot = self.slot_choice(tr("No key"), slots)
         self.slot.setToolTip(tr(help.KEY_BINDING_SLOT))
         self.mode = compact(QComboBox())
@@ -111,10 +107,8 @@ class BindingFields(QWidget):
         row.addWidget(self.captioned(tr("Step"), self.step))
         row.addWidget(self.captioned(tr("Down key"), self.down))
         self.pages.addWidget(step)
-        top.addWidget(self.slot)
-        top.addWidget(self.mode, 1 if stacked else 0)
-        if stacked:
-            layout.addLayout(top)
+        layout.addWidget(self.slot)
+        layout.addWidget(self.mode)
         layout.addWidget(self.pages, 1)
         self.show_binding(binding)
         self.slot.activated.connect(lambda _index: self.edit("slot"))
@@ -128,7 +122,7 @@ class BindingFields(QWidget):
         self.step.valueChanged.connect(lambda _number: self.edit("step"))
 
     def captioned(self, text, field):
-        # Above the field, not beside it: the sidebar has no room for a second column of text.
+        # Above the field, not beside it, so the row stays short.
         box = QWidget()
         column = QVBoxLayout(box)
         column.setContentsMargins(0, 0, 0, 0)
@@ -151,8 +145,6 @@ class BindingFields(QWidget):
         box = scroll_safe(QDoubleSpinBox())
         # On a card every valueChanged is an undo step; without tracking only Enter, focus loss and arrows emit.
         box.setKeyboardTracking(False)
-        if self.stacked:
-            narrow(box)
         return box
 
     def value_field(self):

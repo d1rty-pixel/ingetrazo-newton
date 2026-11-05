@@ -245,15 +245,10 @@ class NewtonPanel(QWidget):
         self.environment_section,form,_ = settings_section(tr("Simulation overrides"),"overrides",tr(help.OVERRIDES),auto=True)
         self.environment = EnvironmentOverrides(self)
         form.addRow(self.environment)
-        self.bindings_section,form,_ = settings_section(tr("Key bindings"),"bindings",tr(help.KEY_BINDINGS_AXIS))
-        host = QWidget();self.binding_host = QVBoxLayout(host);self.binding_host.setContentsMargins(0,0,0,0)
-        form.addRow(host)
-        self.binding_signature = None
-        self.binding_fields = None
         from . import tooltips
         tooltips.apply(self)
         self.sections = (self.editor,self.profile_box,self.flexible_section,self.body_section,self.collisions_section,
-            self.joint_box,self.connection_section,self.coupling_section,self.bindings_section,self.environment_section)
+            self.joint_box,self.connection_section,self.coupling_section,self.environment_section)
         for fold in self.sections:layout.addWidget(fold)
         # Only the closing stretch takes spare height: folded sections report vertical growth through their layout.
         layout.addStretch(1)
@@ -688,7 +683,6 @@ class NewtonPanel(QWidget):
             tuple((g.uid,g.name,repr((g.ext or {}).get(KEY)),bool(getattr(g,"locked",False))) for g in self.app.scene.groups))
         if signature==self.selection_signature:
             self.controls.refresh(self.control_rows,False)
-            self.refresh_bindings(groups)
             return
         self.selection_signature = signature
         self.control_rows = joint_rows(self.app.scene)
@@ -698,7 +692,6 @@ class NewtonPanel(QWidget):
         self.reference_names = {g.uid:g.name for g in self.app.scene.groups}
         self.gizmo_sizes = {g.uid:gizmo_size(g) for g in self.app.scene.groups if settings(g).get("joint")}
         self.controls.refresh(self.control_rows,False)
-        self.refresh_bindings(groups)
         browser = getattr(self.app.window,"project_browser",None)
         if browser is not None:
             browser.outliner.refresh()
@@ -956,15 +949,7 @@ class NewtonPanel(QWidget):
 
     def show_controls(self):
         self.controls.refresh(self.control_rows,self.session.workspace is not None)
-        opening = not self.controls.isVisible()
-        if opening:
-            self.controls.place(self.app.viewport)
-        self.controls.show()
-        if opening:
-            # The window frame is known only once shown; Wayland ignores both moves.
-            self.controls.place(self.app.viewport)
-        self.controls.raise_()
-        self.controls.activateWindow()
+        self.controls.dock.show()
 
     def virtual_controls(self):
         """The controls the control panel shows; during a simulation the ones it started with."""
@@ -976,49 +961,9 @@ class NewtonPanel(QWidget):
         except ValueError:
             return []  # Start reports the problem; the panel still shows the joints.
 
-    def edit_virtual_controls(self,select=None):
-        if self.session.workspace:
-            return  # The simulation's history refuses the change; the button is disabled then.
-        from .virtual_editor import VirtualControlEditor
-        try:
-            editor = VirtualControlEditor(self,select)
-        except ValueError as exc:
-            self.controls.message(str(exc),"error")
-            return
-        editor.exec()
-
-    def refresh_bindings(self,groups):
-        from .key_bindings import find,stored
-        from .binding_fields import BindingFields,slot_labels,store
-        from .virtual_controls import eligible
-        if getattr(self,"key_slots",None) is None:
-            return
-        row = eligible(self.control_rows).get(groups[0].uid) if len(groups)==1 else None
-        self.bindings_section.setVisible(row is not None)
-        try:
-            bindings = stored(self.app.document_data())
-        except ValueError:
-            bindings = None
-        binding = find(bindings or [],"joint",row["uid"]) if row and bindings is not None else None
-        signature = (repr(row),repr(binding),bindings is None,tuple(slot_labels(self)))
-        if signature==self.binding_signature:
-            return
-        self.binding_signature = signature
-        if self.binding_fields is not None:
-            self.binding_fields.setParent(None)
-            self.binding_fields.deleteLater()
-            self.binding_fields = None
-        if row is None:
-            return
-        fields = BindingFields(self,"joint",row["uid"],row,binding,stacked=True)
-        fields.setEnabled(bindings is not None)
-        def changed(new):
-            # The host refreshes the panel inside the write; the signature keeps it from deleting the sender.
-            self.binding_signature = (signature[0],repr(new),False,signature[3])
-            store(self,"joint",row["uid"],new)
-        fields.changed.connect(changed)
-        self.binding_fields = fields
-        self.binding_host.addWidget(fields)
+    def edit_virtual_controls(self,select):
+        """Open the row of a virtual control for editing in the control panel."""
+        self.controls.open_control(select)
 
     def start_or_pause(self):
         if self.session.workspace:
@@ -1063,5 +1008,4 @@ class NewtonPanel(QWidget):
     def shutdown(self,*args):
         self.collision_view.stop()
         self.session.stop_worker()
-        self.controls.ending_silently = True
-        self.controls.close()
+

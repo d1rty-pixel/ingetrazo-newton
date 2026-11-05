@@ -245,9 +245,10 @@ def test_flexible_sidebar_edits_and_external_session_reset(panel,qtapp):
     assert group.ext[KEY]["flexible"]["bend"] == 2e4
     assert not panel.actions["rotate"].isEnabled()
     source = panel.app.scene
-    assert not panel.controls.isVisible() and not hasattr(panel,"start_button")
+    panel.controls.dock.hide()
+    assert not hasattr(panel,"start_button")
     panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
-    assert panel.controls.isVisible(),"the control panel opens even without actuators"
+    assert not panel.controls.dock.isHidden(),"the control panel opens even without actuators"
     assert len(panel.session.movers)==11
     wait(qtapp,lambda:panel.session.workspace.scene.version>5)
     panel.session.reset()
@@ -417,14 +418,14 @@ def test_named_controls_drive_real_session_and_reset_without_saving_runtime_targ
     row = next(j for j in joint_rows(source) if j["name"] == name)
     panel.start_or_pause()
     wait(qtapp,lambda:panel.session.ready)
-    assert panel.controls.isVisible()
+    assert not panel.controls.dock.isHidden()
     value = panel.controls.findChild(QDoubleSpinBox)
     assert suffix in value.suffix()
     value.setValue(display_target)
     assert panel.session.targets[row["uid"]] == pytest.approx(native_target)
     wait(qtapp,lambda:float(panel.controls.time_label.text().split(":")[1].split()[0]) > 1.5,5)
     label = panel.controls.rows[row["uid"]][0].text()
-    actual = float(label.split(":")[1].split()[0])
+    actual = float(label.split()[0])
     assert actual == pytest.approx(display_target,abs=2)
     panel.session.reset()
     assert panel.app.scene is source
@@ -1724,37 +1725,35 @@ def test_hinge_placement_sets_the_zero_direction_and_start_angle(panel,qtapp):
 def test_control_panel_marks_errors_and_warnings_but_not_hints(panel):
     controls = panel.controls
     panel.session.message.emit("The Newton process did not answer within 15 seconds. The simulation was reset.","error")
-    assert not controls.hint_row.isHidden() and not controls.hint_mark.isHidden()
-    assert controls.hint_mark.accessibleName()=="Error"
+    assert not controls.banner.isHidden() and controls.banner_mark.accessibleName()=="Error"
     panel.session.message.emit("The model cannot be saved during the simulation. Reset the simulation first.","warning")
-    assert not controls.hint_mark.isHidden() and controls.hint_mark.accessibleName()=="Warning"
+    assert not controls.banner.isHidden() and controls.banner_mark.accessibleName()=="Warning"
     controls.message("The simulation was reset and the original model is restored.")
-    assert controls.hint_mark.isHidden() and controls.hint.text()=="The simulation was reset and the original model is restored."
+    assert controls.banner.isHidden() and controls.hint.text()=="The simulation was reset and the original model is restored."
 
 
-def test_control_panel_opens_at_the_view_corner_and_fits_its_cards(panel):
-    from PySide6.QtCore import QPoint
-    controls = panel.controls
-    vp = panel.app.viewport
-    panel.show_controls()
-    corner = vp.mapToGlobal(QPoint(vp.width(),0))
-    frame = controls.frameGeometry()
-    assert abs(frame.right()+1+controls.MARGIN-corner.x())<=1 and abs(frame.top()-controls.MARGIN-corner.y())<=1
-    empty = controls.height()
-    assert empty<260
-    controls.close()
-    controls.refresh([dict(uid=str(i),body="Body",name="Axis",type="hinge",drive="position",lower=-1,upper=1,
-        limited=True,target=0,max_speed=1) for i in range(40)],False)
-    assert empty<controls.height()<=controls.height_limit
-    assert controls.scroll.verticalScrollBar().maximum()>0 or not controls.isVisible()
+def test_control_panel_is_a_bottom_dock_under_the_view_and_the_sidebar_keeps_its_height(panel):
+    window,dock = panel.app.window,panel.controls.dock
+    assert window.dockWidgetArea(dock)==Qt.BottomDockWidgetArea
+    assert window.corner(Qt.BottomRightCorner)==Qt.RightDockWidgetArea
+    # The host's restoreState undoes the corner; the next refresh puts it back.
+    window.setCorner(Qt.BottomRightCorner,Qt.BottomDockWidgetArea)
+    panel.controls.refresh([],False)
+    assert window.corner(Qt.BottomRightCorner)==Qt.RightDockWidgetArea
 
 
-def test_control_panel_opens_tall_enough_for_its_cards(qtapp,panel):
-    seed_demo(panel,"Servo door")
-    panel.show_controls()
-    qtapp.processEvents()
-    scroll = panel.controls.scroll
-    assert scroll.height()>=scroll.widget().sizeHint().height()
+def test_toolbar_action_shows_and_hides_the_control_panel(panel):
+    dock = panel.controls.dock
+    dock.hide()
+    panel.actions["controls"].trigger()
+    assert not dock.isHidden()
+    panel.actions["controls"].trigger()
+    assert dock.isHidden()
+
+
+def message_text(controls):
+    """The text the control panel shows: the banner for errors and warnings, the header line otherwise."""
+    return controls.hint.text() if controls.banner.isHidden() else controls.banner_text.text()
 
 
 def squashed_widgets(root):
@@ -1982,18 +1981,6 @@ def test_selection_outlines_linked_bodies_and_picks_outline_their_candidate(pane
     glow.offer(panel,None)
 
 
-def test_control_panel_grows_when_the_speed_line_appears(qtapp,panel):
-    seed_demo(panel,"Servo door")
-    panel.show_controls()
-    controls = panel.controls
-    controls.message("Drag passive bodies with the mouse. Move actuators with the controls.")
-    qtapp.processEvents()
-    room = controls.scroll.height()
-    controls.show_performance(dict(speed=1.0))
-    qtapp.processEvents()
-    assert controls.scroll.height()>=room
-
-
 def test_simulation_refuses_every_edit_and_never_opens_a_group(panel,qtapp):
     from core.history import FlipFacesCommand
     from newton.session import changed_meshes
@@ -2014,7 +2001,7 @@ def test_simulation_refuses_every_edit_and_never_opens_a_group(panel,qtapp):
         ws.scene.begin_group_edit(clone)
     edit_everything()
     assert vp.history is ws.history and not ws.history.undo_stack
-    assert ws.history.last_rejected==panel.controls.hint.text()=="The model cannot be edited during the simulation. Reset the simulation first."
+    assert ws.history.last_rejected==message_text(panel.controls)=="The model cannot be edited during the simulation. Reset the simulation first."
     assert ws.scene.edit_group is None and clone in ws.scene.groups and not clone.hidden
     assert not changed_meshes(ws.marks)
     assert loops=={id(m):[tuple(v.position.toTuple() for v in f.loop) for f in m.faces] for m,*_ in ws.marks.values()}
@@ -2030,7 +2017,7 @@ def test_geometry_changed_during_simulation_is_reported_after_reset(panel,qtapp)
     clone = panel.session.workspace.scene.groups[0]
     clone.mesh.move_vertex(clone.mesh.vertices[0],QVector3D(0,0,.1))
     panel.session.reset()
-    assert panel.controls.hint.text()=="The geometry changed during the simulation. Check the model before saving it."
+    assert message_text(panel.controls)=="The geometry changed during the simulation. Check the model before saving it."
 
 
 def test_render_flags_of_shared_meshes_survive_the_simulation(panel,qtapp):
@@ -2052,14 +2039,14 @@ def test_ground_warning_lists_scraping_bodies_and_can_be_switched_off(panel):
     _,specs,movers = prepare(scene)
     panel.floor.setChecked(True)
     QSettings().setValue("newton/warn_ground_contact",True)
-    panel.controls.hint.setText("")
+    panel.controls.banner.hide()
     panel.warn_ground_contact(specs,movers)
-    assert "below Z = 0" in panel.controls.hint.text() and not panel.controls.hint_mark.isHidden()
+    assert "below Z = 0" in panel.controls.banner_text.text() and not panel.controls.banner.isHidden()
     QSettings().setValue("newton/warn_ground_contact",False)
-    panel.controls.hint.setText("")
+    panel.controls.banner.hide()
     panel.warn_ground_contact(specs,movers)
     QSettings().remove("newton/warn_ground_contact")
-    assert panel.controls.hint.text()==""
+    assert panel.controls.banner.isHidden()
 
 
 def test_ground_warning_lists_the_bodies_in_a_table_that_goes_with_the_message(panel):
@@ -2076,7 +2063,7 @@ def test_ground_warning_lists_the_bodies_in_a_table_that_goes_with_the_message(p
     assert not controls.bodies.isHidden()
     shown = [n for n in controls.bodies.names() if not n.startswith("…")]
     assert set(shown)==names or len(names)>len(shown)
-    assert not any(n in controls.hint.text() for n in names)
+    assert not any(n in controls.banner_text.text() for n in names)
     controls.message("Original model restored.")
     assert controls.bodies.isHidden() and controls.bodies.names()==[]
     QSettings().remove("newton/warn_ground_contact")
@@ -2115,11 +2102,11 @@ def test_reset_keeps_the_ground_warning_and_its_table_when_asked_to(panel,qtapp)
     controls = panel.controls
     try:
         z0_simulation(panel,qtapp)
-        text,names = controls.hint.text(),controls.bodies.names()
+        text,names = controls.banner_text.text(),controls.bodies.names()
         controls.keep.setChecked(True)
         panel.session.reset()
-        assert controls.hint.text()==text and "reset" not in text
-        assert not controls.hint_mark.isHidden() and controls.bodies.names()==names
+        assert controls.banner_text.text()==text and "reset" not in text
+        assert not controls.banner.isHidden() and controls.bodies.names()==names
         document = {g.uid:g for g in panel.app.scene.groups}
         rows = [r for r in body_rows(controls) if r.group is not None]
         assert rows and all(r.group is document[r.group.uid] for r in rows)
@@ -2141,7 +2128,7 @@ def test_kept_rows_stay_simulation_clones_while_running_and_vanish_with_their_bo
         assert controls.kept and not controls.bodies.isHidden()
         gone = controls.kept[2][0][0]
         controls.restore_kept(SimpleNamespace(groups=[]))
-        assert controls.bodies.isHidden() and controls.hint.text()==controls.kept[0]
+        assert controls.bodies.isHidden() and controls.banner_text.text()==controls.kept[0]
         assert gone is not None
     finally:
         QSettings().remove("newton/warn_ground_contact");QSettings().remove("newton/keep_warnings_on_reset")
@@ -2153,7 +2140,7 @@ def test_reset_replaces_the_warning_with_the_notice_unless_kept(panel,qtapp):
         assert not panel.controls.keep.isChecked()
         panel.session.reset()
         assert panel.controls.hint.text()=="The simulation was reset and the original model is restored."
-        assert panel.controls.bodies.isHidden() and panel.controls.hint_mark.isHidden()
+        assert panel.controls.bodies.isHidden() and panel.controls.banner.isHidden()
     finally:
         QSettings().remove("newton/warn_ground_contact")
 
@@ -2178,21 +2165,21 @@ def test_start_clears_every_message_and_checks_again(panel,qtapp):
 
 
 def test_keep_warnings_setting_persists_and_defaults_off(panel):
-    from newton.controls import Controls
+    from newton.controls import keep_on_reset
     assert not panel.controls.keep.isChecked()
     try:
         panel.controls.keep.setChecked(True)
-        assert Controls(panel).keep.isChecked()
+        assert keep_on_reset()
         panel.controls.keep.setChecked(False)
-        assert not Controls(panel).keep.isChecked()
+        assert not keep_on_reset()
     finally:
         QSettings().remove("newton/keep_warnings_on_reset")
 
 
-def test_keep_checkbox_does_not_widen_the_control_panel(panel,qtapp):
-    controls = panel.controls
-    panel.show_controls();qtapp.processEvents()
-    assert controls.minimumSizeHint().width()<=controls.width()==520
+def test_keep_options_live_in_the_options_menu(panel):
+    menu = panel.controls.options_button.menu()
+    assert [a.text() for a in menu.actions()]==["Keep warnings and errors on reset","Keep the pose on reset"]
+    assert all(a.isCheckable() for a in menu.actions())
 
 
 def test_body_table_in_the_control_panel_is_capped_with_a_count_row(panel):
@@ -2334,38 +2321,15 @@ def test_check_runtime_sits_with_the_python_field_and_the_log_below_it(panel):
     page.deleteLater()
 
 
-def test_closing_the_controls_ends_a_running_or_paused_simulation(panel,qtapp,monkeypatch):
+def test_hiding_the_controls_leaves_a_running_simulation_alone_and_reopens(panel,qtapp):
     select_demo_axis(panel)
-    original = panel.app.scene
-    calls = []
-    real_reset = panel.session.reset
-    monkeypatch.setattr(panel.session,"reset",lambda:(calls.append(1),real_reset())[1])
-    for pause in (False,True):
-        panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
-        if pause:
-            panel.session.toggle()
-        assert panel.controls.isVisible() and panel.session.workspace
-        panel.controls.close()
-        assert panel.session.workspace is None and not panel.session.running
-        assert panel.app.scene is original and not panel.controls.isVisible()
-    assert len(calls)==2
+    dock = panel.controls.dock
     panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+    assert not dock.isHidden() and panel.session.workspace
+    dock.hide()
+    assert panel.session.workspace and dock.isHidden()
     panel.show_controls()
-    panel.controls.reject()
-    assert panel.session.workspace is None and len(calls)==3
-
-
-def test_closing_the_controls_without_a_simulation_does_nothing_and_reopens(panel,qtapp):
-    select_demo_axis(panel)
-    panel.show_controls()
-    panel.controls.close()
-    assert not panel.controls.isVisible() and panel.session.workspace is None
-    panel.show_controls()
-    assert panel.controls.isVisible()
-    panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
-    panel.controls.close()
-    panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
-    assert panel.session.workspace and panel.controls.isVisible()
+    assert not dock.isHidden()
 
 
 def test_shutdown_does_not_reset_the_session_again(panel,qtapp,monkeypatch):
@@ -2467,7 +2431,7 @@ def test_control_panel_row_of_a_slide_axis_uses_the_document_unit(panel,monkeypa
     assert sent[joint["uid"]]==pytest.approx(round(.2*factor,decimals)/factor,abs=1e-12)
     label = panel.controls.rows[joint["uid"]][0]
     panel.controls.telemetry({joint["uid"]:dict(position=.25,target=.2,command=.2,load=0)})
-    assert label.text()==f"Actual: {.25*factor:.{decimals}f} {suffix.strip()}"
+    assert label.text()==f"{.25*factor:.{decimals}f} {suffix.strip()}"
 
 
 def test_control_panel_rebuilds_when_the_unit_changes(panel):
@@ -2607,7 +2571,7 @@ def test_manual_fold_holds_until_the_selection_changes_and_is_not_stored(panel):
 def test_sidebar_sections_follow_the_agreed_order(panel):
     select_demo_axis(panel)
     titles = [f.header.text() for f in panel.sections]
-    assert titles==["Generic","Profile","Material","Body","Collisions","Motion","Mechanical connection","Axis coupling","Key bindings","Simulation overrides"]
+    assert titles==["Generic","Profile","Material","Body","Collisions","Motion","Mechanical connection","Axis coupling","Simulation overrides"]
     layout = panel.sections[0].parentWidget().layout()
     assert [layout.itemAt(i).widget() for i in range(len(titles))]==list(panel.sections)
 
