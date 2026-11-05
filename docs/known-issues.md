@@ -6,11 +6,11 @@ Status values: **open** (confirmed, not fixed), **observation** (reported, cause
 
 ## Starting a large model copies all geometry
 
-- **Status:** open
+- **Status:** fixed
 - **Reported:** 2026-11-05, CR10 sliding electronics compartment model (about 250 000 vertices)
 - **Symptom:** Pressing Start takes about 10 s before the simulation runs; the simulation itself is fast.
-- **Checked:** `prepare()` (`newton/model.py`) copied every included group for the temporary simulation with `transformed_mesh`, which welds the whole mesh again. The clones now share the document's mesh (plain groups and component instances), and compound parts read their points without a copy; on this model `prepare()` dropped from 11.3 s to 4.3 s (see `docs/test-results.md`).
-- **Remaining:** A group with children still needs one welded world-space mesh (`world_mesh` → `_merged_placements`), most of the remaining time. Sharing the children instead would need clones with nested placements; not investigated.
+- **Checked:** `prepare()` (`newton/model.py`) copied every included group for the temporary simulation with `transformed_mesh`, which welds the whole mesh again; groups with children were welded into one mesh first. The clones now share the document's mesh and nested placements, and all points are read without a copy; on this model `prepare()` dropped from 11.3 s to 0.84 s (see `docs/test-results.md`).
+- **Unverified:** the display cost per frame: a clone with children now draws as its nested placements (up to 141 on this model) instead of one merged mesh. Live runs in the Flatpak (see `docs/test-results.md`) were too noisy to decide it: 22 and 17 frames per second shared against 28 and 2 merged, with the IngeTrazo window in the background. A repeatable benchmark with the window in front is still needed.
 
 ## The temporary simulation's edit guard has gaps
 

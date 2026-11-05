@@ -16,7 +16,7 @@ Each entry states: what was found in the host, the proposal, what Newton could r
 - **Found:** 2026-11-05, start-time audit and guarding the temporary simulation
 - **Host today:** an extension can only move groups by changing `group.xform` and raising `scene.version`; the host then rebuilds its consolidated buffers (`_sync_edges`, 17–31 ms per frame). The host's groups preview moves all groups by one shared offset only.
 - **Proposal:** `viewport.set_display_transforms({group: matrix})` (or similar), drawn without touching the scene, `scene.version` or the buffers; cleared with `None`.
-- **Newton:** could simulate on the document itself: no clone scene in `prepare()`, no shared meshes and their frame offsets (`SimulationScene.place`), no welded copies of groups with children (most of the remaining 4.3 s start time on the CR10 model). Fixes "Every simulation frame rebuilds the viewport caches" in [known-issues.md](known-issues.md).
+- **Newton:** could simulate on the document itself: no clone scene in `prepare()`, no shared meshes and their frame offsets (`SimulationScene.place`). Fixes "Every simulation frame rebuilds the viewport caches" in [known-issues.md](known-issues.md).
 - **Others:** any animation, kinematics or exploded-view extension.
 
 ## Read-only document or workspace

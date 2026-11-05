@@ -4,20 +4,31 @@
 
 Checked on 5 November 2026 on Linux x86_64, same model and method as "Hidden geometry" below (`prepare()` only, single run).
 
-| Include hidden geometry | Before | Shared meshes | Simulated bodies |
-|---|---|---|---|
-| When needed | 11.3 s | 4.3 s | 12 |
-| Always | 16.8 s | 6.1 s | 113 |
+| Include hidden geometry | Before | Shared meshes | Also shared nested placements | Simulated bodies |
+|---|---|---|---|---|
+| When needed | 11.3 s | 4.3 s | 0.84 s | 12 |
+| Always | 16.8 s | 6.1 s | 1.95 s | 113 |
 
 - The before figures were measured again in the same session; they differ slightly from the table below.
-- The specs sent to the worker are unchanged: centres, half sizes and vertices are equal, compound parts differ by at most 1.5e-8 m (float32 rounding of the former second copy).
-- The remaining time is mostly the welded mesh of groups with children (see known issues).
+- Shared meshes: the specs sent to the worker are unchanged; centres, half sizes and vertices are equal, compound parts differ by at most 1.5e-8 m (float32 rounding of the former second copy).
+- Nested placements: centres and half sizes are equal (6e-10 m). Groups with children now send every vertex of their placements instead of the welded mesh, which dropped vertices on no edge or face (47 872 instead of 40 141 for the drawer); hull points differ by at most 6.5e-5 m. Loading all 113 bodies in the worker took 0.41 s instead of 0.37 s; 60 steps took 0.10 s in both cases.
 - The renderer clears `_chunk_dirty`/`_attrs_dirty` on a mesh it draws; the session now restores flags that were pending when the simulation started (`test_render_flags_of_shared_meshes_survive_the_simulation`).
 
 ```text
 .venv/bin/python -m pytest tests -q --basetemp=.test-state/pytest
 271 passed, 13 warnings in 55.80s
 ```
+
+Live check in the IngeTrazo 0.6.0 Flatpak (installed copy, AI bridge, CR10 model, "When needed"). The merged variant was produced by patching `prepare()` in the running app to weld each clone's placements into one mesh, as before. Each run lasted 20 s after Start; the IngeTrazo window was not in front.
+
+| Variant | Start (warm) | First frame | Frames per second after that |
+|---|---|---|---|
+| Shared nested placements | 0.12 s | 4.4 s, 4.0 s | 22.2, 16.9 |
+| Merged (previous) | 2.9 s, 2.7 s | 5.2 s, 5.2 s | 27.7, 1.7 |
+
+- The model displays correctly while simulating (screenshot checked); Reset reports "Original model restored." and no geometry change.
+- `run_python` over the AI bridge is refused while the simulation runs: the bridge executes it as a history command, which `ReadOnlyHistory` refuses. Measurements were therefore scheduled with a timer before Start.
+- The frame rates scatter too much to compare the variants (see known issues).
 
 ## Hidden geometry (Linux)
 

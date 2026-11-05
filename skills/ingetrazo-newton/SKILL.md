@@ -39,7 +39,7 @@ Data model (for reading `.igz` files or scripts): everything lives in `group.ext
 ## Performance
 
 Where time goes (measured, see `docs/test-results.md` and `docs/known-issues.md`):
-- **Start:** `prepare()` (`newton/model.py`) shares each included group's mesh, but reads every vertex for the bounds and collision shapes, and welds one copy for each group with children (nested groups or components). A model with ~250 000 vertices needs about 4 s, most of it for groups with children.
+- **Start:** `prepare()` (`newton/model.py`) shares each included group's mesh and nested placements, but reads every vertex for the bounds and collision shapes; cost grows with vertex count. A model with ~250 000 vertices needs under 1 s.
 - **Simulation:** almost entirely MuJoCo's constraint solver. It grows with contacts, closed loops (connections), couplings and cable segments. Python overhead in the worker is about 1 %.
 - **Display:** every frame redraws all moving bodies; the host rebuilds its buffers (15–30 ms per frame with 100+ bodies).
 
