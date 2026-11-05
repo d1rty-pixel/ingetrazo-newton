@@ -12,23 +12,46 @@ COLOURS = {"axis":(160,150,130),"range":(50,175,140),"minimum":(70,155,240),
            "connected":(225,85,175),"exemption":(60,200,215)}
 
 
-def place_caption(x,y,width,height,viewport_width,viewport_height,obstacles,occupied):
+def place_caption(x,y,width,height,viewport_width,viewport_height,obstacles,occupied,near=4):
     """Prefer clear space outside every projected axis and its handles."""
-    xs = [x+28,x-width-28,8,viewport_width-width-8]
+    best = None
+    seen = set()
+    def consider(px,py):
+        nonlocal best
+        rect = QRectF(max(4,min(px,viewport_width-width-4)),max(4,min(py,viewport_height-height-4)),width,height)
+        key = rect.x(),rect.y()
+        if key in seen:return
+        seen.add(key)
+        limit = best[0][0] if best else None
+        axis_hits = label_hits = 0
+        for other in obstacles:
+            if rect.intersects(other):axis_hits += 1
+        if limit is not None and axis_hits>limit:return
+        padded = rect.adjusted(-4,-4,4,4)
+        for other in occupied:
+            if padded.intersects(other):
+                label_hits += 1
+                if limit is not None and axis_hits+label_hits>limit:return
+        score = (axis_hits+label_hits,axis_hits,(rect.center().x()-x)**2+(rect.center().y()-y)**2)
+        if best is None or score<best[0]:best = score,rect
+    xs = [x+28,x-width-28]
     ys = [y-height-20,y+24,y-height/2]
-    for rect in obstacles:
+    def search():
+        for px in xs:
+            for py in ys:consider(px,py)
+        return best and not best[0][0]
+    # Nearest positions first: an early free spot at the viewport edge would otherwise win over a close one.
+    if search():return best[1]
+    # Every obstacle edge as a candidate is cubic in the selection size; only the neighbours are in the way.
+    def distance(rect):return (rect.center().x()-x)**2+(rect.center().y()-y)**2
+    for rect in sorted(obstacles,key=distance)[:near]:
         xs.extend((rect.right()+18,rect.left()-width-18))
         ys.extend((rect.bottom()+14,rect.top()-height-14))
-    for rect in occupied:
+    for rect in sorted(occupied,key=distance)[:near]:
         ys.extend((rect.bottom()+9,rect.top()-height-9))
-    best = None
-    for px in xs:
-        for py in ys:
-            rect = QRectF(max(4,min(px,viewport_width-width-4)),max(4,min(py,viewport_height-height-4)),width,height)
-            axis_hits = sum(rect.intersects(other) for other in obstacles)
-            label_hits = sum(rect.adjusted(-4,-4,4,4).intersects(other) for other in occupied)
-            score = (axis_hits+label_hits,axis_hits,(rect.center().x()-x)**2+(rect.center().y()-y)**2)
-            if best is None or score<best[0]:best = score,rect
+    if search():return best[1]
+    xs.extend((8,viewport_width-width-8))
+    search()
     return best[1]
 
 
@@ -120,62 +143,69 @@ def draw(panel,viewport,painter):
     if panel.session.workspace and panel.detail_uid:
         selected.add(panel.detail_uid)
     obstacles = []
+    order = {"zero":0,"range":1,"minimum":2,"maximum":2,"target":3,"actual":4}
+    shown = []
     for j in rows:
         body = next((g for g in panel.app.scene.groups if g.uid==j["uid"]),None)
         if body is None or body.hidden or any(l.name==body.layer and not l.visible for l in panel.app.scene.layers):continue
-        segments,_ = axis_geometry(panel,viewport,j)
-        guides,_ = guide_geometry(panel,viewport,j,j["uid"] in selected)
-        segments.extend((a,b) for a,b,kind in guides)
-        points = [list(p.toTuple()) for segment in segments for p in segment]
-        xs,ys,front = viewport.world_to_pixels(points)
-        visible = [i for i,f in enumerate(front) if f]
+        detail = j["uid"] in selected
+        segments,anchor = axis_geometry(panel,viewport,j)
+        lines,labels = guide_geometry(panel,viewport,j,detail)
+        lines = sorted(lines,key=lambda item:order[item[2]])
+        # One projection per axis: a call per segment dominated the paint time of large selections.
+        points = [p for segment in segments for p in segment]+[p for start,end,_ in lines for p in (start,end)]
+        outline = len(points)
+        points += [anchor]+[p for p,_,_ in labels]
+        xs,ys,front = viewport.world_to_pixels([list(p.toTuple()) for p in points])
+        visible = [i for i in range(outline) if front[i]]
         if visible:
             left,right = min(float(xs[i]) for i in visible),max(float(xs[i]) for i in visible)
             top,bottom = min(float(ys[i]) for i in visible),max(float(ys[i]) for i in visible)
             obstacles.append(QRectF(left-20,top-20,right-left+40,bottom-top+40))
+        shown.append((j,detail,segments,lines,labels,xs,ys,front))
     panel.axis_obstacles = obstacles
-    def line(start,end,kind,highlight=False):
-        xs,ys,front = viewport.world_to_pixels([list(start.toTuple()),list(end.toTuple())])
-        if all(front):
-            width = 2 if kind in ("axis","zero") else 4 if kind in ("actual","range") else 3
-            pen = QPen(QColor(235,65,45) if highlight else QColor(*COLOURS[kind]),width)
-            pen.setCapStyle(Qt.RoundCap)
-            if kind in ("target","zero"): pen.setStyle(Qt.DashLine if kind=="target" else Qt.DotLine)
-            painter.setPen(pen)
-            painter.drawLine(int(xs[0]),int(ys[0]),int(xs[1]),int(ys[1]))
-    def caption(x,y,text,kind,uid):
-        text = metrics.elidedText(text,Qt.ElideRight,max(160,min(360,viewport.width()//2)))
-        rect = place_caption(x,y,metrics.horizontalAdvance(text)+14,metrics.height()+10,viewport.width(),viewport.height(),obstacles,occupied)
+    def caption(x,y,rows,uid):
+        limit = max(160,min(360,viewport.width()//2))
+        rows = [(metrics.elidedText(text,Qt.ElideRight,limit),kind) for text,kind in rows]
+        line = metrics.height()
+        rect = place_caption(x,y,max(metrics.horizontalAdvance(text) for text,_ in rows)+14,line*len(rows)+10,
+            viewport.width(),viewport.height(),obstacles,occupied)
         occupied.append(QRectF(rect))
         panel.axis_label_hits.append((QRectF(rect),uid))
-        leader = QPen(QColor(*COLOURS[kind]),1)
+        leader = QPen(QColor(*COLOURS[rows[0][1]]),1)
         leader.setStyle(Qt.DotLine);painter.setPen(leader)
         painter.drawLine(int(x),int(y),int(max(rect.left(),min(x,rect.right()))),int(max(rect.top(),min(y,rect.bottom()))))
         painter.setBrush(QBrush(QColor(24,28,34,235)))
         painter.drawRoundedRect(rect,5,5)
-        painter.setPen(QColor(*COLOURS[kind]))
-        painter.drawText(rect.adjusted(7,4,-7,-4),Qt.AlignVCenter|Qt.AlignLeft,text)
-    for j in rows:
-        body = next((g for g in panel.app.scene.groups if g.uid==j["uid"]),None)
-        if body is None or body.hidden or any(l.name==body.layer and not l.visible for l in panel.app.scene.layers):
-            continue
-        detail = j["uid"] in selected
+        for i,(text,kind) in enumerate(rows):
+            painter.setPen(QColor(*COLOURS[kind]))
+            painter.drawText(QRectF(rect.left()+7,rect.top()+5+i*line,rect.width()-14,line),Qt.AlignVCenter|Qt.AlignLeft,text)
+    for j,detail,segments,lines,labels,xs,ys,front in shown:
         highlight = j["uid"] in marked or (viewport.active_tool is eraser and panel.hover_axis==j["uid"])
-        segments,a = axis_geometry(panel,viewport,j)
-        for p,q in segments: line(p,q,"axis",highlight)
-        lines,labels = guide_geometry(panel,viewport,j,detail)
-        order = {"zero":0,"range":1,"minimum":2,"maximum":2,"target":3,"actual":4}
-        for p,q,kind in sorted(lines,key=lambda item:order[item[2]]): line(p,q,kind)
-        xs,ys,front = viewport.world_to_pixels([list(a.toTuple())])
-        if all(front):
+        def line(k,kind):
+            if not (front[k] and front[k+1]):return
+            width = 2 if kind in ("axis","zero") else 4 if kind in ("actual","range") else 3
+            pen = QPen(QColor(235,65,45) if highlight and kind=="axis" else QColor(*COLOURS[kind]),width)
+            pen.setCapStyle(Qt.RoundCap)
+            if kind in ("target","zero"): pen.setStyle(Qt.DashLine if kind=="target" else Qt.DotLine)
+            painter.setPen(pen)
+            painter.drawLine(int(xs[k]),int(ys[k]),int(xs[k+1]),int(ys[k+1]))
+        for i in range(len(segments)):line(2*i,"axis")
+        base = 2*len(segments)
+        for i,(_,_,kind) in enumerate(lines):line(base+2*i,kind)
+        base += 2*len(lines)
+        anchor = None
+        if front[base]:
             painter.setPen(QPen(QColor(235,65,45) if highlight else QColor(*COLOURS["actual"]),3))
             painter.setBrush(QBrush(QColor(24,28,34,220)))
-            x,y = int(xs[0]),int(ys[0])
+            x,y = int(xs[base]),int(ys[base])
             painter.drawEllipse(x-7,y-7,14,14)
-            if detail or highlight:caption(x,y,j["name"],"actual",j["uid"])
-        for p,text,kind in labels:
-            xs,ys,front = viewport.world_to_pixels([list(p.toTuple())])
-            if all(front):
-                prefix = tr("Min") if kind=="minimum" else tr("Max") if kind=="maximum" else tr("Actual")
-                caption(int(xs[0]),int(ys[0]),prefix+" "+text,kind,j["uid"])
+            anchor = x,y
+        rows_of = [(j["name"],"actual")] if (detail or highlight) and anchor else []
+        for i,(_,text,kind) in enumerate(labels,base+1):
+            prefix = tr("Min") if kind=="minimum" else tr("Max") if kind=="maximum" else tr("Actual")
+            rows_of.append((prefix+" "+text,kind))
+            if anchor is None and front[i]:anchor = int(xs[i]),int(ys[i])
+        # One plate per axis keeps the free-space search linear in the number of selected axes.
+        if rows_of and anchor:caption(anchor[0],anchor[1],rows_of,j["uid"])
     painter.restore()

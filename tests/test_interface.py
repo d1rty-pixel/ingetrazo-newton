@@ -1162,8 +1162,8 @@ def test_axis_labels_are_larger_separated_and_pickable(panel):
     painter = QPainter(image)
     panel.draw_joints(vp,painter);painter.end()
     hits = panel.axis_label_hits
-    assert len(hits)>=4
-    assert all(r.height()>=QFontMetrics(vp.font()).height()+10 for r,uid in hits)
+    assert len(hits)==1,"one plate per axis: name, minimum, maximum and actual position"
+    assert all(r.height()>=4*QFontMetrics(vp.font()).height()+10 for r,uid in hits)
     assert all(not a.intersects(b) for i,(a,_) in enumerate(hits) for b,_ in hits[i+1:])
     assert all(not rect.intersects(axis) for rect,uid in hits for axis in panel.axis_obstacles)
     rect,uid = hits[0]
