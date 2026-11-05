@@ -2216,3 +2216,18 @@ def test_disabled_build_points_to_the_manual_guide(qtapp,monkeypatch):
     texts = [l.text() for l in box.findChildren(QLabel)]
     assert any(MANUAL_GUIDE_URL in t and "disabled" in t for t in texts)
     assert not any("docs/runtime-setup.md" in t.replace(MANUAL_GUIDE_URL,"") for t in texts)
+
+
+def test_axis_plate_values_are_lighter_than_the_name(panel):
+    from PySide6.QtGui import QImage,QPainter
+    from newton.axis_guides import caption_font,value_font
+    select_demo_axis(panel)
+    vp = panel.app.viewport
+    name = caption_font(vp);value = value_font(name,vp)
+    assert name.bold() and not value.bold()
+    assert vp.font().pointSizeF()<=value.pointSizeF()<=name.pointSizeF()
+    image = QImage(1200,900,QImage.Format_ARGB32);image.fill(Qt.white)
+    painter = QPainter(image);panel.draw_joints(vp,painter);painter.end()
+    from PySide6.QtGui import QFontMetrics
+    need = QFontMetrics(name).height()+3*QFontMetrics(value).height()+10
+    assert panel.axis_label_hits[0][0].height()==need

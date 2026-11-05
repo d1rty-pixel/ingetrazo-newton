@@ -92,6 +92,14 @@ def caption_font(viewport):
     return font
 
 
+def value_font(name_font,viewport):
+    """Regular, smaller font for the measured values, so only the name stands out on a plate."""
+    font = QFont(name_font)
+    font.setBold(False)
+    font.setPointSizeF(max(name_font.pointSizeF()*.85,viewport.font().pointSizeF()))
+    return font
+
+
 def guide_geometry(panel,viewport,j,detail):
     a,d,u,v,r = axis_frame(panel,viewport,j)
     state = panel.session.joint_states.get(j["uid"],{}) if panel.session.workspace else {}
@@ -161,6 +169,8 @@ def draw(panel,viewport,painter):
     font = caption_font(viewport)
     painter.setFont(font)
     metrics = QFontMetrics(font)
+    values = value_font(font,viewport)
+    value_metrics = QFontMetrics(values)
     occupied = []
     still = quiet(panel,viewport)
     # Hidden plates stay pickable: the press that starts a drag may still be a click on one.
@@ -194,9 +204,11 @@ def draw(panel,viewport,painter):
     panel.axis_obstacles = obstacles
     def caption(x,y,rows,uid):
         limit = max(160,min(360,viewport.width()//2))
-        rows = [(metrics.elidedText(text,Qt.ElideRight,limit),kind) for text,kind in rows]
-        line = metrics.height()
-        rect = place_caption(x,y,max(metrics.horizontalAdvance(text) for text,_ in rows)+14,line*len(rows)+10,
+        # Row 0 is the name; every other row is a value.
+        fonts = [(font,metrics)]+[(values,value_metrics)]*(len(rows)-1)
+        rows = [(m.elidedText(text,Qt.ElideRight,limit),kind) for (text,kind),(_,m) in zip(rows,fonts)]
+        heights = [m.height() for _,m in fonts]
+        rect = place_caption(x,y,max(m.horizontalAdvance(text) for (text,_),(_,m) in zip(rows,fonts))+14,sum(heights)+10,
             viewport.width(),viewport.height(),obstacles,occupied)
         occupied.append(QRectF(rect))
         panel.axis_label_hits.append((QRectF(rect),uid))
@@ -205,9 +217,12 @@ def draw(panel,viewport,painter):
         painter.drawLine(int(x),int(y),int(max(rect.left(),min(x,rect.right()))),int(max(rect.top(),min(y,rect.bottom()))))
         painter.setBrush(QBrush(QColor(24,28,34,235)))
         painter.drawRoundedRect(rect,5,5)
-        for i,(text,kind) in enumerate(rows):
+        top = rect.top()+5
+        for (text,kind),(f,_),line in zip(rows,fonts,heights):
+            painter.setFont(f)
             painter.setPen(QColor(*COLOURS[kind]))
-            painter.drawText(QRectF(rect.left()+7,rect.top()+5+i*line,rect.width()-14,line),Qt.AlignVCenter|Qt.AlignLeft,text)
+            painter.drawText(QRectF(rect.left()+7,top,rect.width()-14,line),Qt.AlignVCenter|Qt.AlignLeft,text)
+            top += line
     for j,detail,segments,lines,labels,xs,ys,front in shown:
         highlight = j["uid"] in marked or (viewport.active_tool is eraser and panel.hover_axis==j["uid"])
         def line(k,kind):
