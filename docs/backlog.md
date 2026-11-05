@@ -2,9 +2,25 @@
 
 Planned work that is agreed but not scheduled yet. Remove an item when it is done.
 
+## Virtual controls and key bindings
+
+Agreed in [ADR 0001](adr/0001-virtual-controls.md); one step per item, in this order:
+
+1. Virtual controls (switch and slider): data model, resolution to joint targets, control panel cards, editor dialog.
+2. Key bindings: key slots in the preferences, slot assignment and trigger mode (toggle, momentary, step) for every control.
+3. Sidebar note "managed by virtual control …" with a button that opens the editor.
+
+## Control panel redesign
+
+Agreed, not designed yet. The control panel looks too technical; redesign it as a whole, including where the virtual control editor lives. Start with a draft before any code.
+
+## Keep the pose when the simulation stops
+
+Agreed, not designed yet. A control panel checkbox (off by default): when the simulation stops, the bodies keep their simulated pose instead of returning to the model. This writes the poses into the document, so decide first: whether "stop" is a new command beside Pause and Reset, how it forms one undo step, what happens to start angles, and how it fits the simulation's edit guard.
+
 ## Idea: sequence editor with a timeline for controls and scripting
 
-Status: idea, not agreed or scoped. Nothing is decided below; it records the wish so it can be refined later.
+Status: idea, not agreed or scoped. Virtual controls and the scripting boundary are decided in [ADR 0001](adr/0001-virtual-controls.md); the rest below records the wish so it can be refined later.
 
 Today the controls (servo targets, motor speeds) are set by hand in the control panel while a simulation runs. A sequence editor would let the user plan and replay such movements.
 
@@ -16,8 +32,8 @@ Today the controls (servo targets, motor speeds) are set by hand in the control 
 
 Open questions to settle before any work:
 
-- Where sequences and scripts are stored (in the `.igz` next to the model data, like the other `group.ext["newton"]` data, or beside it) and how they are versioned and undone.
-- Which scripting language and what it may touch (controls only, or the whole model); this is a security and data boundary and needs a decision, not a default.
+- Where sequences and scripts are stored; the virtual controls already use the document data (`plugin_data["newton"]`), which has room for them.
+- Which scripting language; what it may touch is decided (control values only).
 - How a timeline relates to the existing control panel, the per-axis targets and the servo/motor ramps (acceleration, deceleration).
 - Whether playback must be deterministic and reproducible (fixed time step) so a sequence gives the same result every run.
 - How much of this the IngeTrazo host offers for UI (timeline widget, extension API) and what Newton has to build itself; see `docs/host-proposals.md`.
