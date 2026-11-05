@@ -39,6 +39,8 @@ fi
 
 mkdir -p "$target"
 cp "$project_root"/newton/*.py "$target"/
+# The runtime installer reads the requirements file next to itself; the release zip carries the licence.
+cp "$project_root/newton/runtime-requirements.txt" "$project_root/LICENSE" "$target"/
 # Replace the folders so files removed from the extension do not linger.
 rm -rf "$target/i18n" "$target/icons"
 cp -r "$project_root/newton/i18n" "$project_root/newton/icons" "$target"/

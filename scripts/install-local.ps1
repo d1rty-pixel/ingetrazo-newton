@@ -35,6 +35,8 @@ if (Test-Path -LiteralPath $target) {
 New-Item -ItemType Directory -Path $target -Force | Out-Null
 Get-ChildItem -LiteralPath (Join-Path $projectRoot 'newton') -Filter '*.py' |
     Copy-Item -Destination $target
+Copy-Item -LiteralPath (Join-Path $projectRoot 'newton\runtime-requirements.txt') -Destination $target -Force
+Copy-Item -LiteralPath (Join-Path $projectRoot 'LICENSE') -Destination $target -Force
 Copy-Item -LiteralPath (Join-Path $projectRoot 'newton\i18n') -Destination $target -Recurse -Force
 Copy-Item -LiteralPath (Join-Path $projectRoot 'newton\icons') -Destination $target -Recurse -Force
 $runtimeConfig = @{python=$Python} | ConvertTo-Json
