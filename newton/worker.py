@@ -9,6 +9,10 @@ import xml.etree.ElementTree as ET
 
 PREFIX = "NEWTON:"
 DT = 1.0 / 240.0
+# Integral gain per inertia: 300 rings in the drag-chain demo, 600 oscillates; kp=100, kd=20.
+KI_POSITION = 100.
+# Share of the drive force the integral may hold; a blocked servo otherwise winds up and releases slowly.
+INTEGRAL_SHARE = .15
 
 
 def vector(value, name):
@@ -613,7 +617,10 @@ class World:
                         j["command_vel"] = 0.
                     j["command_pos"] = new_position
                     kp = 100 * inertia
-                    effort = kp*(j["command_pos"]-self.data.qpos[j["qpos"]])+20*inertia*(j["command_vel"]-self.data.qvel[dof])
+                    error = j["command_pos"]-float(self.data.qpos[j["qpos"]])
+                    limit = INTEGRAL_SHARE*force/(KI_POSITION*inertia)
+                    candidate = max(-limit,min(limit,j["integral"]+error*dt))
+                    effort = kp*error+20*inertia*(j["command_vel"]-self.data.qvel[dof])+KI_POSITION*inertia*candidate
                 elif j["drive"] == "velocity":
                     error = j["command_vel"]-float(self.data.qvel[dof])
                     candidate = max(-force/(80*inertia),min(force/(80*inertia),j["integral"]+error*dt))
@@ -624,7 +631,7 @@ class World:
                     effort += float(self.data.qfrc_bias[dof])
                     effort += sum(ratio*float(self.data.qfrc_bias[slave]) for slave,ratio in j.get("followers",[]))
                 applied = max(-force,min(force,effort))
-                if j["drive"]=="velocity" and (abs(effort)<=force or (effort-applied)*error<0):j["integral"] = candidate
+                if j["drive"] in ("velocity","position") and (abs(effort)<=force or (effort-applied)*error<0):j["integral"] = candidate
                 j["effort"],j["limited_effort"] = float(applied),bool(abs(effort)>force+1e-8)
                 self.data.qfrc_applied[dof] = applied
             self.apply_drag()

@@ -1,5 +1,9 @@
 # Test and measurement runs
 
+## Position drive integral term (Linux)
+
+Checked on 5 November 2026 on Linux x86_64 (Ubuntu), offscreen. Offset of the drag-chain carriage (`scripts/models/flexible_demos.py`, 4 s per target, targets 0.18 / -0.10 / 0.20 m): before 4.0 / 5.0 / 2.7 cm, after (integral gain 100 per inertia, limited to 15 % of the force) 0.02 / 0.12 / 0.19 cm. Gain 300 left up to 0.3 cm with ringing, gain 600 oscillated (up to 2.4 cm). A slider under a constant 3 cm-equivalent load stopped at 0.270 m for target 0.300 m before and reaches it within 2 mm after. Windup check with the gripper blocked by its stop (`test_coupling.py`, 160 steps of 8 per phase): the integral share was chosen so that both jaw contacts hold while blocked and the reopened jaw is back within 0.4 mm after the same time (1.0 mm at 25 %, 3.3 mm at 100 %, second contact lost at 10 %). The carrier test now allows 1 cm instead of 6 cm; five runs passed. Full suite: 412 passed.
+
 ## Keep the pose on reset (Linux)
 
 Checked on 5 November 2026 on Linux x86_64 (Ubuntu), offscreen, same environment as below. Full suite: 412 passed in 111 s. `tests/test_keep_pose.py` runs the real worker, drives the joints of the robot arm and checks: Reset restores the model by default; with the box checked the pose is written as one undo/redo step; joint pivot and axis object agree afterwards; a locked body and a failure keep nothing. Undo is exact up to float32 rounding of the baked vertices. Not checked on screen.
