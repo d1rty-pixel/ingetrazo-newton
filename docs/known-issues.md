@@ -64,20 +64,6 @@ Status values: **open** (confirmed, not fixed), **observation** (reported, cause
 - **Cause:** The Flatpak launcher exports `PYTHONPATH=/app/lib/python3.13/site-packages`. The worker process inherited it, so the external Python 3.12 loaded IngeTrazo's numpy built for Python 3.13.
 - **Fix:** The worker is started with `python -E` (`newton/session.py`, `newton/collision_view.py`), which ignores all `PYTHON*` environment variables.
 
-## Runtime fallback only knows the Windows virtual-environment layout
-
-- **Status:** open
-- **Where:** `newton/panel.py`, `default_python()`
-- **Symptom:** Without `runtime.json` and without a saved preference, Newton looks only for `.venv/Scripts/python.exe` next to the extension. On Linux and macOS the interpreter is `.venv/bin/python`, so no default is found and the user must pick the runtime manually.
-- **Workaround:** write `runtime.json` (see README) or choose the interpreter under Preferences → Newton → Runtime.
-
-## Installation scripts exist only for Windows
-
-- **Status:** open
-- **Where:** `scripts/setup-runtime.ps1`, `scripts/install-local.ps1`
-- **Symptom:** Linux installation is a manual sequence of commands (see README). There is no update/backup path on Linux.
-
-
 ## Axis and connection objects: known gaps
 
 - **Status:** open

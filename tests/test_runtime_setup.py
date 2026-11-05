@@ -57,6 +57,18 @@ def test_resolve_ignores_stale_config_and_falls_back_to_venv(root):
     assert rs.resolve(root) == str(rs.venv_python(root))
 
 
+@pytest.mark.parametrize("windows, relative", [(False, "bin/python"), (True, "Scripts/python.exe")])
+def test_resolve_finds_checkout_venv_for_each_platform(root, tmp_path, monkeypatch, windows, relative):
+    package = tmp_path / "checkout" / "newton"
+    package.mkdir(parents=True)
+    python = tmp_path / "checkout" / ".venv" / relative
+    python.parent.mkdir(parents=True)
+    python.write_text("")
+    monkeypatch.setattr(rs, "__file__", str(package / "runtime_setup.py"))
+    monkeypatch.setattr(rs, "_windows", lambda: windows)
+    assert rs.resolve(root) == str(python)
+
+
 def test_check_rejects_missing_interpreter():
     ok, message = rs.check("/nonexistent/python")
     assert not ok and "does not exist" in message

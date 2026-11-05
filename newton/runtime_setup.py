@@ -77,8 +77,12 @@ def runtime_dir(data_dir: Path | None = None) -> Path:
     return package.parent / ".newton-runtime"        # source checkout
 
 
+def _interpreter_in(venv: Path) -> Path:
+    return venv / ("Scripts/python.exe" if _windows() else "bin/python")
+
+
 def venv_python(root: Path) -> Path:
-    return root / "venv" / ("Scripts/python.exe" if _windows() else "bin/python")
+    return _interpreter_in(root / "venv")
 
 
 def _config_python(config: Path) -> str:
@@ -95,7 +99,7 @@ def resolve(root: Path | None = None) -> str:
     for candidate in (_config_python(root / "runtime.json"),
                       _config_python(package / "runtime.json"),       # before 0.15, lost on updates
                       str(venv_python(root)),
-                      str(package.parent / ".venv" / ("Scripts/python.exe" if _windows() else "bin/python"))):
+                      str(_interpreter_in(package.parent / ".venv"))):
         if candidate and Path(candidate).is_file():
             return candidate
     return ""
