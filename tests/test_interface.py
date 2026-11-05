@@ -2064,3 +2064,56 @@ def test_axis_object_follows_hiding_and_renaming_of_its_body(panel):
     assert marker.name==old
     history.redo()
     assert marker.name.endswith("· Renamed")
+
+
+def _contrast(a,b):
+    def luminance(c):
+        v = [x/255 for x in (c.red(),c.green(),c.blue())]
+        v = [x/12.92 if x <= 0.03928 else ((x+0.055)/1.055)**2.4 for x in v]
+        return 0.2126*v[0]+0.7152*v[1]+0.0722*v[2]
+    hi,lo = sorted((luminance(a),luminance(b)),reverse=True)
+    return (hi+0.05)/(lo+0.05)
+
+
+@pytest.mark.parametrize("mode",["light","dark"])
+def test_settings_descriptions_are_readable(panel,mode):
+    from PySide6.QtWidgets import QApplication,QLabel
+    from PySide6.QtGui import QPalette
+    from views import theme
+    from newton.preferences import NewtonPreferences
+    app = QApplication.instance();old = app.palette()
+    app.setPalette(theme.dark_palette() if mode == "dark" else theme.light_palette())
+    try:
+        page = NewtonPreferences(panel)
+        descriptions = [l for l in page.tabs.widget(3).findChildren(QLabel)
+                        if l.text().startswith("Creates the runtime")]
+        assert descriptions
+        for label in descriptions:
+            palette = label.palette()
+            assert _contrast(palette.color(QPalette.WindowText),palette.color(QPalette.Window)) >= 4.5
+        page.deleteLater()
+    finally:
+        app.setPalette(old)
+
+
+def test_runtime_tab_links_to_the_manual_guide(panel):
+    from PySide6.QtWidgets import QLabel
+    from newton import runtime_setup
+    from newton.preferences import NewtonPreferences
+    from newton.runtime_ui import MANUAL_GUIDE_URL
+    assert MANUAL_GUIDE_URL == "https://github.com/d1rty-pixel/ingetrazo-newton/blob/main/docs/runtime-setup.md#method-c-manual"
+    page = NewtonPreferences(panel)
+    links = [l for l in page.tabs.widget(3).findChildren(QLabel) if MANUAL_GUIDE_URL in l.text()]
+    assert links and all(l.openExternalLinks() and "docs/runtime-setup.md." not in l.text() for l in links)
+    page.deleteLater()
+
+
+def test_disabled_build_points_to_the_manual_guide(qtapp,monkeypatch):
+    from newton import runtime_setup
+    from newton.runtime_ui import RuntimeSetupBox,MANUAL_GUIDE_URL
+    from PySide6.QtWidgets import QLabel,QLineEdit
+    monkeypatch.setattr(runtime_setup,"RUNTIME_SETUP_ENABLED",False)
+    box = RuntimeSetupBox(QLineEdit())
+    texts = [l.text() for l in box.findChildren(QLabel)]
+    assert any(MANUAL_GUIDE_URL in t and "disabled" in t for t in texts)
+    assert not any("docs/runtime-setup.md" in t.replace(MANUAL_GUIDE_URL,"") for t in texts)
