@@ -22,14 +22,12 @@ def picture(group,size=SIZE,ratio=1.):
 class Name(QLabel):
     """Elides instead of wrapping: wrapped labels in the sidebar's forms got too little height."""
 
-    def __init__(self,text,weak=False):
+    def __init__(self,text):
         super().__init__(text)
         self.full = text
         self.setTextFormat(Qt.PlainText)
         self.setToolTip(text)
         self.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Preferred)
-        if weak:
-            self.setEnabled(False)
 
     def resizeEvent(self,event):
         super().resizeEvent(event)
@@ -129,7 +127,7 @@ class ReferenceTable(QWidget):
             lines.setSpacing(0)
             lines.addWidget(Name(name))
             if role:
-                lines.addWidget(Name(role,weak=True))
+                lines.addWidget(Name(role))
             line.addWidget(image)
             line.addWidget(text,1)
             if self.remove is not None:
