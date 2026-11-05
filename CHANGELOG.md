@@ -6,6 +6,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ### Added
 
+- Warning at Start: the control panel lists movable bodies that reach below Z = 0 while their ground contact is on, because they scrape along the ground and distort the result. Bodies that only rest on Z = 0, fixed bodies and bodies without ground contact are not listed; the warning never blocks the start and can be switched off under *Simulation → Gravity and ground*. Example model `models/z0-contact-test.igz`.
 - Preference *Simulation → Hidden geometry* (*When needed*, *Always*, *Never*; default *When needed*): hidden bodies are left out of the simulation unless a visible body depends on them (reference body, attachment, connection, coupling); hidden fixed bodies stay as surroundings. On the CR10 example the simulation runs about 8× faster.
 - Claude Code skill `skills/ingetrazo-newton/` for modelling with Newton: objects and their effects, grouping for correct and fast simulations, performance options and limits.
 - *Limit hardness* (0–100 %) per axis, as a slider below the limits and in profiles: how firmly the limits hold. 0 % is MuJoCo's default softness, 100 % a hard stop.
