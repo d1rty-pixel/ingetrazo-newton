@@ -84,6 +84,7 @@ On Windows, copy the folder to `%USERPROFILE%\.claude\skills\`. Claude Code pick
 | [docs/manual.md](docs/manual.md) | How to use every function, technical notes and limits |
 | [docs/example-models.md](docs/example-models.md) | The bundled models and their verification values |
 | [docs/known-issues.md](docs/known-issues.md) | Known bugs and observations |
+| [docs/host-proposals.md](docs/host-proposals.md) | Ideas for IngeTrazo itself, found while working on Newton |
 | [docs/backlog.md](docs/backlog.md) | Agreed follow-up work |
 | [docs/test-results.md](docs/test-results.md) | Verification log per version |
 | [docs/research.md](docs/research.md) | Original research on SketchyPhysics and IngeTrazo |

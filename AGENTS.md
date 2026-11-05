@@ -96,3 +96,11 @@ Useful scripts: `scripts/preview.py` (open a demo in a test window), `scripts/be
 - Comments explain why, not what.
 - Known bugs and unexplained observations go to [docs/known-issues.md](docs/known-issues.md); remove an entry when its fix lands.
 - Do not commit `ingetrazo-source/`, `.venv/`, `.test-state/`, `newton/runtime.json` or `dist/`.
+
+## Host proposals
+
+- Develop against the pinned host only. Never wait for, anticipate or design around a host change that has not landed in the pinned version.
+- Keep `ingetrazo-source/` current: at the start of a session, `git -C ingetrazo-source fetch`. If `origin/main` has moved past the pinned commit, check out the new head, update the pinned commit in "Development setup", run the full suite, and check [docs/host-proposals.md](docs/host-proposals.md) for entries that have landed. Report failures before continuing with the task.
+- While working on a task that touches the host (an API, a workaround, a host bug, a slow host path), check the relevant `ingetrazo-source/` code for a fix, extension point or improvement that would make Newton, other extensions or the host safer, faster or simpler, especially one that would remove a Newton workaround. Limit this to code the task already leads to; do not survey the host speculatively.
+- Record findings in [docs/host-proposals.md](docs/host-proposals.md), one entry per proposal in its format, with file references to the pinned commit. Update an existing entry instead of adding a duplicate.
+- Never change `ingetrazo-source/` for this; proposals go upstream. When one lands in a pinned version, replace the Newton workaround and remove the entry.
