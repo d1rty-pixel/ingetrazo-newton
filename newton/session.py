@@ -35,7 +35,7 @@ class ReadOnlyHistory(History):
 
     def execute(self, cmd):
         self.last_error = None
-        self.last_rejected = tr("Reset the simulation to edit the model.")
+        self.last_rejected = tr("The model cannot be edited during the simulation. Reset the simulation first.")
         self.refused(self.last_rejected)
 
 
@@ -84,7 +84,7 @@ class Workspace:
         return False
 
     def save(self):
-        self.session.message.emit(tr("Reset before saving the model."),"warning")
+        self.session.message.emit(tr("The model cannot be saved during the simulation. Reset the simulation first."),"warning")
         return False
 
     save_as = save
@@ -101,9 +101,9 @@ class Workspace:
         for mesh, flag in self.redraws:
             setattr(mesh, flag, True)
         self.session.changed.emit()
-        # After changed: the panel then says "Original model restored.", which must not hide this.
+        # After changed: the panel then says "The simulation was reset and the original model is restored.", which must not hide this.
         if changed_meshes(self.marks):
-            self.session.message.emit(tr("Geometry changed during the simulation. Check the model before saving."), "error")
+            self.session.message.emit(tr("The geometry changed during the simulation. Check the model before saving it."), "error")
 
 
 class Session(QObject):
@@ -139,13 +139,13 @@ class Session(QObject):
         self.timer.timeout.connect(self.tick)
         self.watchdog = QTimer(self)
         self.watchdog.setSingleShot(True)
-        self.watchdog.timeout.connect(lambda: self.fail(tr("Newton process timed out (15 seconds).")))
+        self.watchdog.timeout.connect(lambda: self.fail(tr("The Newton process did not answer within 15 seconds. The simulation was reset.")))
 
     def start(self, python, scene, specs, movers, gravity, floor,linear_damping=0,angular_damping=0,quality="balanced"):
         if self.workspace or self.app.workspace() is not None:
-            raise ValueError(tr("Close the current workspace first."))
+            raise ValueError(tr("The simulation cannot start while another workspace is open. Close that workspace first."))
         if not Path(python).is_file():
-            raise ValueError(tr("No runtime found. Set it up under Preferences > Newton > Runtime."))
+            raise ValueError(tr("No Newton runtime was found. Set it up under Preferences > Newton > Runtime."))
         self.movers = movers
         self.specs = {s["uid"]:s for s in specs}
         self.targets = {s["uid"]: joint_settings(s["joint"])["target"]
@@ -153,10 +153,10 @@ class Session(QObject):
         self.workspace = Workspace(self, scene)
         if not self.app.enter_workspace(self.workspace):
             self.workspace = None
-            raise ValueError(tr("Could not open the simulation workspace."))
+            raise ValueError(tr("The simulation workspace could not be opened, so the simulation did not start."))
         # SimulationScene refuses too; this only replaces the host's "Editing …" status.
         self.app.viewport.begin_group_edit = lambda group: self.message.emit(
-            tr("Reset the simulation to edit the model."), "warning")
+            tr("The model cannot be edited during the simulation. Reset the simulation first."), "warning")
         self.ready, self.running, self.pending = False, True, False
         self.meter.reset();self.performance = {}
         self.buffer, self.stderr = b"", ""
@@ -172,9 +172,11 @@ class Session(QObject):
         process.readyReadStandardOutput.connect(self.read)
         process.readyReadStandardError.connect(self.read_stderr)
         process.errorOccurred.connect(lambda error: self.fail(
-            f"Newton process: {process.errorString()}") if self.process is process else None)
+            tr("The Newton process failed: {error}. The simulation was reset.",error=process.errorString()))
+            if self.process is process else None)
         process.finished.connect(lambda code, status: self.fail(
-            f"Newton process stopped ({code}). {self.stderr[-1500:]}")
+            (tr("The Newton process stopped unexpectedly (exit code {code}). The simulation was reset.",code=code)
+             +" "+self.stderr[-1500:]).rstrip())
             if self.process is process else None)
         process.start()
         self.watchdog.start(15000)
@@ -203,7 +205,7 @@ class Session(QObject):
             try:
                 result = json.loads(line[len(b"NEWTON:"):])
                 if not result.get("ok"):
-                    raise ValueError(result.get("error", tr("Unknown Newton error.")))
+                    raise ValueError(result.get("error", tr("The Newton process reported an error without details. The simulation was reset.")))
                 self.pending = False
                 self.watchdog.stop()
                 self.apply(result)
@@ -227,7 +229,7 @@ class Session(QObject):
             self.colliders = result["colliders"]
         for uid, (position, quaternion) in result["poses"].items():
             if not all(math.isfinite(v) for v in position + quaternion):
-                raise ValueError(tr("Invalid simulation poses."))
+                raise ValueError(tr("The Newton process returned invalid body positions. The simulation was reset."))
             m = QMatrix4x4()
             m.translate(*position)
             x, y, z, w = quaternion

@@ -6,6 +6,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ### Added
 
+- The Start warning lists the affected bodies as a table below a short sentence, with a thumbnail, the name and how far the body reaches below Z = 0. Hovering a row outlines the body in the view, a click selects it; long lists show the first six and a count. The table disappears with the message.
 - Icon `ground_below` for the preference *Warn about bodies below Z = 0*, so it no longer looks like *Ground at Z = 0*.
 - Warning at Start: the control panel lists movable bodies that reach below Z = 0 while their ground contact is on, because they scrape along the ground and distort the result. Bodies that only rest on Z = 0, fixed bodies and bodies without ground contact are not listed; the warning never blocks the start and can be switched off under *Simulation → Gravity and ground*. Example model `models/z0-contact-test.igz`.
 - Preference *Simulation → Hidden geometry* (*When needed*, *Always*, *Never*; default *When needed*): hidden bodies are left out of the simulation unless a visible body depends on them (reference body, attachment, connection, coupling); hidden fixed bodies stay as surroundings. On the CR10 example the simulation runs about 8× faster.
@@ -16,6 +17,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ### Changed
 
+- Messages in the control panel are complete sentences that say what happened and what to do, for example when the Newton process stops or does not answer, and when saving, editing or deleting is refused during a simulation. German texts follow.
 - Selecting many axes no longer freezes the view: every axis gets one plate (name, minimum, maximum and actual position in their guide colours) instead of up to four labels, and the free-space search is bounded. Select-all of 20 jointed bodies went from 10 s to 29 ms per paint. The plates are hidden while the view or an object is being dragged and while zooming, and a plate next to the axis is chosen before one at the viewport edge.
 - Start is much faster on large models: the temporary simulation shares the document's meshes and nested placements instead of copying them. `prepare()` on the CR10 model (about 250 000 vertices) went from 11.3 s to 0.84 s.
 - Limits are hard by default (limit hardness 100 %), also in existing models. Before, they gave way under load: in a cable drag chain of 10 g links by 13–17° at rest and by over 100° while moving; now by less than 0.3°. Mechanisms that rested on soft limits can behave slightly stiffer; the drag-chain demo's carriage stops up to 5 cm short of its target (known issue: the position drive has no integral term).

@@ -5,6 +5,9 @@ from PySide6.QtWidgets import (QDialog, QVBoxLayout, QLabel, QScrollArea,
     QWidget, QGroupBox, QHBoxLayout, QDoubleSpinBox,QPushButton)
 from .i18n import tr
 from .icons import icon,pixmap
+from .reference_table import ReferenceTable
+
+MAX_BODY_ROWS = 6
 
 
 def display_units(joint):
@@ -22,12 +25,16 @@ class Controls(QDialog):
         self.resize(520, 260)
         self.layout = QVBoxLayout(self)
         self.hint_row = QWidget()
-        hint_layout = QHBoxLayout(self.hint_row);hint_layout.setContentsMargins(0,0,0,0)
+        rows = QVBoxLayout(self.hint_row);rows.setContentsMargins(0,0,0,0)
+        text_row = QWidget();rows.addWidget(text_row)
+        hint_layout = QHBoxLayout(text_row);hint_layout.setContentsMargins(0,0,0,0)
         self.hint_mark = QLabel();self.hint_mark.setAlignment(Qt.AlignTop)
         self.hint = QLabel()
         self.hint.setWordWrap(True)
         self.hint.setTextFormat(Qt.PlainText)
         hint_layout.addWidget(self.hint_mark);hint_layout.addWidget(self.hint,1)
+        self.bodies = ReferenceTable(None,panel=panel)
+        rows.addWidget(self.bodies);self.bodies.hide()
         self.layout.addWidget(self.hint_row)
         self.hint_row.hide()
         self.scroll = QScrollArea()
@@ -135,8 +142,14 @@ class Controls(QDialog):
     def start(self):
         self.panel.start_or_pause()
 
-    def message(self,text,level="info"):
+    def message(self,text,level="info",bodies=()):
+        """``bodies``: ``(group, name, role)`` rows listed below the text, so a long list stays readable."""
         self.hint.setText(tr(text))
+        rows = [(i,group,name,role) for i,(group,name,role) in enumerate(bodies[:MAX_BODY_ROWS])]
+        if len(bodies)>MAX_BODY_ROWS:
+            rows.append((None,None,tr("… and {count} more",count=len(bodies)-MAX_BODY_ROWS),""))
+        self.bodies.set_rows(rows)
+        self.bodies.setVisible(bool(rows))
         self.hint_mark.setVisible(level in ("error","warning"))
         if level in ("error","warning"):
             self.hint_mark.setPixmap(pixmap("status_error" if level=="error" else "status_warning",18))

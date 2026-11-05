@@ -590,7 +590,7 @@ class NewtonPanel(QWidget):
     def refresh_widgets(self,*args):
         active = self.session.workspace is not None
         if getattr(self,"was_active",False) and not active:
-            self.controls.message(tr("Original model restored."))
+            self.controls.message(tr("The simulation was reset and the original model is restored."))
         self.was_active = active
         groups = self.selected()
         if active:
@@ -931,7 +931,7 @@ class NewtonPanel(QWidget):
             linear,angular = global_damping()
             quality = QSettings().value("newton/quality","balanced")
             self.session.start(python,scene,specs,movers,self.gravity.value(),self.floor.isChecked(),linear,angular,quality)
-            self.controls.message(tr("Drag passive bodies. Use controls for actuators."))
+            self.controls.message(tr("Drag passive bodies with the mouse. Move actuators with the controls."))
             self.warn_ground_contact(specs,movers)
         except Exception as exc:
             self.controls.message(str(exc),"error")
@@ -940,9 +940,13 @@ class NewtonPanel(QWidget):
     def warn_ground_contact(self,specs,movers):
         if str(QSettings().value("newton/warn_ground_contact",True)).lower() not in ("true","1"):return
         from .model import ground_scrapers
-        names = [movers[uid].name for uid in ground_scrapers(specs,self.floor.isChecked())]
-        if names:
-            self.controls.message(tr("Reaches below Z = 0 and scrapes along the ground: {names}",names=", ".join(names)),"warning")
+        from .model import lowest_z
+        by_uid = {s["uid"]:s for s in specs}
+        # The clones are what the simulation view shows and selects, so the rows must be the clones.
+        bodies = [(movers[uid],movers[uid].name,tr("{depth:.1f} cm below",depth=-lowest_z(by_uid[uid])*100))
+                  for uid in ground_scrapers(specs,self.floor.isChecked())]
+        if bodies:
+            self.controls.message(tr("These bodies reach below Z = 0 and scrape along the ground, which distorts the result. Lift them above Z = 0 or switch off their ground contact."),"warning",bodies)
 
     def shutdown(self,*args):
         self.collision_view.stop()

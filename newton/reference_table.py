@@ -67,7 +67,7 @@ class Row(QWidget):
 class ReferenceTable(QWidget):
     """Rows of ``(key, group or None, name, role)``; ``remove(key)`` runs when a row's button is pressed.
 
-    With ``panel``, a row outlines its body while hovered and selects it when clicked."""
+    Without ``remove`` the rows have no button. With ``panel``, a row outlines its body while hovered and selects it when clicked."""
 
     def __init__(self,remove,empty="",panel=None):
         super().__init__()
@@ -130,14 +130,15 @@ class ReferenceTable(QWidget):
             lines.addWidget(Name(name))
             if role:
                 lines.addWidget(Name(role,weak=True))
-            button = attach(QToolButton(),"unlink")
-            button.setToolTip(tr("Remove"))
-            button.setAccessibleName(tr("Remove")+" "+name)
-            button.setAutoRaise(True)
-            button.clicked.connect(lambda _=False,k=key:self.remove(k))
             line.addWidget(image)
             line.addWidget(text,1)
-            line.addWidget(button)
+            if self.remove is not None:
+                button = attach(QToolButton(),"unlink")
+                button.setToolTip(tr("Remove"))
+                button.setAccessibleName(tr("Remove")+" "+name)
+                button.setAutoRaise(True)
+                button.clicked.connect(lambda _=False,k=key:self.remove(k))
+                line.addWidget(button)
             self.lines.addWidget(row)
 
     def names(self):
