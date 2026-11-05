@@ -203,7 +203,7 @@ def prepare(source,require_movable=True,hidden="needed"):
             continue
         lo, hi = xyz.min(axis=0).tolist(), xyz.max(axis=0).tolist()
         if not all(math.isfinite(x) for x in lo + hi):
-            raise ValueError(tr("Invalid geometry: {name}").format(name=group.name))
+            raise ValueError(tr("The geometry of the body \"{name}\" is invalid.").format(name=group.name))
         cfg = settings(group)
         if KEY not in (group.ext or {}):
             # Face-me scale figures are visual references, not physical walls.
@@ -399,7 +399,10 @@ def ground_scrapers(specs,floor):
     for spec in specs:
         if spec["mass"] <= 0:continue
         if (spec.get("simulation_override") or {}).get("floor",floor) is not True:continue
-        lowest = spec["center"][2]+min(v[2] for v in spec["vertices"])
         # A body resting on Z = 0 may sit a rounding error below it.
-        if lowest < -1e-6:result.append(spec["uid"])
+        if lowest_z(spec) < -1e-6:result.append(spec["uid"])
     return result
+
+
+def lowest_z(spec):
+    return spec["center"][2]+min(v[2] for v in spec["vertices"])

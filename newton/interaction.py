@@ -49,7 +49,7 @@ class DragTool(Tool):
         self.point = self.normal = None
 
     def on_activate(self, vp):
-        vp.flash_status(tr("Drag passive bodies. Use controls for actuators."),10000)
+        vp.flash_status(tr("Drag passive bodies with the mouse. Move actuators with the controls."),10000)
 
     def on_deactivate(self, vp):
         self.release()
@@ -109,6 +109,6 @@ class DragTool(Tool):
 
     def on_key(self,vp,key,modifiers):
         if self.claims_key(key,modifiers):
-            self.session.message.emit(tr("Reset before deleting model geometry."),"warning")
+            self.session.message.emit(tr("Model geometry cannot be deleted during the simulation. Reset the simulation first."),"warning")
             return True
         return False

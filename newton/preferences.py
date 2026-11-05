@@ -116,7 +116,7 @@ class NewtonPreferences(QWidget):
         page.setting("ground",None,self.floor,tr(help.GROUND))
         self.warn_ground = QCheckBox(tr("Warn about bodies below Z = 0"))
         self.warn_ground.setChecked(str(QSettings().value("newton/warn_ground_contact",True)).lower() in ("true","1"))
-        page.setting("ground",None,self.warn_ground,tr(help.WARN_GROUND))
+        page.setting("ground_below",None,self.warn_ground,tr(help.WARN_GROUND))
         page.category(tr("Damping"))
         linear,angular = global_damping()
         self.linear,self.angular = number(0,100,linear),number(0,100,angular)

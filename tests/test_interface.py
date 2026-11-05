@@ -1673,13 +1673,13 @@ def test_hinge_placement_sets_the_zero_direction_and_start_angle(panel,qtapp):
 
 def test_control_panel_marks_errors_and_warnings_but_not_hints(panel):
     controls = panel.controls
-    panel.session.message.emit("Newton process timed out (15 seconds).","error")
+    panel.session.message.emit("The Newton process did not answer within 15 seconds. The simulation was reset.","error")
     assert not controls.hint_row.isHidden() and not controls.hint_mark.isHidden()
     assert controls.hint_mark.accessibleName()=="Error"
-    panel.session.message.emit("Reset before saving the model.","warning")
+    panel.session.message.emit("The model cannot be saved during the simulation. Reset the simulation first.","warning")
     assert not controls.hint_mark.isHidden() and controls.hint_mark.accessibleName()=="Warning"
-    controls.message("Original model restored.")
-    assert controls.hint_mark.isHidden() and controls.hint.text()=="Original model restored."
+    controls.message("The simulation was reset and the original model is restored.")
+    assert controls.hint_mark.isHidden() and controls.hint.text()=="The simulation was reset and the original model is restored."
 
 
 def test_control_panel_opens_at_the_view_corner_and_fits_its_cards(panel):
@@ -1915,7 +1915,7 @@ def test_control_panel_grows_when_the_speed_line_appears(qtapp,panel):
     seed_demo(panel,"Servo door")
     panel.show_controls()
     controls = panel.controls
-    controls.message("Drag passive bodies. Use controls for actuators.")
+    controls.message("Drag passive bodies with the mouse. Move actuators with the controls.")
     qtapp.processEvents()
     room = controls.scroll.height()
     controls.show_performance(dict(speed=1.0))
@@ -1943,13 +1943,13 @@ def test_simulation_refuses_every_edit_and_never_opens_a_group(panel,qtapp):
         ws.scene.begin_group_edit(clone)
     edit_everything()
     assert vp.history is ws.history and not ws.history.undo_stack
-    assert ws.history.last_rejected==panel.controls.hint.text()=="Reset the simulation to edit the model."
+    assert ws.history.last_rejected==panel.controls.hint.text()=="The model cannot be edited during the simulation. Reset the simulation first."
     assert ws.scene.edit_group is None and clone in ws.scene.groups and not clone.hidden
     assert not changed_meshes(ws.marks)
     assert loops=={id(m):[tuple(v.position.toTuple() for v in f.loop) for f in m.faces] for m,*_ in ws.marks.values()}
     panel.session.reset()
     assert "begin_group_edit" not in vp.__dict__
-    assert panel.controls.hint.text()=="Original model restored."
+    assert panel.controls.hint.text()=="The simulation was reset and the original model is restored."
 
 
 def test_geometry_changed_during_simulation_is_reported_after_reset(panel,qtapp):
@@ -1959,7 +1959,7 @@ def test_geometry_changed_during_simulation_is_reported_after_reset(panel,qtapp)
     clone = panel.session.workspace.scene.groups[0]
     clone.mesh.move_vertex(clone.mesh.vertices[0],QVector3D(0,0,.1))
     panel.session.reset()
-    assert panel.controls.hint.text()=="Geometry changed during the simulation. Check the model before saving."
+    assert panel.controls.hint.text()=="The geometry changed during the simulation. Check the model before saving it."
 
 
 def test_render_flags_of_shared_meshes_survive_the_simulation(panel,qtapp):
@@ -1989,6 +1989,36 @@ def test_ground_warning_lists_scraping_bodies_and_can_be_switched_off(panel):
     panel.warn_ground_contact(specs,movers)
     QSettings().remove("newton/warn_ground_contact")
     assert panel.controls.hint.text()==""
+
+
+def test_ground_warning_lists_the_bodies_in_a_table_that_goes_with_the_message(panel):
+    from core.scene import Scene
+    from formats import igz
+    from newton.model import ground_scrapers,prepare
+    scene = Scene();igz.load_into(scene,Path(__file__).resolve().parents[1]/"models/z0-contact-test.igz")
+    _,specs,movers = prepare(scene)
+    panel.floor.setChecked(True)
+    QSettings().setValue("newton/warn_ground_contact",True)
+    controls = panel.controls
+    panel.warn_ground_contact(specs,movers)
+    names = {movers[uid].name for uid in ground_scrapers(specs,True)}
+    assert not controls.bodies.isHidden()
+    shown = [n for n in controls.bodies.names() if not n.startswith("…")]
+    assert set(shown)==names or len(names)>len(shown)
+    assert not any(n in controls.hint.text() for n in names)
+    controls.message("Original model restored.")
+    assert controls.bodies.isHidden() and controls.bodies.names()==[]
+    QSettings().remove("newton/warn_ground_contact")
+
+
+def test_body_table_in_the_control_panel_is_capped_with_a_count_row(panel):
+    from newton.controls import MAX_BODY_ROWS
+    bodies = [(None,f"Body {i}","") for i in range(MAX_BODY_ROWS+3)]
+    panel.controls.message("Some text.","warning",bodies)
+    assert len(panel.controls.bodies.names())==MAX_BODY_ROWS+1
+    assert panel.controls.bodies.names()[-1]=="… and 3 more"
+    panel.controls.message("Some text.","warning")
+    assert panel.controls.bodies.isHidden()
 
 
 def test_axis_object_follows_hiding_and_renaming_of_its_body(panel):
