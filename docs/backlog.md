@@ -6,13 +6,19 @@ Planned work that is agreed but not scheduled yet. Remove an item when it is don
 
 Agreed in [ADR 0001](adr/0001-virtual-controls.md); one step per item, in this order:
 
-1. Virtual controls (switch and slider): data model, resolution to joint targets, control panel cards, editor dialog.
-2. Key bindings: key slots in the preferences, slot assignment and trigger mode (toggle, momentary, step) for every control.
-3. Sidebar note "managed by virtual control …" with a button that opens the editor.
+Virtual controls (switch and slider) are done. Remaining:
+
+1. Key bindings: key slots in the preferences, slot assignment and trigger mode (toggle, momentary, step) for every control.
+2. Sidebar note "managed by virtual control …" with a button that opens the editor.
 
 ## Control panel redesign
 
 Agreed, not designed yet. The control panel looks too technical; redesign it as a whole, including where the virtual control editor lives. Start with a draft before any code.
+
+Points collected so far:
+
+- Virtual control editor: *Remove state* removes the last state (or the column of a selected cell, which the value boxes rarely make current); the user expects to delete a chosen state. Give each state its own remove action.
+- The pressed button of a virtual switch hardly stands out from the others (a slightly darker grey in the Qt style).
 
 ## Keep the pose when the simulation stops
 

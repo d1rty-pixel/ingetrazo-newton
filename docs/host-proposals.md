@@ -112,3 +112,12 @@ Each entry states: what was found in the host, the proposal, what Newton could r
 - **Proposal:** set these only for the host's own interpreter, or offer a helper that returns a clean environment for external processes.
 - **Newton:** removes `python -E` as a workaround need and `clean_env`/`worker_environment` (`newton/runtime_setup.py`, `newton/session.py`).
 - **Others:** any extension that starts an external Python or tool.
+
+## Report refused commands to the Python console and the MCP bridge
+
+- **Status:** idea
+- **Found:** 2026-11-05, testing virtual controls through the MCP bridge during a simulation
+- **Host today:** `run_transactional` (`core/ai.py`, line 420) runs the code inside one `SnapshotImport` through `history.execute` and reads only `history.last_error`. When a history refuses the command before it runs (`last_rejected`), the code never runs, stdout stays empty and the result says `changed: True`; `scripts/ingetrazo_mcp.py` then prints only "(changed: True)".
+- **Proposal:** check `history.last_rejected` after `execute`; return it as an error (or a separate `rejected` field) with `changed: False`, and let the MCP bridge print it.
+- **Newton:** the simulation's `ReadOnlyHistory` (`newton/session.py`) refuses every command on purpose, so a script or AI tool cannot change the model during a simulation. With this, the caller learns why nothing happened instead of seeing a silent success.
+- **Others:** any workspace or extension that refuses commands, and every user of the Python console.
