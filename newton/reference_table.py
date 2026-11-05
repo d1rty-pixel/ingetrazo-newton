@@ -94,7 +94,7 @@ class ReferenceTable(QWidget):
         ratio = self.devicePixelRatioF()
         raw = [thumbnail(group,round(SIZE*ratio)) if group is not None else None for _,group,_,_ in rows]
         # Every sidebar refresh lands here; rebuilding unchanged rows would drop focus and hover.
-        signature = tuple((key,name,role,pm.cacheKey() if pm is not None else None) for (key,_,name,role),pm in zip(rows,raw))
+        signature = tuple((key,id(group),name,role,pm.cacheKey() if pm is not None else None) for (key,group,name,role),pm in zip(rows,raw))
         if signature==self.signature:
             return
         self.signature = signature
