@@ -10,6 +10,8 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 - Claude Code skill `skills/ingetrazo-newton/` for modelling with Newton: objects and their effects, grouping for correct and fast simulations, performance options and limits.
 - *Limit hardness* (0–100 %) per axis, as a slider below the limits and in profiles: how firmly the limits hold. 0 % is MuJoCo's default softness, 100 % a hard stop.
 
+- `scripts/install-local.sh`: Linux counterpart of `install-local.ps1` (Flatpak target by default, `--update` with backup in `.backups`, `--destination` and `--python` overrides).
+
 ### Changed
 
 - Selecting many axes no longer freezes the view: every axis gets one plate (name, minimum, maximum and actual position in their guide colours) instead of up to four labels, and the free-space search is bounded. Select-all of 20 jointed bodies went from 10 s to 29 ms per paint. The plates are hidden while the view or an object is being dragged and while zooming, and a plate next to the axis is chosen before one at the viewport edge.
@@ -19,9 +21,9 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ### Fixed
 
+- The default runtime lookup finds `.venv/bin/python` on Linux and macOS, not only `.venv/Scripts/python.exe` on Windows; one helper in `runtime_setup.py` serves both lookups.
 - The "unknown collision shape" error has a translatable English text.
 - Render flags of the document's meshes that were still pending at Start are restored after Reset, so the model view does not keep old paint.
-- The default runtime lookup finds `.venv/bin/python` on Linux and macOS, not only `.venv/Scripts/python.exe` on Windows; one helper in `runtime_setup.py` serves both lookups.
 
 ### Documentation
 

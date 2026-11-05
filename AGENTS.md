@@ -60,7 +60,7 @@ Useful scripts: `scripts/preview.py` (open a demo in a test window), `scripts/be
 ## Installing into IngeTrazo for manual testing
 
 - Windows: `scripts/install-local.ps1` (see README).
-- Linux Flatpak: copy `newton/*.py`, `newton/i18n/` and `newton/icons/` to `~/.var/app/com.ingetrazo.IngeTrazo/data/ingetrazo/plugins/newton/` and write `runtime.json` with the `.venv` interpreter. The installation is a copy; recopy after changes and restart IngeTrazo.
+- Linux Flatpak: `scripts/install-local.sh` copies `newton/*.py`, `i18n/` and `icons/` to `~/.var/app/com.ingetrazo.IngeTrazo/data/ingetrazo/plugins/newton/` and writes `runtime.json` with the `.venv` interpreter. `--update` replaces an existing install (backup in `.backups/`), `--destination <plugins dir>` redirects the target (use a temp dir for script tests), `--python` overrides the interpreter. The installation is a copy; rerun after changes and restart IngeTrazo.
 
 ## Icons, pictograms and layout
 

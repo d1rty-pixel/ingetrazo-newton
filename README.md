@@ -37,16 +37,13 @@ The runtime (Python 3.12 with MuJoCo) can be set up with one click in the prefer
 
 ### Linux (Flatpak)
 
-There is no install script yet. By hand:
-
 ```bash
 uv venv --python 3.12 .venv
 uv pip install --python .venv/bin/python mujoco==3.3.7
-target=~/.var/app/com.ingetrazo.IngeTrazo/data/ingetrazo/plugins/newton
-mkdir -p "$target"
-cp newton/*.py "$target"/ && cp -r newton/i18n newton/icons "$target"/
-printf '{"python": "%s"}\n' "$PWD/.venv/bin/python" > "$target/runtime.json"
+scripts/install-local.sh
 ```
+
+`install-local.sh` copies the extension to `~/.var/app/com.ingetrazo.IngeTrazo/data/ingetrazo/plugins/newton` and writes the Python path to `runtime.json`. `install-local.sh --update` updates an existing installation; the previous version goes to `.backups`. `--python PATH` uses another interpreter, `--destination DIR` another plugins folder (for example for a non-Flatpak installation).
 
 The Flatpak may access the home directory and can therefore start the `.venv` directly.
 
