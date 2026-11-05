@@ -17,39 +17,20 @@ Version 0.14.0 · for IngeTrazo 0.6.0 (Extension API 2) · physics by [MuJoCo](h
 
 Not yet included: ball and universal joints as axes, replay, magnetism, buoyancy and the scripts of SketchyPhysics, among others. All limits are listed in the [manual](docs/manual.md#limits).
 
-## Requirements
+## Quick start
 
-- IngeTrazo 0.6.0 (Windows installation or Flatpak on Linux)
-- a separate **Python 3.12 (64-bit)** with `mujoco==3.3.7`. Newton starts the physics in this Python as its own process; IngeTrazo itself does not ship a suitable Python.
+1. In IngeTrazo open **Extensions → Manage extensions…**, search for **Newton**, press **Download** and restart IngeTrazo. (Not listed yet? Install it by hand: [docs/installation.md](docs/installation.md).)
+2. Open **Preferences → Newton → Runtime** and press **Set up runtime**. This downloads a Python 3.12 with MuJoCo 3.3.7 once, after you confirm. Newton starts the physics in this separate Python; IngeTrazo does not ship one. Manual and command-line alternatives: [docs/runtime-setup.md](docs/runtime-setup.md).
+3. Open **Extensions → Newton…** and follow *Getting started* below.
 
-## Installation
+## Platform status
 
-The runtime (Python 3.12 with MuJoCo) can be set up with one click in the preferences under *Newton ▸ Runtime*, or created by hand or by script for every IngeTrazo package (Windows, AppImage, Flatpak, macOS): [docs/runtime-setup.md](docs/runtime-setup.md). The following sections describe installing from the repository.
-
-### Windows
-
-```powershell
-.\scripts\setup-runtime.ps1 -Python 'C:\Path\to\Python312\python.exe'
-.\scripts\install-local.ps1
-```
-
-`setup-runtime.ps1` creates the `.venv` environment in the project folder. `install-local.ps1` copies the extension to `%APPDATA%\ingetrazo\plugins\newton` and writes the Python path to `runtime.json`. `install-local.ps1 -Update` updates an existing installation; the previous version goes to `.backups`. An existing environment with MuJoCo can be passed with `-Python 'C:\Path\to\environment\Scripts\python.exe'`.
-
-### Linux (Flatpak)
-
-```bash
-uv venv --python 3.12 .venv
-uv pip install --python .venv/bin/python mujoco==3.3.7
-scripts/install-local.sh
-```
-
-`install-local.sh` copies the extension to `~/.var/app/com.ingetrazo.IngeTrazo/data/ingetrazo/plugins/newton` and writes the Python path to `runtime.json`. `install-local.sh --update` updates an existing installation; the previous version goes to `.backups`. `--python PATH` uses another interpreter, `--destination DIR` another plugins folder (for example for a non-Flatpak installation).
-
-The Flatpak may access the home directory and can therefore start the `.venv` directly.
-
-### After installing
-
-Restart IngeTrazo completely and open **Extensions → Newton…**. The toolbars **Newton Tools** (modelling) and **Newton Simulation** can be shown through the normal toolbar management. The `.venv` must stay in place as long as Newton uses it. After moving it, choose the Python path again under **Preferences → Newton → Runtime**.
+| Platform | Status |
+|---|---|
+| Linux, IngeTrazo Flatpak | tested |
+| Windows | scripts exist, run not re-verified |
+| macOS | not tested |
+| Linux AppImage, tarball, Snap | not tested |
 
 ## Getting started
 
@@ -61,23 +42,16 @@ Restart IngeTrazo completely and open **Extensions → Newton…**. The toolbars
 
 Ready-made examples are in [`models/`](models) and described in [docs/example-models.md](docs/example-models.md).
 
-## Claude Code skill
+## AI skill
 
-[`skills/ingetrazo-newton/SKILL.md`](skills/ingetrazo-newton/SKILL.md) gives [Claude Code](https://claude.com/claude-code) a compact guide to Newton: the objects and their effects, how to group parts so the simulation is correct and fast, performance options and limits. Install it for all your projects, or only for one project, by linking or copying the folder:
-
-```bash
-# for all projects
-mkdir -p ~/.claude/skills && ln -s "$PWD/skills/ingetrazo-newton" ~/.claude/skills/ingetrazo-newton
-# or only for one project
-mkdir -p /path/to/project/.claude/skills && cp -r skills/ingetrazo-newton /path/to/project/.claude/skills/
-```
-
-On Windows, copy the folder to `%USERPROFILE%\.claude\skills\`. Claude Code picks the skill up in new sessions. It is used automatically when you ask about Newton models, or explicitly with `/ingetrazo-newton`, for example `/ingetrazo-newton why does my drawer simulation start so slowly?`.
+[`skills/ingetrazo-newton/`](skills/ingetrazo-newton/SKILL.md) is an Agent Skill that an AI assistant (Claude Code, Codex) loads by itself when you ask about modelling for Newton: objects, grouping for correct and fast simulations, performance and limits. Installation and checking: [docs/ai-skill.md](docs/ai-skill.md).
 
 ## Documentation
 
 | Document | Content |
 |---|---|
+| [docs/installation.md](docs/installation.md) | Installing the extension: extension library, manual per platform, release zip, update, verification |
+| [docs/runtime-setup.md](docs/runtime-setup.md) | The runtime (Python 3.12 + MuJoCo): button, command line, manual per platform, troubleshooting |
 | [docs/manual.md](docs/manual.md) | How to use every function, technical notes and limits |
 | [docs/example-models.md](docs/example-models.md) | The bundled models and their verification values |
 | [docs/known-issues.md](docs/known-issues.md) | Known bugs and observations |
@@ -85,7 +59,9 @@ On Windows, copy the folder to `%USERPROFILE%\.claude\skills\`. Claude Code pick
 | [docs/backlog.md](docs/backlog.md) | Agreed follow-up work |
 | [docs/lab/test-and-measurement-runs.md](docs/lab/test-and-measurement-runs.md) | Recorded test suite runs, benchmarks and manual checks, per feature and release |
 | [docs/lab/sketchyphysics-port-research.md](docs/lab/sketchyphysics-port-research.md) | Original research on SketchyPhysics and IngeTrazo |
-| [skills/ingetrazo-newton/SKILL.md](skills/ingetrazo-newton/SKILL.md) | Claude Code skill: modelling for Newton, grouping, performance, limits |
+| [docs/ai-skill.md](docs/ai-skill.md) | Using the skill with Claude Code and Codex |
+| [skills/ingetrazo-newton/SKILL.md](skills/ingetrazo-newton/SKILL.md) | The skill itself: modelling for Newton, grouping, performance, limits |
+| [scripts/README.md](scripts/README.md) | Helper scripts: install, package, developer tools, example model builders, measurements |
 | [AGENTS.md](AGENTS.md) | Development setup, tests and conventions |
 
 ## Licence

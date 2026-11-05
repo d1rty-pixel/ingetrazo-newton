@@ -1,16 +1,22 @@
 # Setting up the Newton runtime
 
-Newton runs its physics in a separate Python process. IngeTrazo does not ship a suitable Python, so Newton needs a **runtime**: a Python 3.12 (64-bit) environment with `mujoco==3.3.7`. It is created once per user and survives Newton updates.
+Newton runs its physics in a separate Python process. IngeTrazo does not ship a suitable Python, so Newton needs a **runtime**: a Python 3.12 (64-bit) environment with `mujoco==3.3.7` (and `numpy==2.5.4`, see `newton/runtime-requirements.txt`). It is created once per user and survives Newton updates. Install the extension first: [installation.md](installation.md).
 
-Supported by design: Windows x64, Linux x86_64 (AppImage, tarball, Flatpak) and macOS arm64. Windows and Linux are tested; macOS and Snap are not, bug reports are welcome.
+| Platform | Status |
+|---|---|
+| Linux x86_64, IngeTrazo Flatpak | tested |
+| Windows x64 | not tested yet; Windows scripts exist |
+| macOS | not tested; the automatic setup has a `uv` download for Apple silicon (arm64) only |
+| Linux AppImage or tarball | not tested |
+| Linux Snap | not tested |
 
-There are three ways to create the runtime. All of them end in the same layout and the same `runtime.json`, so they can be mixed.
+There are three methods. All end in the same layout and the same `runtime.json`, so they can be mixed.
 
 | Method | Needs | Use it when |
 |---|---|---|
-| A. **Set up runtime** button | internet access | normal desktop use |
-| B. `runtime_setup.py` on the command line | any Python 3.9+ | scripted or headless setups, Flatpak from a terminal |
-| C. Manual commands | `uv` or Python 3.12 | you want full control |
+| A. **Set up runtime** button | internet access | normal desktop use (start here) |
+| B. `runtime_setup.py` on the command line | any Python 3.9+ | scripted or headless setups, or when the button fails |
+| C. Manual commands | `uv` or Python 3.12 | you want full control, or no download of `uv` is allowed |
 
 ## Where the runtime lives
 
@@ -22,43 +28,34 @@ The runtime sits next to IngeTrazo's `plugins` folder, **outside** the Newton pl
 | Linux AppImage or tarball | `${XDG_DATA_HOME:-~/.local/share}/ingetrazo` |
 | Linux Flatpak | `~/.var/app/com.ingetrazo.IngeTrazo/data/ingetrazo` |
 | macOS app | `~/.local/share/ingetrazo` (IngeTrazo uses this on macOS too) |
-| Linux Snap (untested) | `~/snap/ingetrazo/current/.local/share/ingetrazo` |
+| Linux Snap (not verified) | `~/snap/ingetrazo/current/.local/share/ingetrazo` |
 
-The folder `<data>/newton-runtime/` holds `python/` (the interpreter), `venv/`, `cache/`, `tools/uv`, `runtime.json` and a marker file `.newton-runtime`. Removing the runtime deletes only a folder that carries this marker.
+`<data>/newton-runtime/` holds `python/` (the interpreter), `venv/`, `cache/`, `tools/uv`, `runtime.json` and a marker file `.newton-runtime`. Removing the runtime deletes only a folder that carries this marker, so a runtime you built by hand (method C, no marker) is never deleted by Newton.
 
-Newton picks the interpreter in this order: the path in *Preferences ▸ Newton ▸ Runtime*, then `<data>/newton-runtime/runtime.json`, then a `runtime.json` inside the plugin folder (older versions), then `newton-runtime/venv`.
+## Method A: the button
 
-## Method A: button
+1. Open **Preferences → Newton → Runtime** and press **Set up runtime**.
+2. Newton names what it will do: download `uv` 0.13.7 (checked against a pinned SHA-256), a Python 3.12 and `mujoco==3.3.7` into the folder above, and test it. Nothing is downloaded before you confirm.
+3. Wait for "Runtime ready". No restart of IngeTrazo is needed; the page then shows `Interpreter: <path>`.
 
-1. Open *Preferences ▸ Newton ▸ Runtime* and press **Set up runtime**.
-2. Newton names what it will do (download `uv`, a Python 3.12 and `mujoco==3.3.7` into the folder above) and asks for confirmation. Nothing is downloaded before you confirm.
-3. Wait for "Runtime ready". No restart of IngeTrazo is needed. **Check runtime** tests it again, **Remove runtime** deletes the folder.
+The other buttons: **Check runtime** starts the interpreter and tests that MuJoCo imports with the right version. **Remove runtime** deletes `<data>/newton-runtime/` after confirmation, only when it carries the marker, that is, only a runtime Newton installed itself. An interpreter you chose elsewhere is never touched.
 
-Builds can disable this feature with `RUNTIME_SETUP_ENABLED = False` in `newton/runtime_setup.py`; the button is then replaced by a pointer to this page. With `DOWNLOAD_UV = False` Newton never downloads a binary and uses a `uv` that is already in your `PATH`.
+Offline: the button needs internet. Without it use method B with `--find-links` or method C.
+
+Maintainer switches in `newton/runtime_setup.py`: `RUNTIME_SETUP_ENABLED = False` replaces the button with a link to the manual section below; `DOWNLOAD_UV = False` never downloads a binary and uses a `uv` already in `PATH`.
 
 ## Method B: command line
 
-`runtime_setup.py` is part of the Newton package and uses only the Python standard library.
+`runtime_setup.py` is part of the Newton package and uses only the Python standard library, so any Python 3.9+ runs it. Run the installed copy and it targets the right `<data>` by itself:
 
 ```bash
-python3 runtime_setup.py install      # create or repair
-python3 runtime_setup.py check        # exit 0 when the runtime works
-python3 runtime_setup.py path         # print the interpreter path
-python3 runtime_setup.py uninstall
+python3 <plugins>/newton/runtime_setup.py install      # create or repair
+python3 <plugins>/newton/runtime_setup.py check        # exit 0 when the runtime works
+python3 <plugins>/newton/runtime_setup.py path         # print the interpreter path
+python3 <plugins>/newton/runtime_setup.py uninstall
 ```
 
-Options:
-
-- `--data-dir DIR` targets another IngeTrazo data folder.
-- `--flatpak` is a shortcut for the Flatpak data folder.
-- `--yes` skips the confirmation.
-- `--json` prints one JSON object (`step`, `message`) per progress line.
-- `--uv PATH` uses this `uv` instead of `PATH` or a download.
-- `--find-links DIR` installs MuJoCo from a folder or URL of wheels (offline setups).
-
-Exit codes: 0 ok, 1 failure, 2 bad arguments, 3 unsupported platform.
-
-Without options the runtime goes next to the plugin the script belongs to, in a source checkout into `.newton-runtime/`.
+`<plugins>` is the plugins folder from [installation.md](installation.md#plugin-folder-per-installation).
 
 ```powershell
 # Windows
@@ -66,45 +63,102 @@ py -3 "$env:APPDATA\ingetrazo\plugins\newton\runtime_setup.py" install --yes
 ```
 
 ```bash
-# Flatpak, on the host
+# Linux Flatpak, run on the host (outside the sandbox)
 python3 ~/.var/app/com.ingetrazo.IngeTrazo/data/ingetrazo/plugins/newton/runtime_setup.py install --flatpak --yes
+# Linux AppImage or tarball, macOS
+python3 "${XDG_DATA_HOME:-$HOME/.local/share}/ingetrazo/plugins/newton/runtime_setup.py" install --yes
 ```
+
+Options:
+
+- `--data-dir DIR` targets another IngeTrazo data folder (`<data>` above); needed when you run the script from a source checkout, because it would otherwise create `.newton-runtime/` inside the checkout.
+- `--flatpak` is a shortcut for the Flatpak `<data>`. Use either `--data-dir` or `--flatpak`.
+- `--yes` skips the confirmation (also for `uninstall`).
+- `--json` prints one JSON object (`step`, `message`) per progress line.
+- `--uv PATH` uses this `uv` instead of the one in `PATH` or a download.
+- `--find-links DIR` installs MuJoCo from a folder or URL of wheels (offline setups).
+
+Exit codes: 0 ok, 1 failure, 2 bad arguments, 3 unsupported platform.
+
+The built-in `uv` download exists for Windows x64, Linux x86_64 and macOS arm64. On any other machine (for example an Intel Mac) install `uv` yourself and pass `--uv` or put it in `PATH`; it is then used on every platform.
 
 ## Method C: manual
 
-Use the folder from the table as `<data>`. With [uv](https://docs.astral.sh/uv/), the same commands work on every platform and IngeTrazo package, and uv downloads Python 3.12 when none is installed:
+Use the folder from the table above as `<data>`. The result must be a Python 3.12 (64-bit) with `mujoco==3.3.7` and `numpy==2.5.4`, installed from binary wheels. MuJoCo 3.3.7 publishes cp312 wheels for Windows x86_64, Linux x86_64 and aarch64, and macOS arm64 and x86_64 (checked on PyPI).
 
-```bash
-export UV_PYTHON_INSTALL_DIR=<data>/newton-runtime/python UV_PYTHON_PREFERENCE=only-managed
-uv venv --python 3.12 <data>/newton-runtime/venv
-uv pip install --python <data>/newton-runtime/venv/bin/python --only-binary :all: mujoco==3.3.7 numpy==2.5.4
-printf '{"python": "%s"}\n' "<data>/newton-runtime/venv/bin/python" > <data>/newton-runtime/runtime.json
+### Windows
+
+With [uv](https://docs.astral.sh/uv/) (install it as the uv documentation describes, for example `winget install astral-sh.uv`; this command is not verified here). uv downloads Python 3.12 when none is installed. PowerShell:
+
+```powershell
+$rt = "$env:APPDATA\ingetrazo\newton-runtime"
+$env:UV_PYTHON_INSTALL_DIR = "$rt\python"; $env:UV_PYTHON_PREFERENCE = 'only-managed'
+uv venv --python 3.12 "$rt\venv"
+uv pip install --python "$rt\venv\Scripts\python.exe" --only-binary :all: mujoco==3.3.7 numpy==2.5.4
+@{python = "$rt\venv\Scripts\python.exe"} | ConvertTo-Json | Set-Content -Encoding ascii "$rt\runtime.json"
+& "$rt\venv\Scripts\python.exe" -c "import mujoco; print(mujoco.__version__)"   # 3.3.7
 ```
 
-On Windows use `venv\Scripts\python.exe` and `set` instead of `export`, and write `runtime.json` with forward slashes or doubled backslashes.
+Without uv, with a Python 3.12 x64 you already have:
 
-Without uv, using a Python 3.12 you already have:
-
-```bash
-python3.12 -m venv <data>/newton-runtime/venv
-<data>/newton-runtime/venv/bin/python -m pip install --only-binary :all: mujoco==3.3.7 numpy==2.5.4
+```powershell
+$rt = "$env:APPDATA\ingetrazo\newton-runtime"
+py -3.12 -m venv "$rt\venv"
+& "$rt\venv\Scripts\python.exe" -m pip install --only-binary :all: mujoco==3.3.7 numpy==2.5.4
+@{python = "$rt\venv\Scripts\python.exe"} | ConvertTo-Json | Set-Content -Encoding ascii "$rt\runtime.json"
 ```
 
-**Flatpak:** a venv built on the host's system Python does **not** work, because the sandbox cannot see the host's `/usr`. Use the uv commands above: the interpreter then lives under your home folder, which the Flatpak can read.
+The repository also has `scripts\setup-runtime.ps1`, which creates a `.venv` in the checkout instead (see [installation.md](installation.md#from-a-checkout-with-the-helper-scripts)).
 
-Check the result:
+### Linux
+
+With uv (see the uv documentation for installing it). Replace `DATA` with the `<data>` folder for your installation:
 
 ```bash
-<data>/newton-runtime/venv/bin/python -c "import mujoco; print(mujoco.__version__)"   # 3.3.7
+DATA=~/.var/app/com.ingetrazo.IngeTrazo/data/ingetrazo     # Flatpak; AppImage: ${XDG_DATA_HOME:-~/.local/share}/ingetrazo
+export UV_PYTHON_INSTALL_DIR=$DATA/newton-runtime/python UV_PYTHON_PREFERENCE=only-managed
+uv venv --python 3.12 $DATA/newton-runtime/venv
+uv pip install --python $DATA/newton-runtime/venv/bin/python --only-binary :all: mujoco==3.3.7 numpy==2.5.4
+printf '{"python": "%s"}\n' "$DATA/newton-runtime/venv/bin/python" > $DATA/newton-runtime/runtime.json
+$DATA/newton-runtime/venv/bin/python -c "import mujoco; print(mujoco.__version__)"   # 3.3.7
 ```
+
+Without uv, with a Python 3.12 you already have (not for the Flatpak, see below):
+
+```bash
+python3.12 -m venv $DATA/newton-runtime/venv
+$DATA/newton-runtime/venv/bin/python -m pip install --only-binary :all: mujoco==3.3.7 numpy==2.5.4
+printf '{"python": "%s"}\n' "$DATA/newton-runtime/venv/bin/python" > $DATA/newton-runtime/runtime.json
+```
+
+**Flatpak specifics:**
+
+- A venv built on the host's system Python does **not** work: the sandbox cannot see the host's `/usr`. Use the uv commands, whose interpreter lives under your home folder, which the Flatpak can read.
+- The Flatpak sets a `PYTHONPATH` for its own Python. Newton starts the worker with `python -E`, so that variable does not leak into the runtime; nothing to configure.
+
+### macOS (not tested)
+
+Same commands as Linux with `DATA=~/.local/share/ingetrazo`. Install uv as its documentation describes. IngeTrazo's `.dmg` is built for Apple silicon (see the IngeTrazo README); MuJoCo 3.3.7 also has Intel wheels, but the automatic setup has no `uv` download for Intel, so install `uv` yourself there.
+
+### Picking the interpreter
+
+Newton picks the interpreter in this order:
+
+1. the path in **Preferences → Newton → Runtime** (wins over everything else; clear it to fall back),
+2. `<data>/newton-runtime/runtime.json`,
+3. a `runtime.json` inside the plugin folder (older versions and the helper scripts write it there),
+4. `<data>/newton-runtime/venv`.
+
+`runtime.json` is `{"python": "/absolute/path/to/python"}`; on Windows use forward slashes or doubled backslashes. A runtime in any other place (for example the `.venv` of a checkout) works the same way: set its interpreter in the preferences or in `runtime.json`.
 
 ## Troubleshooting
 
 - **"MuJoCo is not usable" or wrong version:** run `runtime_setup.py check`; it names the failing part. `install` repairs an existing runtime.
 - **Corporate proxy:** set `HTTPS_PROXY`. Without internet, download the wheels elsewhere and use `--find-links`.
 - **SmartScreen or antivirus blocks `uv.exe`:** use method C with a Python 3.12 you already have, or pass `--uv` pointing to a trusted copy.
-- **Newton still says "No runtime found":** the path in *Preferences ▸ Newton ▸ Runtime* wins over the files; clear it or point it to `runtime.json`'s interpreter.
-- **Snap:** hidden folders in your home are not visible to the confined app; use the Snap data folder listed above.
+- **Newton still says "No runtime found":** the path in *Preferences → Newton → Runtime* wins over the files; clear it or point it to `runtime.json`'s interpreter.
+- **Button missing or "Runtime setup is disabled":** the build has `RUNTIME_SETUP_ENABLED = False`; use the manual section.
+- **Snap (not verified):** hidden folders in your home are not visible to the confined app; use the Snap data folder listed above.
 
 ## Security notes
 
