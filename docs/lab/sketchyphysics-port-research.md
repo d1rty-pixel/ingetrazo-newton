@@ -2,7 +2,7 @@
 
 As of 3 November 2026. Research and source code analysis, no runtime test yet and no implemented physics extension.
 
-Addendum on the subsequent implementation: Newton has since been implemented; see the [manual](manual.md). MuJoCo 3.3.7 is used as the backend, after installing PyBullet failed for lack of official Windows binary packages and C++ build tools. The following sections record the original state of the research.
+Addendum on the subsequent implementation: Newton has since been implemented; see the [manual](../manual.md). MuJoCo 3.3.7 is used as the backend, after installing PyBullet failed for lack of official Windows binary packages and C++ build tools. The following sections record the original state of the research.
 
 ## Result
 

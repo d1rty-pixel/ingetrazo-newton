@@ -83,8 +83,8 @@ On Windows, copy the folder to `%USERPROFILE%\.claude\skills\`. Claude Code pick
 | [docs/known-issues.md](docs/known-issues.md) | Known bugs and observations |
 | [docs/host-proposals.md](docs/host-proposals.md) | Ideas for IngeTrazo itself, found while working on Newton |
 | [docs/backlog.md](docs/backlog.md) | Agreed follow-up work |
-| [docs/test-results.md](docs/test-results.md) | Verification log per version |
-| [docs/research.md](docs/research.md) | Original research on SketchyPhysics and IngeTrazo |
+| [docs/lab/test-and-measurement-runs.md](docs/lab/test-and-measurement-runs.md) | Recorded test suite runs, benchmarks and manual checks, per feature and release |
+| [docs/lab/sketchyphysics-port-research.md](docs/lab/sketchyphysics-port-research.md) | Original research on SketchyPhysics and IngeTrazo |
 | [skills/ingetrazo-newton/SKILL.md](skills/ingetrazo-newton/SKILL.md) | Claude Code skill: modelling for Newton, grouping, performance, limits |
 | [AGENTS.md](AGENTS.md) | Development setup, tests and conventions |
 

@@ -44,7 +44,7 @@ Canonical full suite (about 45 s, 160 tests):
 - Tests run Qt offscreen (`tests/conftest.py`) and use IngeTrazo's real loader and `MainWindow`. Settings and autosave go to `.test-state/`, never to the user's profile.
 - Run focused tests during development (`pytest tests/test_interface.py -k <name>`), the full suite once before a commit.
 - `tests/test_newton.py` runs the worker as a subprocess with `sys.executable`; keep the worker importable without IngeTrazo.
-- Record notable verification runs in [docs/test-results.md](docs/test-results.md).
+- Record notable test suite runs, measurements and manual checks in [docs/lab/test-and-measurement-runs.md](docs/lab/test-and-measurement-runs.md).
 
 Useful scripts: `scripts/preview.py` (open a demo in a test window), `scripts/benchmark_newton.py`, `scripts/audit_contacts.py`, `scripts/package.py` (builds `dist/newton-<version>.zip`: one `newton/` folder, as the IngeTrazo catalog requires, reproducible hash).
 

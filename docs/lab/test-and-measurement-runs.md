@@ -1,4 +1,4 @@
-# Verification log
+# Test and measurement runs
 
 ## Limit hardness (Linux)
 
@@ -11,7 +11,7 @@ Checked on 5 November 2026 on Linux x86_64 (Ubuntu), offscreen, with Python 3.12
 
 - Cause: joint limits used MuJoCo's default `solref`/`solimp`. In a cable drag chain of 10 g links (an external CR10 model, 11 and 12 links) the limits gave way by 13–17° at rest and by over 100° while moving; the upper run fell onto the lower run. With `solreflimit` 1/120 s and `solimplimit` 0.99–0.999 the excess stayed below 0.15°.
 - New test chain (8 links of 10 g held level by ±1.5° stops): excess after 2 s at 0 / 25 / 50 / 75 / 100 % hardness 29.4 / 22.4 / 14.2 / 5.8 / 0.26°.
-- Drag-chain demo with hard limits: 17 of 21 link joints rest at a stop (before 2–5), excess 0.1° (before up to 3.1°), contact penetration and connection error unchanged (≤ 0.8 mm, ≤ 0.4 mm). The carriage servo stops up to 5 cm short (before up to 3.7 cm), see [known issues](known-issues.md#position-drive-keeps-a-steady-offset-under-load); the carrier test now allows 6 cm.
+- Drag-chain demo with hard limits: 17 of 21 link joints rest at a stop (before 2–5), excess 0.1° (before up to 3.1°), contact penetration and connection error unchanged (≤ 0.8 mm, ≤ 0.4 mm). The carriage servo stops up to 5 cm short (before up to 3.7 cm), see [known issues](../known-issues.md#position-drive-keeps-a-steady-offset-under-load); the carrier test now allows 6 cm.
 - The icon `limit_hardness` was compared with `limits`, `limit_min` and `limit_max` on the overview sheet in light and dark.
 ## Shared meshes in the temporary simulation (Linux)
 
