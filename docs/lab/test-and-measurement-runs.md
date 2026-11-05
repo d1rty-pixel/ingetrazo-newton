@@ -1,5 +1,23 @@
 # Test and measurement runs
 
+## Windows installation test (Windows)
+
+Run on 5 November 2026 on Windows 11 Pro 10.0.26300 x64, Windows PowerShell 5.1, with `scripts/lab/windows-install-test.ps1` (sandbox under `%TEMP%`, real IngeTrazo installation only read). Machine: IngeTrazo 0.6.0 from the installer, Python 3.14 only (no 3.12, no `uv`, no `pwsh`), WSL2 present.
+
+```text
+INFO 14, PASS 25, FAIL 3, SKIP 1
+```
+
+- Release zip: one `newton/` folder, 108 entries, reproducible SHA-256.
+- Method B (`runtime_setup.py install`, started with Python 3.14): uv download, Python 3.12.16, MuJoCo 3.3.7, numpy 2.5.4 in 7.6 s; second run 0.7 s; 238 MB. Longest path under the real `%APPDATA%` 197 characters. Lookup order, marker protection and `uninstall` as documented. Also works under a data folder with spaces and non-ASCII characters.
+- Method C with uv (documented commands) and without uv (venv + pip, uv-managed 3.12 as stand-in) work; `runtime_setup.py check` accepts their `runtime.json`.
+- The worker smoke test (a box falls from 3 m and rests at 0.50 m after 2 s, `PYTHONPATH`/`PYTHONHOME` set to nonsense) passes with every runtime, 0.4 s including start.
+- Failures in the first run, fixed the same day: `install-local.ps1` failed in Windows PowerShell 5.1 (its `-c 'print("MuJoCo", …)'` lost the double quotes, so Python raised `NameError`); `setup-runtime.ps1` took Python 3.14 from `PATH`, found no MuJoCo wheel and kept the 3.14 `.venv` on the next run with `-Python`; `-Update` left removed modules behind. Full run without the GUI phase after the fixes: PASS 34, INFO 13, no WARN or FAIL.
+- GUI phase (`-Gui`, the installed IngeTrazo 0.6.0 started with `--new-window` and the sandbox as `APPDATA`): Newton loads from the sandbox without load errors (bundled Python 3.12.10, frozen), menu, sidebar and both toolbars present in German. The runtime setup code of the *Set up runtime* button, run inside the host, downloads uv over the host's TLS and builds the runtime in 8.2 s. Start on `domino-30-with-pendulum.igz` (38 bodies): first frame after 0.47 s, 59 frames per second over 3 s; Reset ends the worker. The registry key `HKCU\Software\IngeTrazo` changed during the run (recent files, window state) and was restored identical; no autosave in the real profile. The suite's load-error check misread the empty error list as an error (fixed in the suite).
+- Real installation afterwards: runtime with method B into `%APPDATA%\ingetrazo`, extension with `install-local.ps1 -Update` (old 0.14.0 copy replaced, removed modules gone), interpreter preference cleared. *Set up runtime* in **Preferences → Newton → Runtime** then rebuilt the runtime by hand without problems; the simulation runs with it.
+- Observation: after opening the model, Start and Reset, the document is marked modified (`*` in the title), so closing asks whether to save. Not yet clear whether opening or the simulation causes it.
+- `Expand-Archive` over an existing installation needs `-Force`, which the update instructions in `docs/installation.md` do not mention.
+
 ## Limit hardness (Linux)
 
 Checked on 5 November 2026 on Linux x86_64 (Ubuntu), offscreen, with Python 3.12.14, PySide6 6.11.3, numpy 2.5.4 and MuJoCo 3.3.7; host reference IngeTrazo v0.6.0, commit `e61132a7`.

@@ -1,15 +1,16 @@
 # Newton
 
 [![Release](https://img.shields.io/github/v/release/d1rty-pixel/ingetrazo-newton)](https://github.com/d1rty-pixel/ingetrazo-newton/releases)
-[![Downloads](https://img.shields.io/github/downloads/d1rty-pixel/ingetrazo-newton/total)](https://github.com/d1rty-pixel/ingetrazo-newton/releases)
 [![Licence](https://img.shields.io/github/license/d1rty-pixel/ingetrazo-newton)](LICENSE)
-[![Last commit](https://img.shields.io/github/last-commit/d1rty-pixel/ingetrazo-newton)](https://github.com/d1rty-pixel/ingetrazo-newton/commits/main)
-[![Open issues](https://img.shields.io/github/issues/d1rty-pixel/ingetrazo-newton)](https://github.com/d1rty-pixel/ingetrazo-newton/issues)
 ![IngeTrazo](https://img.shields.io/badge/IngeTrazo-0.6.0-blue)
 ![Extension API](https://img.shields.io/badge/Extension%20API-2-blue)
 ![MuJoCo](https://img.shields.io/badge/MuJoCo-3.3.7-informational)
 ![Python](https://img.shields.io/badge/Python-3.12-informational)
-![Tested on](https://img.shields.io/badge/tested%20on-Linux%20%28Flatpak%29-success)
+[![Linux Flatpak: tested](https://img.shields.io/badge/Linux%20%28Flatpak%29-tested-success?logo=flatpak&logoColor=white)](#platform-status)
+[![Windows: tested](https://img.shields.io/badge/Windows-tested-success?logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0yIDMuNSAxMC41IDIuM3Y4LjlIMnpNMTEuNSAyLjIgMjIgLjd2MTAuNUgxMS41ek0yIDEyLjJoOC41djguOUwyIDE5Ljl6TTExLjUgMTIuMkgyMnYxMC41bC0xMC41LTEuNXoiLz48L3N2Zz4%3D)](#platform-status)
+[![macOS: not tested](https://img.shields.io/badge/macOS-not%20tested-lightgrey?logo=apple&logoColor=white)](#platform-status)
+[![Linux AppImage, tarball: not tested](https://img.shields.io/badge/Linux%20%28AppImage%2C%20tarball%29-not%20tested-lightgrey?logo=linux&logoColor=white)](#platform-status)
+[![Linux Snap: not tested](https://img.shields.io/badge/Linux%20%28Snap%29-not%20tested-lightgrey?logo=snapcraft&logoColor=white)](#platform-status)
 
 Newton is a physics extension for the 3D modeller [IngeTrazo](https://github.com/ingelibre/ingetrazo). It picks up the idea of SketchyPhysics: the groups and components of a model become bodies that fall, collide, rotate or slide on axes and are driven by motors. The simulation runs directly in the model and can be reset to the original state at any time.
 
@@ -37,9 +38,10 @@ Not yet included: ball and universal joints as axes, replay, magnetism, buoyancy
 | Platform | Status |
 |---|---|
 | Linux, IngeTrazo Flatpak | tested |
-| Windows | scripts exist, run not re-verified |
+| Windows (installer or portable zip) | tested on Windows 11: release zip, scripts, runtime setup (button, command line, manual), simulation |
 | macOS | not tested |
-| Linux AppImage, tarball, Snap | not tested |
+| Linux AppImage, tarball | not tested |
+| Linux Snap | not tested; plugin folder not verified |
 
 ## Getting started
 

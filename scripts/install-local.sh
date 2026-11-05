@@ -38,6 +38,9 @@ if [ -e "$target" ]; then
 fi
 
 mkdir -p "$target"
+# Modules dropped by a newer version must not linger (the backup above keeps them).
+rm -f "$target"/*.py
+rm -rf "$target/__pycache__"
 cp "$project_root"/newton/*.py "$target"/
 # The runtime installer reads the requirements file next to itself; the release zip carries the licence.
 cp "$project_root/newton/runtime-requirements.txt" "$project_root/LICENSE" "$target"/

@@ -12,7 +12,7 @@ if (-not (Test-Path -LiteralPath $Python -PathType Leaf)) {
     throw 'Python with MuJoCo is missing. Run scripts\setup-runtime.ps1 first or pass -Python.'
 }
 $Python = (Resolve-Path -LiteralPath $Python).Path
-& $Python -c 'import mujoco; print("MuJoCo", mujoco.__version__)'
+& $Python -c 'import mujoco; print(''MuJoCo'', mujoco.__version__)'
 if ($LASTEXITCODE -ne 0) { throw 'MuJoCo is not installed in this Python.' }
 $target = Join-Path $Destination 'newton'
 if (Test-Path -LiteralPath $target) {
@@ -31,6 +31,12 @@ if (Test-Path -LiteralPath $target) {
         }
     }
     Write-Output "Backup: $backup"
+    # Modules, translations and icons dropped by a newer version must not linger.
+    Get-ChildItem -LiteralPath $target -Filter '*.py' -File | Remove-Item -Force
+    foreach ($folder in 'i18n','icons','__pycache__') {
+        $previous = Join-Path $target $folder
+        if (Test-Path -LiteralPath $previous) { Remove-Item -LiteralPath $previous -Recurse -Force }
+    }
 }
 New-Item -ItemType Directory -Path $target -Force | Out-Null
 Get-ChildItem -LiteralPath (Join-Path $projectRoot 'newton') -Filter '*.py' |
