@@ -19,8 +19,13 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ### Changed
 
+- Sidebar: **Axis coupling**, **Mechanical connection**, **Material** and **Simulation overrides** fold themselves when the selected body has nothing set there and open when it has; the state follows the selection and any change, and a manual click holds until then (no longer remembered across restarts for these four).
+- The sidebar section *Flexible material* is now called *Material*.
+- Profile editor: *Body & contact* is split into *Body* and *Collisions* like the sidebar, and *Simulation overrides* work as in the sidebar (no *Use own simulation settings* box; every value shown, defaults greyed, a reset button per row, only differing values stored). Existing profiles load and apply unchanged.
+- Sidebar: the collision settings (shape, *Show collision shape*, exemptions) moved out of *Body & contact* into their own section *Collisions*; *Body & contact* is now *Body* (mass, friction, bounce). The sections follow a new order: Generic, Profile, Material, Body, Collisions, Motion, Mechanical connection, Axis coupling, Simulation overrides.
+
 - Closing the control panel (window button or Esc) while a simulation runs or is paused now ends the simulation like Reset and restores the original model, so no simulation keeps running without its controls.
-- Sidebar texts: shorter section paragraphs and a hover text on every key row (labels and inputs) of Generic, Motion, Axis coupling, Mechanical connection, Flexible material, Body & contact and Simulation overrides. The Motion section tooltip is replaced by the Actuator tooltip.
+- Sidebar texts: shorter section paragraphs and a hover text on every key row (labels and inputs) of Generic, Motion, Axis coupling, Mechanical connection, Material, Body, Collisions and Simulation overrides. The Motion section tooltip is replaced by the Actuator tooltip.
 - Length values follow the unit set under *Window → Units* (slide axis limits, target, speed and acceleration, connection points, rope and cable radius, softening radius, initial velocity), in the sidebar, the control panel and the profile editor; the fields update when the unit changes. Documents in metres now see these values in metres instead of millimetres. Gravity, attraction, pressures, damping, forces and mass stay in SI units, rotations in degrees.
 - *Simulation overrides* no longer has a switch: every setting is shown and editable, values equal to the global default are greyed (and inherited), a changed value is drawn normally, and a button beside each value resets it to the default.
 - *Preferences → Runtime*: *Check runtime* sits with the Python environment it checks and shows its result there, also in builds without automatic setup. *Remove runtime* is offered only for a runtime Newton created itself, refuses a symbolic link, and its confirmation names Newton's own folder and says when your current interpreter lies outside it.

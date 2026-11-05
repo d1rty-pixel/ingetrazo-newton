@@ -35,7 +35,8 @@ def validate(profile):
     if not isinstance(p.get("name"),str) or not p["name"].strip():
         raise ValueError("A profile needs a name.")
     body = {key:p.get("body",{}).get(key,value) for key,value in DEFAULTS.items()}
-    body["simulation_override"] = environment_override(body["simulation_override"])
+    # An empty override is no override; the same values as the defaults stay stored (lossless for older profiles).
+    body["simulation_override"] = environment_override(body["simulation_override"]) or None
     if body["mode"] not in ("dynamic","static","ignore") or body["shape"] not in ("box","sphere","hull","compound"):
         raise ValueError("Invalid body profile.")
     for key in ("mass","friction","restitution"):
