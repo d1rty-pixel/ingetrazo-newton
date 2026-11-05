@@ -367,7 +367,7 @@
   "rigid attachment": "rigid attachment",
   "{bodies} follow this control. Their additional load and limits also affect the leading axis; select a follower to change how far or in which direction it moves.": "{bodies} follow this control. Their additional load and limits also affect the leading axis; select a follower to change how far or in which direction it moves.",
   "{count} bodies selected": "{count} bodies selected",
-  "{depth:.1f} cm below": "{depth:.1f} cm below",
+  "{depth} below": "{depth} below",
   "{message} The body is now movable.": "{message} The body is now movable.",
   "{speed:.2f}× real time": "{speed:.2f}× real time",
   "… and {count} more": "… and {count} more"

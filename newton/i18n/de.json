@@ -367,7 +367,7 @@
   "rigid attachment": "starr angebunden",
   "{bodies} follow this control. Their additional load and limits also affect the leading axis; select a follower to change how far or in which direction it moves.": "{bodies} folgen diesem Regler. Ihre zusätzliche Last und ihre Anschläge wirken auch auf die führende Achse. Wähle einen folgenden Körper aus, um seinen Weg oder seine Bewegungsrichtung zu ändern.",
   "{count} bodies selected": "{count} Körper ausgewählt",
-  "{depth:.1f} cm below": "{depth:.1f} cm darunter",
+  "{depth} below": "{depth} darunter",
   "{message} The body is now movable.": "{message} Der Körper ist jetzt beweglich.",
   "{speed:.2f}× real time": "{speed:.2f}× Echtzeit",
   "… and {count} more": "… und {count} weitere"

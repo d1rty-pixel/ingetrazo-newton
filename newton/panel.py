@@ -946,9 +946,10 @@ class NewtonPanel(QWidget):
         if str(QSettings().value("newton/warn_ground_contact",True)).lower() not in ("true","1"):return
         from .model import ground_scrapers
         from .model import lowest_z
+        from core.units import fmt_len_fine
         by_uid = {s["uid"]:s for s in specs}
         # The clones are what the simulation view shows and selects, so the rows must be the clones.
-        bodies = [(movers[uid],movers[uid].name,tr("{depth:.1f} cm below",depth=-lowest_z(by_uid[uid])*100))
+        bodies = [(movers[uid],movers[uid].name,tr("{depth} below",depth=fmt_len_fine(-lowest_z(by_uid[uid]))))
                   for uid in ground_scrapers(specs,self.floor.isChecked())]
         if bodies:
             self.controls.message(tr("These bodies reach below Z = 0 and scrape along the ground, which distorts the result. Lift them above Z = 0 or switch off their ground contact."),"warning",bodies)

@@ -2038,6 +2038,23 @@ def body_rows(controls):
     return [w for w in (lines.itemAt(i).widget() for i in range(lines.count())) if type(w).__name__=="Row"]
 
 
+def test_ground_warning_depth_follows_the_model_units(panel):
+    from PySide6.QtWidgets import QLabel
+    from formats import igz
+    from newton.model import prepare
+    scene = panel.app.scene
+    igz.load_into(scene,Path(__file__).resolve().parents[1]/"models/z0-contact-test.igz")
+    scene.units = {"length":"mm","precision":0}
+    _,specs,movers = prepare(scene)
+    panel.floor.setChecked(True)
+    QSettings().setValue("newton/warn_ground_contact",True)
+    panel.warn_ground_contact(specs,movers)
+    texts = [l.text() for row in body_rows(panel.controls) for l in row.findChildren(QLabel)]
+    QSettings().remove("newton/warn_ground_contact")
+    roles = [t for t in texts if t.endswith(" below")]
+    assert roles and all(t.endswith(" mm below") for t in roles),roles
+
+
 def z0_simulation(panel,qtapp):
     from formats import igz
     igz.load_into(panel.app.scene,Path(__file__).resolve().parents[1]/"models/z0-contact-test.igz")
