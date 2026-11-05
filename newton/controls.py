@@ -27,6 +27,7 @@ class Controls(QDialog):
     def __init__(self, panel):
         super().__init__(panel.app.window)
         self.panel = panel
+        self.ending_silently = False
         self.setWindowTitle(tr("Newton controls"))
         self.setMinimumWidth(520)
         self.resize(520, 260)
@@ -180,6 +181,13 @@ class Controls(QDialog):
                                  for uid,name,role in rows if uid is None or uid in groups])
 
     MARGIN = 12
+
+    def done(self,result):
+        # X, Esc and close() all end here; shutdown must not reset a session it already stopped.
+        super().done(result)
+        session = self.panel.session
+        if session.workspace and not self.ending_silently:
+            session.reset()
 
     def place(self,viewport):
         """Top right corner of the 3D view, next to the sidebar, the same gap above and to the right."""

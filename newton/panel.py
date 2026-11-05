@@ -958,4 +958,5 @@ class NewtonPanel(QWidget):
     def shutdown(self,*args):
         self.collision_view.stop()
         self.session.stop_worker()
+        self.controls.ending_silently = True
         self.controls.close()
