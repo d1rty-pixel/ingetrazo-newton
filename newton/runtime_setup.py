@@ -261,11 +261,17 @@ def install(root: Path | None = None, progress: Progress | None = None,
     return str(python)
 
 
+def is_managed(root: Path | None = None) -> bool:
+    """Whether the folder is a runtime that Newton created itself (the only kind it may delete)."""
+    root = root or runtime_dir()
+    return root.is_dir() and not root.is_symlink() and (root / MARKER).is_file()
+
+
 def uninstall(root: Path | None = None) -> None:
     root = root or runtime_dir()
-    if not root.exists():
+    if not root.exists() and not root.is_symlink():
         return
-    if not (root / MARKER).is_file():
+    if not is_managed(root):       # a symlinked folder would send rmtree somewhere else
         raise SetupError(f"{root} is not a Newton runtime folder; nothing was deleted.")
     shutil.rmtree(root)
 
