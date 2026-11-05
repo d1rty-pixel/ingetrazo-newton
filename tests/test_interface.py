@@ -276,20 +276,66 @@ def test_grouped_open_line_becomes_rope_and_move_undo_keeps_path_aligned(panel):
     assert specs[0]["flexible"]["points"][-1] == pytest.approx([3,0,2])
 
 
+def greyed(widget):
+    from PySide6.QtGui import QPalette
+    return widget.palette().color(QPalette.Text)==widget.palette().color(QPalette.Disabled,QPalette.Text)
+
+
 def test_environment_overrides_edit_and_undo_without_changing_motion(panel):
     seed_demo(panel,"Servo door")
     group = next(g for g in panel.app.scene.groups if (g.ext or {}).get(KEY,{}).get("joint"))
     panel.app.scene.select([group]);panel.refresh()
     editor = panel.environment
     original = dict(group.ext[KEY]["joint"])
-    editor.enabled.setChecked(True)
+    assert not hasattr(editor,"enabled")
     editor.gravity[0].setValue(3)
     assert group.ext[KEY]["simulation_override"]["gravity"][0] == 3
     assert group.ext[KEY]["joint"] == original
-    editor.enabled.setChecked(False)
-    assert group.ext[KEY]["simulation_override"] is None
     panel.app.viewport.history.undo()
+    assert group.ext[KEY]["simulation_override"] is None
+    panel.app.viewport.history.redo()
     assert group.ext[KEY]["simulation_override"]["gravity"][0] == 3
+
+
+def test_environment_overrides_grey_defaults_and_store_only_differences(panel):
+    seed_demo(panel,"Servo door")
+    group = next(g for g in panel.app.scene.groups if (g.ext or {}).get(KEY,{}).get("joint"))
+    panel.app.scene.select([group]);panel.refresh()
+    editor = panel.environment;stored = lambda:group.ext[KEY]["simulation_override"]
+    rows = {(r[0],r[1]):r for r in editor.rows}
+    assert all(greyed(r[4]) and not r[3].isEnabled() for r in editor.rows)
+    assert editor.linear.isEnabled() and editor.linear.focusPolicy()
+    editor.linear.setValue(2)
+    assert stored() == dict(linear_damping=2)
+    assert not greyed(editor.linear) and greyed(editor.angular) and rows[("linear_damping",0)][3].isEnabled()
+    editor.floor.setChecked(not panel.floor.isChecked())
+    assert stored() == dict(linear_damping=2,floor=editor.floor.isChecked())
+    assert not greyed(editor.floor.label)
+    rows[("linear_damping",0)][3].click()
+    assert stored() == dict(floor=editor.floor.isChecked()) and greyed(editor.linear)
+    rows[("floor",0)][3].click()
+    assert stored() is None and greyed(editor.floor.label)
+    editor.gravity[2].setValue(0)
+    assert stored() == dict(gravity=[0,0,0])
+    editor.gravity[2].setValue(panel.gravity.value())
+    assert stored() is None
+
+
+def test_environment_overrides_follow_a_changed_global_default(panel):
+    from newton.model import Configure
+    seed_demo(panel,"Servo door")
+    group = next(g for g in panel.app.scene.groups if (g.ext or {}).get(KEY,{}).get("joint"))
+    panel.app.scene.select([group]);panel.refresh()
+    editor = panel.environment
+    assert greyed(editor.gravity[2])
+    panel.gravity.setValue(-3)
+    assert greyed(editor.gravity[2]) and editor.gravity[2].value() == -3
+    panel.app.viewport.history.execute(Configure([group],dict(simulation_override=dict(gravity=[0,0,-3])),partial=True))
+    panel.refresh()
+    assert greyed(editor.gravity[2])
+    panel.gravity.setValue(-5)
+    assert not greyed(editor.gravity[2]) and editor.gravity[2].value() == -3
+    assert group.ext[KEY]["simulation_override"] == dict(gravity=[0,0,-3])
 
 
 def test_preferences_organize_and_stage_global_simulation(panel):

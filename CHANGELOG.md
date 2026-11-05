@@ -19,6 +19,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ### Changed
 
+- *Simulation overrides* no longer has a switch: every setting is shown and editable, values equal to the global default are greyed (and inherited), a changed value is drawn normally, and a button beside each value resets it to the default.
 - The axis plates in the 3D view are lighter: the name stays bold, while minimum, maximum and actual position are drawn in a smaller regular weight.
 - Messages in the control panel are complete sentences that say what happened and what to do, for example when the Newton process stops or does not answer, and when saving, editing or deleting is refused during a simulation. German texts follow.
 - Sidebar: the drawing of a setting or checkbox now sits left of its label (as in the toolbar and the preferences) instead of at the right end; long labels wrap beside the drawing.

@@ -397,6 +397,7 @@ class NewtonPanel(QWidget):
         for key,action in self.actions.items():
             action.setIcon(icon("pause" if key=="play" and self.session.running else action.property("newton_icon")))
         self.controls.refresh_icons()
+        self.environment.restyle()
         redecorate()
 
     def browser_kind(self,group):
