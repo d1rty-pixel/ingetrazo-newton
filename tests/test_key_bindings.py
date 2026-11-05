@@ -313,3 +313,15 @@ def test_a_changed_slot_key_reaches_the_dropdowns_and_every_list_names_slots_ali
     assert [type(page.slot_heads[0][1].itemAt(0).widget()).__name__] == ["KeyCaps"]
     assert panel.key_slots.actions[0].text() == "Newton: Key 1 – Gripper"
     page.deleteLater()
+
+
+def test_cards_and_sidebar_keep_showing_their_keys_while_running(panel, qtapp):
+    seed_coupled_robot(panel)
+    first, other = eligible_rows(panel)[:2]
+    c = switch((first["uid"],))
+    bound = with_bindings(with_controls(None, [c]), [toggle("c1", 1, 2, 0, kind="control"),
+                                                    toggle(other["uid"], 2, other["upper"], 0)])
+    start(panel, qtapp, bound)
+    panel.refresh()
+    assert card_fields(panel, "control", "c1").slot.currentData() == 1
+    assert card_fields(panel, "joint", other["uid"]).slot.currentData() == 2

@@ -44,6 +44,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 - Windows: `install-local.ps1` works in Windows PowerShell 5.1; it reported "MuJoCo is not installed" for every interpreter because PowerShell dropped the quotes of its MuJoCo check.
 - Windows: `setup-runtime.ps1` accepts only a Python 3.12 64-bit and says so, replaces a `.venv` left by another Python instead of failing again, leaves a Linux `.venv` from WSL alone and installs the pinned `runtime-requirements.txt` (with numpy).
 - `install-local.ps1 -Update` and `install-local.sh --update` remove modules that a newer version no longer has.
+- The control cards no longer show "No key" for every key binding while a simulation runs.
 - The installation scripts copy `runtime-requirements.txt` and `LICENSE`; without the requirements file *Set up runtime* failed after a script installation.
 - *Preferences → Runtime*: the status line is no longer cut off and the descriptions on every preferences page use the normal text colour instead of a pale grey. The page now links to the manual installation guide on GitHub instead of naming a repository file.
 - The default runtime lookup finds `.venv/bin/python` on Linux and macOS, not only `.venv/Scripts/python.exe` on Windows; one helper in `runtime_setup.py` serves both lookups.
