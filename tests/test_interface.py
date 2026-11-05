@@ -2053,3 +2053,18 @@ def test_axis_object_follows_hiding_and_renaming_of_its_body(panel):
     assert marker.name==old
     history.redo()
     assert marker.name.endswith("· Renamed")
+
+
+def test_axis_plate_values_are_lighter_than_the_name(panel):
+    from PySide6.QtGui import QImage,QPainter
+    from newton.axis_guides import caption_font,value_font
+    select_demo_axis(panel)
+    vp = panel.app.viewport
+    name = caption_font(vp);value = value_font(name,vp)
+    assert name.bold() and not value.bold()
+    assert vp.font().pointSizeF()<=value.pointSizeF()<=name.pointSizeF()
+    image = QImage(1200,900,QImage.Format_ARGB32);image.fill(Qt.white)
+    painter = QPainter(image);panel.draw_joints(vp,painter);painter.end()
+    from PySide6.QtGui import QFontMetrics
+    need = QFontMetrics(name).height()+3*QFontMetrics(value).height()+10
+    assert panel.axis_label_hits[0][0].height()==need

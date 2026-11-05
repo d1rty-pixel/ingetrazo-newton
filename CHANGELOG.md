@@ -18,6 +18,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ### Changed
 
+- The axis plates in the 3D view are lighter: the name stays bold, while minimum, maximum and actual position are drawn in a smaller regular weight.
 - Messages in the control panel are complete sentences that say what happened and what to do, for example when the Newton process stops or does not answer, and when saving, editing or deleting is refused during a simulation. German texts follow.
 - Sidebar: the drawing of a setting or checkbox now sits left of its label (as in the toolbar and the preferences) instead of at the right end; long labels wrap beside the drawing.
 - Selecting many axes no longer freezes the view: every axis gets one plate (name, minimum, maximum and actual position in their guide colours) instead of up to four labels, and the free-space search is bounded. Select-all of 20 jointed bodies went from 10 s to 29 ms per paint. The plates are hidden while the view or an object is being dragged and while zooming, and a plate next to the axis is chosen before one at the viewport edge.
