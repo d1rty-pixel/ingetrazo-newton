@@ -148,3 +148,36 @@ Each entry states: what was found in the host, the proposal, what Newton could r
 - **Proposal:** `add_panel(..., area="bottom")` (or `add_bottom_panel`) that creates the `QDockWidget` in `Qt.BottomDockWidgetArea` with a stable object name, lists it in *Window ▸ Panels*, keeps the side tray at full window height (`setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)`, re-applied after every `restoreState`) and restores it with the window layout.
 - **Newton:** removes the dock created in `Controls.make_dock` through the `QMainWindow` API, the `setCorner` call there and its repetition in `Controls.refresh` and after `restore_toolbar_layout` in `newton/toolbar.py`, and the own show/hide toggle for the dock.
 - **Others:** any extension with a timeline, console, log or table that needs width more than height.
+
+## Copying a group changes its source
+
+- **Status:** idea
+- **Found:** 2026-11-06, audit of Browser and Tray actions during a simulation
+- **Host today:** `copy_group` (`core/group.py:677–683`) gives the source's plain nested groups an identity matrix and sets `component = False` on them, outside any command. *Place a Copy* in the Components panel (`views/tray.py:1490` → `kept_components.make_template`) reaches it, and so probably does Edit ▸ Copy.
+- **Proposal:** leave the source untouched and convert only the copy, or do the conversion inside an undoable command.
+- **Newton:** in a simulation the clones' nested groups were the document's own groups, so *Place a Copy* changed the document without undo; Newton now gives clones their own child groups.
+- **Others:** any caller of `copy_group` that expects its input unchanged.
+
+## Parts explode preview changes the model outside history
+
+- **Status:** idea
+- **Found:** 2026-11-06, audit of Browser and Tray actions during a simulation
+- **Host today:** dragging the Parts explode slider (`views/tray.py:1964–1992` → `core/explode.py:87–97`, `apply_explode`) sets `xform` and `explode_offset` on the parts directly; release restores them (`explode.restore`) and only the final step goes through `history.execute`.
+- **Proposal:** draw the preview as a display-only offset (see "Display transforms without changing the scene"), or skip the preview when the history refuses commands.
+- **Newton:** with its own child groups per clone the preview no longer reaches the document; a read-only workspace would make that independent of how Newton clones.
+
+## Placing a group bypasses the workspace tool filter
+
+- **Status:** idea
+- **Found:** 2026-11-06, audit of Browser and Tray actions during a simulation
+- **Host today:** `MainWindow._start_place` (`views/main_window.py:7388`) activates `PlaceGroupTool` without the workspace's `_tool_filter`, which `_activate_tool` (`:3586`) enforces. Library insert and *Place a Copy* use it; in Newton's simulation the click's `InsertGroupCommand` is then refused.
+- **Proposal:** route `_start_place` through the same filter.
+- **Others:** every workspace that restricts tools.
+
+## Callers carry on after a refused command
+
+- **Status:** idea
+- **Found:** 2026-11-06, audit of Browser and Tray actions during a simulation
+- **Host today:** `History.execute` (`core/history.py:239`) returns `None`, so callers cannot tell a refusal from success. `MaterialsPanel._restamp` (`views/tray.py:2648–2670`) updates the paint tool and reports "Material … updated" after a refusal; `_place_view` with `open_sheet` (`views/outliner.py:3720`) would raise `ValueError`. "Simplify Mesh after a refused command" above has the same cause.
+- **Proposal:** let `execute` return whether the command ran, or have these callers check `history.last_rejected`.
+- **Others:** any workspace or extension that refuses commands.

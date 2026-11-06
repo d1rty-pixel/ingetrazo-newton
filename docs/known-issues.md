@@ -39,14 +39,16 @@ Status values: **open** (confirmed, not fixed), **observation** (reported, cause
 
 ## The temporary simulation's edit guard has gaps
 
-- **Status:** open
+- **Status:** open (narrowed on 6 November 2026)
 - **Reported:** 2026-11-05, review of the host's edit paths before sharing meshes with the temporary simulation
-- **Checked:** The simulation's clones share the document's meshes, so any change there changes the model. The workspace's `ReadOnlyHistory` (`newton/session.py`) refuses every command before it runs, `SimulationScene` (`newton/model.py`) never opens a group, and the session replaces `viewport.begin_group_edit` while it runs. The Edit menu commands and the Delete key go through `history.execute`; a test runs them in the simulation. After the simulation, `changed_meshes` compares each mesh's mutation serial and element counts with the start and reports a difference.
-- **Gaps:**
-  - Code that changes a mesh without `history.execute` is not stopped: another extension, a script run in the host, or code that replaces `history.execute` on the instance (Newton's own eraser does this, but the eraser is not available in the simulation).
-  - Browser (`views/outliner.py`) and Tray (`views/tray.py`) actions were not checked one by one; both call `history.execute` (18 and 16 times) and a search found no direct mesh changes.
-  - The check after the simulation misses changes that keep the serial and the counts: reversed faces (`FlipFacesCommand` reverses the loops in place) and face attributes (`f.attrs`, colour, material, texture).
-  - Simplify Mesh in the simulation, with loose faces present, raises an `IndexError` in the host: `_on_simplify_mesh` reads `history.undo_stack[-1]` after a refused command. Nothing is changed.
+- **Checked:** The simulation's clones share the document's meshes, so any change there changes the model. The workspace's `ReadOnlyHistory` (`newton/session.py`) refuses every command before it runs, `SimulationScene` (`newton/model.py`) never opens a group, and the session replaces `viewport.begin_group_edit` while it runs. Clones have their own nested group objects (`nested_clone`), which still share the meshes. After the simulation, `changed_meshes` compares each mesh's mutation serial, element counts, the first two vertices of every outer and hole loop, and a hash of all face attributes, and reports a difference.
+- **Audited 2026-11-06:** every Browser (`views/outliner.py`) and Tray (`views/tray.py`) action in the pinned host: they go through `history.execute` and are refused, are stopped by another guard, or change only the workspace's own copies (layers, scenes, section display, BIM tags). Two Tray actions and Edit ▸ Copy changed the document's nested groups directly (Parts explode preview, *Place a Copy*, `copy_group`); they no longer reach the document since clones have their own nested groups. Tests cover each action family.
+- **Remaining gaps:**
+  - Code that changes a mesh without `history.execute` (another extension, a host script) is not stopped; changes to geometry, winding and face attributes are only reported after the simulation. Not detected: reordering a loop that keeps its first two vertices, the face `interior` flag, and changes inside attribute values that neither `marshal`, `pickle` nor `repr` reflect.
+  - Simplify Mesh in the simulation, with loose faces present, raises an `IndexError` in the host after the refused command. Nothing is changed.
+  - `PlaceGroupTool` becomes active in the simulation despite the tool filter (library insert, *Place a Copy*); its click is refused.
+- **Cost:** the fingerprint adds about 65 ms at Start and per check at Reset (run twice) on a model with 250,000 vertices and 248,000 faces.
+- Host proposals: "Read-only document or workspace", "Frozen meshes", "A mesh revision that covers every change", "Copying a group changes its source", "Parts explode preview changes the model outside history", "Placing a group bypasses the workspace tool filter", "Callers carry on after a refused command".
 
 ## Every simulation frame rebuilds the viewport caches
 
