@@ -45,6 +45,9 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 - Limits are hard by default (limit hardness 100 %), also in existing models. Before, they gave way under load: in a cable drag chain of 10 g links by 13–17° at rest and by over 100° while moving; now by less than 0.3°. Mechanisms that rested on soft limits can behave slightly stiffer; the drag-chain demo's carriage stops up to 5 cm short of its target (known issue: the position drive has no integral term).
 - The temporary simulation refuses every edit: commands are refused before they run, groups cannot be opened, and a geometry change made anyway is reported after Reset.
 - The worker's protocol lines use the prefix `NEWTON:` instead of `IGPHYSICS:` (internal, no effect for users).
+- Attraction between bodies is computed once per body instead of once per pair: 100 mutually attracting bodies need about 3 ms instead of about 370 ms per 33 ms of simulated time, so such scenes run in real time. The forces are unchanged.
+- Shown collision shapes paint faster in large models (1,000 shapes: about 20 ms instead of 31 ms per frame), and the joint values in the control panel only restyle when a joint reaches or leaves its limit (100 changing values: about 1.3 ms instead of 2.5 ms per update).
+- Start and the collision preview no longer send the vertices of box, sphere and compound shapes to the Newton process, which never used them; a detailed mesh with a box collision shape no longer slows down the start (250,000 vertices: about 80 ms of encoding saved).
 
 ### Fixed
 

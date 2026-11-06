@@ -1,5 +1,22 @@
 # Test and measurement runs
 
+## Performance fixes F1, F2, F3, F5 (Linux, 6 November 2026)
+
+Fixes from the [performance review](../performance-review-2026-11-06/review.md) on branch `perf/review-2026-11-06-fixes`. Full suite: 435 passed. The archived probes (`docs/performance-review-2026-11-06/scripts/run.py`) were rerun against the changed code; they measure the `newton/` of the checkout that contains `run.py`, so their "original" variants now measure the new code. A rerun with the new `--root` option against a worktree of the unchanged code gave 369.6 ms for 100 attracting bodies, matching the archive. Medians, same synthetic workloads as the review.
+
+| Probe | Before (review archive) | After the fixes |
+| --- | ---: | ---: |
+| 100 free bodies, all attracting, eight-step batch | 370.6 ms | 3.0 ms |
+| 50 free bodies, all attracting, eight-step batch | 85.5 ms | 1.1 ms |
+| 100 free bodies, linear damping (F6, unchanged) | 8.0 ms | 7.9 ms |
+| 1,000 collider paint | 31.8 ms | 20.1 ms |
+| 100 changing telemetry labels | 2.49 ms | 1.34 ms |
+
+- Attraction (F1): forces of all sources are summed per target with numpy and applied once per target with `mj_applyFT` at the centre of mass. `xfrc_applied` was not used because the worker never clears it and a test uses it as a constant external load. At a 100-body state the generalized forces match the old per-pair `mj_jacBodyCom` sum to about 5e-16 relative; regression tests compare against the old loop (including a hinged body) and check momentum conservation.
+- A standalone timing with the probe's specs (worktree, old and new worker side by side) gave 3.09 → 0.34 ms (10 bodies), 89.2 → 1.63 ms (50) and 430.6 → 3.19 ms (100).
+- Vertex payload (F3): not timed again; box, sphere and compound specs now reach the worker without vertices, so the review's encode/decode figures (250,000 vertices: ~81 / ~58 ms) no longer apply to them. Hull specs still carry their vertices.
+- One run of `test_control_panel_is_a_bottom_dock_under_the_view_and_the_sidebar_keeps_its_height` failed in a focused run in a new worktree: the saved window layout leaks through `.test-state/` (see [known issues](../known-issues.md#test-settings-persist-between-runs)). Reproduced from a fresh `.test-state/` with `-k "control_panel or telemetry"`; after the test fix 20 of 20 runs from a fresh state pass.
+
 ## Extension-only performance review archive (Linux, 6 November 2026)
 
 The [review archive](../performance-review-2026-11-06/README.md) preserves prioritized findings, three host-free synthetic probes, historical measurements and fresh verification output. It covers worker force scaling, telemetry styling, collider drawing and initialization, synchronous shutdown and metric boundaries. Historical figures and new raw logs are explicitly separated. No production code or models were changed; the host-dependent full test suite was not run.
