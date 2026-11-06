@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from PySide6.QtCore import QObject,QProcess,QTimer,Signal,Qt,QPointF
 from PySide6.QtGui import QMatrix4x4,QQuaternion,QVector3D,QColor,QPen,QPolygonF
-from .model import prepare,hidden_mode
+from .model import prepare,hidden_mode,worker_specs
 from .i18n import tr
 
 
@@ -82,7 +82,7 @@ class CollisionView(QObject):
             from .session import worker_environment
             process.setProcessEnvironment(worker_environment())
             process.setArguments(["-E","-u",str(Path(__file__).with_name("worker.py"))])
-            process.started.connect(lambda:process.write((json.dumps(dict(op="init",bodies=specs,gravity=0,floor=False))+"\n").encode()))
+            process.started.connect(lambda:process.write((json.dumps(dict(op="init",bodies=worker_specs(specs),gravity=0,floor=False))+"\n").encode()))
             process.readyReadStandardOutput.connect(lambda:self.read(process))
             process.errorOccurred.connect(lambda error:self.failed() if self.process is process else None)
             self.timeout.start();process.start()

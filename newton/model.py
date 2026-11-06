@@ -270,6 +270,11 @@ def prepare(source,require_movable=True,hidden="needed"):
     return scene, specs, movers
 
 
+def worker_specs(specs):
+    """Shallow copies for the worker, without the vertices that its box, sphere and compound shapes never read."""
+    return [{k:v for k,v in s.items() if k!="vertices"} if s.get("shape") in ("box","sphere","compound") else s for s in specs]
+
+
 def joint_rows(scene,include_fixed=False):
     """Stable body IDs identify controls; names are user-facing only."""
     rows = []
