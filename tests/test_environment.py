@@ -138,3 +138,40 @@ def test_mutual_attraction_conserves_linear_momentum():
         assert np.abs(world.data.qvel).max()>.5
         np.testing.assert_allclose(momentum(),before,atol=1e-9)
     finally:world.close()
+
+
+
+def test_environment_matches_dense_jacobians():
+    import numpy as np
+    overrides = [dict(gravity=[1,-2,3]),dict(linear_damping=1.5),dict(angular_damping=2.5),
+                 dict(gravity=[0,0,0],linear_damping=.7,angular_damping=1.2)]
+    free = [box(f"free{i}",(3*i,-4,10),(1,.6,.3),mass=1+i,simulation_override=o) for i,o in enumerate(overrides)]
+    hinged = [box(f"hinged{i}",(6,3*i,10),(2,.2,.2),mass=1.5,simulation_override=o,
+                  joint=dict(type="hinge",pivot=[5,3*i,10],axis=[0,1,1])) for i,o in enumerate(overrides)]
+    world = run(free+hinged,floor=False)
+    model,data = world.model,world.data
+    try:
+        rng = np.random.default_rng(1)
+        for body in free:
+            adr = model.jnt_qposadr[model.body_jntadr[world.bodies[body.uid]]]
+            quaternion = rng.normal(size=4);data.qpos[adr+3:adr+7] = quaternion/np.linalg.norm(quaternion)
+        for body,angle in zip(hinged,[.6,-.4,1.1,.3]):
+            data.qpos[model.jnt_qposadr[model.body_jntadr[world.bodies[body.uid]]]] = angle
+        data.qvel[:] = 3*rng.normal(size=model.nv)
+        world.mj.mj_fwdPosition(model,data)
+        expected = np.zeros(model.nv)
+        for body,raw in zip(free+hinged,overrides*2):
+            bid = world.bodies[body.uid];mass = float(model.body_mass[bid])
+            gravity = np.asarray(raw.get("gravity",world.global_gravity))-world.global_gravity
+            linear,angular = raw.get("linear_damping",0),raw.get("angular_damping",0)
+            jp = np.zeros((3,model.nv));jr = np.zeros((3,model.nv))
+            world.mj.mj_jacBodyCom(model,data,jp,jr,bid)
+            force = mass*gravity-linear*mass*(jp@data.qvel)
+            rotation = data.ximat[bid].reshape(3,3)
+            torque = -angular*(rotation@(model.body_inertia[bid]*(rotation.T@(jr@data.qvel))))
+            expected += jp.T@force+jr.T@torque
+        data.qfrc_applied[:] = 0
+        world.apply_environment()
+        assert len(world.environments)==8 and np.all(expected[-4:]!=0)
+        np.testing.assert_allclose(data.qfrc_applied,expected,rtol=1e-12,atol=1e-12*np.abs(expected).max())
+    finally:world.close()

@@ -459,11 +459,13 @@ class World:
         self.bodies = {uid: self.mj.mj_name2id(self.model, self.mj.mjtObj.mjOBJ_BODY, name)
                        for uid, name in self.bodies.items()}
         self.environments = []
+        self.environment_buffers = (self.np.zeros((3,self.model.nv)),self.np.zeros((3,self.model.nv)),self.np.zeros(3))
         self.attractors = []
         for uid,e in environments.items():
             delta = self.np.asarray(e["gravity"])-self.global_gravity
             if self.np.any(delta) or e["linear"] or e["angular"]:
-                self.environments.append((self.bodies[uid],delta,e["linear"],e["angular"]))
+                bid = self.bodies[uid];mass = float(self.model.body_mass[bid])
+                self.environments.append((bid,mass*delta,mass*e["linear"],e["angular"]))
             if e["attraction"]:
                 self.attractors.append((self.bodies[uid],e["attraction"],e["softening"]))
             if any(e["initial_velocity"]):
@@ -655,15 +657,18 @@ class World:
         return result
 
     def apply_environment(self):
-        for bid,gravity,linear,angular in self.environments:
-            mass = float(self.model.body_mass[bid])
-            jp = self.np.zeros((3,self.model.nv));jr = self.np.zeros((3,self.model.nv))
-            self.mj.mj_jacBodyCom(self.model,self.data,jp,jr,bid)
-            force = mass*gravity-linear*mass*(jp@self.data.qvel)
-            rotation = self.data.ximat[bid].reshape(3,3)
-            omega = jr@self.data.qvel
-            torque = -angular*(rotation@(self.model.body_inertia[bid]*(rotation.T@omega)))
-            self.data.qfrc_applied[:] += jp.T@force+jr.T@torque
+        mj,model,data = self.mj,self.model,self.data
+        jp,jr,zero = self.environment_buffers
+        for bid,weight,linear,angular in self.environments:
+            force,torque = weight,zero
+            if linear or angular:
+                mj.mj_jacBodyCom(model,data,jp if linear else None,jr if angular else None,bid)
+                if linear:force = weight-linear*(jp@data.qvel)
+                if angular:
+                    rotation = data.ximat[bid].reshape(3,3)
+                    torque = -angular*(rotation@(model.body_inertia[bid]*(rotation.T@(jr@data.qvel))))
+            # Not via xfrc_applied: the worker never clears it, so it stays usable for external loads.
+            mj.mj_applyFT(model,data,force,torque,data.xipos[bid],bid,data.qfrc_applied)
 
     def apply_attraction(self):
         # Sources emit a Newtonian field mu = G*M. With the same G on all
