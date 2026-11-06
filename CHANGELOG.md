@@ -42,7 +42,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 - Sidebar: the drawing of a setting or checkbox now sits left of its label (as in the toolbar and the preferences) instead of at the right end; long labels wrap beside the drawing.
 - Selecting many axes no longer freezes the view: every axis gets one plate (name, minimum, maximum and actual position in their guide colours) instead of up to four labels, and the free-space search is bounded. Select-all of 20 jointed bodies went from 10 s to 29 ms per paint. The plates are hidden while the view or an object is being dragged and while zooming, and a plate next to the axis is chosen before one at the viewport edge.
 - Start is much faster on large models: the temporary simulation shares the document's meshes and nested placements instead of copying them. `prepare()` on the CR10 model (about 250 000 vertices) went from 11.3 s to 0.84 s.
-- Limits are hard by default (limit hardness 100 %), also in existing models. Before, they gave way under load: in a cable drag chain of 10 g links by 13–17° at rest and by over 100° while moving; now by less than 0.3°. Mechanisms that rested on soft limits can behave slightly stiffer; the drag-chain demo's carriage stops up to 5 cm short of its target (known issue: the position drive has no integral term).
+- Limits are hard by default (limit hardness 100 %), also in existing models. Before, they gave way under load: in a cable drag chain of 10 g links by 13–17° at rest and by over 100° while moving; now by less than 0.3°. Mechanisms that rested on soft limits can behave slightly stiffer.
 - The temporary simulation refuses every edit: commands are refused before they run, groups cannot be opened, and a geometry change made anyway is reported after Reset.
 - The worker's protocol lines use the prefix `NEWTON:` instead of `IGPHYSICS:` (internal, no effect for users).
 - Attraction between bodies is computed once per body instead of once per pair: 100 mutually attracting bodies need about 3 ms instead of about 370 ms per 33 ms of simulated time, so such scenes run in real time. The forces are unchanged.
@@ -77,7 +77,6 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 - Performance audit results (start time, per-frame redraw cost), shared-mesh measurements and a live check in the Flatpak in `docs/lab/test-and-measurement-runs.md` and `docs/known-issues.md`.
 - `docs/host-proposals.md` collects IngeTrazo improvements that would make Newton or other extensions simpler, safer or faster.
 - `scripts/lab/benchmark_overlays.py` times the overlay paint and the selection refresh for N jointed bodies.
-- Known issue: the position drive keeps a steady offset under load (no integral term).
 - Known issue: cable tests fail when `tests/test_newton.py` runs before `tests/test_flexible.py` in one process.
 
 ## 0.14.0 — 2026-11-04
