@@ -39,6 +39,15 @@ The output directory must be absent or empty; existing results are never overwri
 
 The runner substitutes only the original absolute repository path and temporary Qt settings path in memory, then executes each script in a fresh process with bytecode writes disabled and `QT_QPA_PLATFORM=offscreen`. It saves the exact executed source alongside stdout and stderr. Experimental method replacements remain process-local. The scripts do not read the user's models, start the full application or load host modules.
 
+The probes measure the `newton/` of the checkout that contains `run.py`, a worktree included. `--root <checkout>` measures another one instead. The probes label the code they find as "original", so since the fixes of 6 November 2026 they measure the fixed code under that label, and their counterfactual variants compare against it. For a before/after comparison, measure a worktree of the reviewed revision:
+
+```bash
+git worktree add /tmp/newton-before 2e0d838
+.venv/bin/python -B docs/performance-review-2026-11-06/scripts/run.py --output /tmp/newton-before-run --root /tmp/newton-before
+```
+
+The archived probe scripts stay byte-for-byte unchanged.
+
 ## Interpretation and limitations
 
 - Timings are local synthetic medians, not application FPS, p95 latency or results for a representative production scene.

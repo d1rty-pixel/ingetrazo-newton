@@ -15,13 +15,18 @@ from importlib.metadata import version
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--root', type=Path,
+                        help='Checkout whose newton/ is measured (default: the one containing this script); '
+                             'point it at a worktree of an older revision for before/after comparisons.')
     args = parser.parse_args()
+    scripts = Path(__file__).resolve().parent
+    root = (args.root or scripts.parents[2]).resolve()
+    if not (root / 'newton' / 'worker.py').is_file():
+        parser.error(f'No newton/worker.py under {root}.')
     output = args.output.resolve()
     if output.exists() and (not output.is_dir() or any(output.iterdir())):
         parser.error('Output must be a new or empty directory.')
     output.mkdir(parents=True, exist_ok=True)
-    scripts = Path(__file__).resolve().parent
-    root = scripts.parents[2]
     manifest = dict(
         started_utc=datetime.now(timezone.utc).isoformat(),
         python=sys.version,
