@@ -2709,3 +2709,27 @@ def test_grouping_a_connection_object_with_other_objects_keeps_one_valid_object(
     assert len(history.undo_stack)==steps+1 and placement(marker)[0]==pytest.approx(before,abs=1e-5)
     history.undo();ok()
     history.redo();ok()
+
+
+def test_control_telemetry_restyles_only_when_the_limit_state_changes(panel,monkeypatch):
+    group = select_demo_axis(panel,"Linear carriage")
+    joint = next(j for j in joint_rows(panel.app.scene) if j["body"]==group.name)
+    panel.show_controls()
+    label = panel.controls.rows[joint["uid"]][0]
+    calls = []
+    original = label.setStyleSheet
+    monkeypatch.setattr(label,"setStyleSheet",lambda text:(calls.append(text),original(text)))
+    state = dict(position=.25,target=.2,command=.2,load=0)
+    for _ in range(3):
+        panel.controls.telemetry({joint["uid"]:state})
+    assert len(calls)<=1
+    normal = (label.text(),label.toolTip(),label.styleSheet())
+    calls.clear()
+    panel.controls.telemetry({joint["uid"]:dict(state,at_limit=True)})
+    assert calls==["font-family: monospace; color: #e79b38"]
+    assert label.text().endswith(" !") and label.toolTip().endswith("At limit") and "#e79b38" in label.styleSheet()
+    panel.controls.telemetry({joint["uid"]:dict(state,at_limit=True)})
+    assert len(calls)==1
+    panel.controls.telemetry({joint["uid"]:state})
+    assert (label.text(),label.toolTip(),label.styleSheet())==normal
+    assert len(calls)==2
