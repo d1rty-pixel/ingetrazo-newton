@@ -12,7 +12,7 @@ Each entry states: what was found in the host, the proposal, what Newton could r
 
 ## Display transforms without changing the scene
 
-- **Status:** idea
+- **Status:** proposed ([#1231](https://github.com/ingelibre/ingetrazo/issues/1231), 2026-11-06)
 - **Found:** 2026-11-05, start-time audit and guarding the temporary simulation
 - **Host today:** an extension can only move groups by changing `group.xform` and raising `scene.version`; the host then rebuilds its consolidated buffers (`_sync_edges` in `views/viewport.py`, 17–31 ms per frame). The host's groups preview moves all groups by one shared offset only.
 - **Measured:** Newton's `Session.apply()` raises `scene.version` on every frame. The rebuild costs 31 ms per frame for the crank drive (121 bodies) and 17 ms for the CR10 model, against 0.2 ms for an unchanged frame; the display reaches only about 30 frames per second.
@@ -22,7 +22,7 @@ Each entry states: what was found in the host, the proposal, what Newton could r
 
 ## Read-only document or workspace
 
-- **Status:** idea
+- **Status:** proposed ([#1232](https://github.com/ingelibre/ingetrazo/issues/1232), 2026-11-06)
 - **Found:** 2026-11-05, guarding the temporary simulation
 - **Host today:** `allowed_tools` only filters tools (`views/main_window.py`, `set_tool_filter`); Edit menu commands, Delete and opening a group still work in a workspace. `History.execute` (`core/history.py`) rolls back only the active mesh.
 - **Proposal:** `workspace.read_only = True` and/or `app.lock_document(reason)`: History refuses centrally, edit actions are disabled, opening a group is refused with the reason, saving is blocked.
@@ -31,7 +31,7 @@ Each entry states: what was found in the host, the proposal, what Newton could r
 
 ## Command hooks in History
 
-- **Status:** idea
+- **Status:** proposed ([#1233](https://github.com/ingelibre/ingetrazo/issues/1233), 2026-11-06)
 - **Found:** 2026-11-05
 - **Host today:** extensions that react to commands replace `history.execute` on the instance.
 - **Proposal:** official before/after-command listeners on `History`.
@@ -48,7 +48,7 @@ Each entry states: what was found in the host, the proposal, what Newton could r
 
 ## A mesh revision that covers every change
 
-- **Status:** idea
+- **Status:** proposed ([#1234](https://github.com/ingelibre/ingetrazo/issues/1234), 2026-11-06)
 - **Found:** 2026-11-05
 - **Host today:** `Mesh._mut_serial` (`core/mesh.py`) is private and not raised by in-place winding flips (`FlipFacesCommand`) or face attribute changes.
 - **Proposal:** a public revision raised by every change, or a separate attribute revision.
@@ -97,7 +97,7 @@ Each entry states: what was found in the host, the proposal, what Newton could r
 
 ## Preferences pages for extensions
 
-- **Status:** idea
+- **Status:** proposed ([#1235](https://github.com/ingelibre/ingetrazo/issues/1235), 2026-11-06)
 - **Found:** before 2026-11-05 (AGENTS.md, "Architecture")
 - **Host today:** Extension API 2 has no hook to add a preferences page.
 - **Proposal:** a registration call, e.g. `app.add_preferences_page(title, factory)`, with accept/validate callbacks.
