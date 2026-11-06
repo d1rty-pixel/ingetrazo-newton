@@ -73,7 +73,7 @@ Each entry states: what was found in the host, the proposal, what Newton could r
 
 ## Simplify Mesh after a refused command
 
-- **Status:** idea
+- **Status:** proposed, [ingelibre/ingetrazo#1241](https://github.com/ingelibre/ingetrazo/pull/1241)
 - **Found:** 2026-11-05
 - **Host today:** `_on_simplify_mesh` (`views/main_window.py`) reads `history.undo_stack[-1]` after `execute`; when the command was refused (`last_rejected`) the stack can be empty and it raises `IndexError`.
 - **Proposal:** check `last_rejected` and show it, as `tools/move.py` does.
@@ -115,7 +115,7 @@ Each entry states: what was found in the host, the proposal, what Newton could r
 
 ## Report refused commands to the Python console and the MCP bridge
 
-- **Status:** idea
+- **Status:** proposed, [ingelibre/ingetrazo#1242](https://github.com/ingelibre/ingetrazo/pull/1242)
 - **Found:** 2026-11-05, testing virtual controls through the MCP bridge during a simulation
 - **Host today:** `run_transactional` (`core/ai.py`, line 420) runs the code inside one `SnapshotImport` through `history.execute` and reads only `history.last_error`. When a history refuses the command before it runs (`last_rejected`), the code never runs, stdout stays empty and the result says `changed: True`; `scripts/ingetrazo_mcp.py` then prints only "(changed: True)".
 - **Proposal:** check `history.last_rejected` after `execute`; return it as an error (or a separate `rejected` field) with `changed: False`, and let the MCP bridge print it.
@@ -133,7 +133,7 @@ Each entry states: what was found in the host, the proposal, what Newton could r
 
 ## Shortcut page that follows added and removed actions
 
-- **Status:** idea
+- **Status:** proposed, [ingelibre/ingetrazo#1244](https://github.com/ingelibre/ingetrazo/pull/1244)
 - **Found:** 2026-11-05, Newton key slots
 - **Host today:** `ShortcutsPanel` (`views/shortcuts.py`, line 387) collects the window's actions once, when the preferences dialog is built, and `assign` checks clashes only against that list. An action an extension adds or removes while the dialog is open is missing from the list and from the clash check, so two actions can end up on one key (Qt then fires neither).
 - **Proposal:** a public `ShortcutsPanel.reload()`, or let the page re-collect the actions whenever it is shown and before every `assign`.
@@ -168,7 +168,7 @@ Each entry states: what was found in the host, the proposal, what Newton could r
 
 ## Placing a group bypasses the workspace tool filter
 
-- **Status:** idea
+- **Status:** proposed, [ingelibre/ingetrazo#1243](https://github.com/ingelibre/ingetrazo/pull/1243)
 - **Found:** 2026-11-06, audit of Browser and Tray actions during a simulation
 - **Host today:** `MainWindow._start_place` (`views/main_window.py:7388`) activates `PlaceGroupTool` without the workspace's `_tool_filter`, which `_activate_tool` (`:3586`) enforces. Library insert and *Place a Copy* use it; in Newton's simulation the click's `InsertGroupCommand` is then refused.
 - **Proposal:** route `_start_place` through the same filter.
@@ -176,7 +176,7 @@ Each entry states: what was found in the host, the proposal, what Newton could r
 
 ## Callers carry on after a refused command
 
-- **Status:** idea
+- **Status:** proposed, [ingelibre/ingetrazo#1241](https://github.com/ingelibre/ingetrazo/pull/1241)
 - **Found:** 2026-11-06, audit of Browser and Tray actions during a simulation
 - **Host today:** `History.execute` (`core/history.py:239`) returns `None`, so callers cannot tell a refusal from success. `MaterialsPanel._restamp` (`views/tray.py:2648–2670`) updates the paint tool and reports "Material … updated" after a refusal; `_place_view` with `open_sheet` (`views/outliner.py:3720`) would raise `ValueError`. "Simplify Mesh after a refused command" above has the same cause.
 - **Proposal:** let `execute` return whether the command ran, or have these callers check `history.last_rejected`.
