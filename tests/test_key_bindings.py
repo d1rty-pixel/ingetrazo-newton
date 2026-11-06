@@ -214,21 +214,53 @@ def test_row_fields_store_one_undo_step_and_the_strip_follows(panel, qtapp):
     from PySide6.QtWidgets import QLabel
     seed_coupled_robot(panel)
     first = next(r for r in eligible_rows(panel) if r["limited"])
+    bound = with_bindings(None, [toggle(first["uid"], 1, first["upper"], 0)])
+    panel.app.set_document_data(bound)
     panel.refresh()
     fields = row_fields(panel, "joint", first["uid"])
-    assert fields.isEnabled() and fields.binding is None
+    assert fields.isEnabled() and fields.binding["slot"] == 1
     steps = len(panel.app.viewport.history.undo_stack)
     fields.slot.setCurrentIndex(fields.slot.findData(2))
     fields.edit("slot")
     assert panel.app.document_data() == {"bindings": [dict(target={"joint": first["uid"]}, slot=2, mode="toggle",
-                                                           value=first["upper"], rest=fields.binding["rest"])]}
+                                                           value=first["upper"], rest=0)]}
     assert len(panel.app.viewport.history.undo_stack) == steps+1
-    wait(qtapp, lambda: row_fields(panel, "joint", first["uid"]).binding is not None)
+    wait(qtapp, lambda: row_fields(panel, "joint", first["uid"]).binding["slot"] == 2)
     assert "Toggle" in [l.text() for l in panel.controls.scroll.widget().findChildren(QLabel)]
     panel.app.viewport.history.undo()
     panel.refresh()
-    assert panel.app.document_data() is None
-    assert row_fields(panel, "joint", first["uid"]).binding is None
+    assert panel.app.document_data() == bound
+    assert row_fields(panel, "joint", first["uid"]).binding["slot"] == 1
+
+
+def test_the_key_column_shows_the_dropdown_until_a_key_is_set_and_then_a_modify_button(panel):
+    from PySide6.QtWidgets import QComboBox, QPushButton, QToolButton
+    seed_coupled_robot(panel)
+    first = next(r for r in eligible_rows(panel) if r["limited"])
+    controls = panel.controls
+    panel.show_controls()
+
+    def widgets(kind, match):
+        return [w for w in controls.scroll.widget().findChildren(kind) if match(w)]
+    pickers = lambda: widgets(QComboBox, lambda c: c.itemText(0) == "No key" and c.itemData(0) is None and c.count() > 1 and c.toolTip())
+    modify = lambda: widgets(QPushButton, lambda b: b.text() == "Modify")
+    handles = lambda: widgets(QToolButton, lambda b: b.toolTip() == "Key binding")
+    rows = len(controls.rows)
+    assert len(pickers()) == rows and not modify() and not any(h.isEnabled() for h in handles())
+    panel.app.set_document_data(with_bindings(None, [toggle(first["uid"], 1, first["upper"], 0)]))
+    panel.refresh()
+    assert len(pickers()) == rows-1 and len(modify()) == 1
+    assert [h.isEnabled() for h in handles()].count(True) == 1
+    modify()[0].click()
+    assert len(pickers()) == rows and not modify()
+    bound = next(c for c in pickers() if c.currentData() == 1)
+    bound.setCurrentIndex(bound.findData(2))
+    bound.activated.emit(bound.currentIndex())
+    assert stored(panel.app.document_data())[0]["slot"] == 2
+    unset = next(c for c in widgets(QComboBox, lambda c: c.currentData() is None and c.itemText(0) == "No key" and c.toolTip()))
+    unset.setCurrentIndex(unset.findData(3))
+    unset.activated.emit(unset.currentIndex())
+    assert len(stored(panel.app.document_data())) == 2
 
 
 def test_row_fields_of_a_switch_use_state_names_and_are_disabled_while_running(panel, qtapp):
@@ -263,6 +295,7 @@ def test_a_passive_axis_has_no_row_and_so_no_binding_fields(panel):
 def test_a_changed_slot_label_reaches_the_row_dropdowns(panel):
     seed_coupled_robot(panel)
     first = next(r for r in eligible_rows(panel) if r["limited"])
+    panel.app.set_document_data(with_bindings(None, [toggle(first["uid"], 2, first["upper"], 0)]))
     panel.refresh()
     row_fields(panel, "joint", first["uid"])
     panel.key_slots.set_label(1, "Gripper")
@@ -277,6 +310,7 @@ def test_a_changed_slot_key_reaches_the_dropdowns_and_every_list_names_slots_ali
     from newton.preferences import NewtonPreferences
     seed_coupled_robot(panel)
     first = next(r for r in eligible_rows(panel) if r["limited"])
+    panel.app.set_document_data(with_bindings(None, [toggle(first["uid"], 2, first["upper"], 0)]))
     panel.refresh()
     page = NewtonPreferences(panel)
     panel.key_slots.set_label(1, "Gripper")
