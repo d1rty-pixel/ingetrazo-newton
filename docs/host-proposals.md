@@ -80,7 +80,7 @@ Each entry states: what was found in the host, the proposal, what Newton could r
 
 ## Opening a refused group reports "Editing"
 
-- **Status:** idea
+- **Status:** proposed, as a comment on [ingelibre/ingetrazo#1232](https://github.com/ingelibre/ingetrazo/issues/1232#issuecomment-6689339377) (read-only workspace)
 - **Found:** 2026-11-05
 - **Host today:** `Viewport.begin_group_edit` (`views/viewport.py`) flashes "Editing …" even when the scene did not open the group.
 - **Proposal:** flash only when `scene.edit_group` changed, or let the scene return whether it opened.
