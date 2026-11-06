@@ -87,3 +87,54 @@ def test_initial_velocity_restored_on_reload():
         world.load(dict(bodies=bodies,gravity=0,floor=False))
         assert advance(world)[body.uid][0] == pytest.approx([0,2,10],abs=.001)
     finally:world.close()
+
+
+def attraction_scene():
+    attract = lambda mu,softening:dict(simulation_override=dict(attraction=mu,softening=softening))
+    hinge = lambda pivot:dict(type="hinge",pivot=pivot,axis=[0,1,1])
+    return [box("heavy",(0,0,10),(1,1,1),mass=5,**attract(3,.2)),
+            box("light",(3,1,11),(.5,.5,.5),mass=.5,**attract(.4,.05)),
+            box("coincident",(3,1,11),(.4,.4,.4),mass=2,**attract(1.5,0)),
+            box("passive",(-2,4,9),(1,1,1),mass=3),
+            box("hinged",(6,0,10),(2,.2,.2),mass=1.5,joint=hinge([5,0,10]),**attract(.7,.1))]
+
+
+def test_attraction_matches_per_pair_jacobians():
+    import numpy as np
+    world = run(attraction_scene(),gravity=0,floor=False)
+    try:
+        world.data.qpos[-1] = .6
+        world.mj.mj_fwdPosition(world.model,world.data)
+        expected = np.zeros(world.model.nv)
+        for source,mu,softening in world.attractors:
+            for target in world.bodies.values():
+                if target==source:continue
+                delta = world.data.xipos[source]-world.data.xipos[target]
+                distance2 = float(delta@delta)+softening**2
+                if distance2<1e-18:continue
+                jp = np.zeros((3,world.model.nv))
+                world.mj.mj_jacBodyCom(world.model,world.data,jp,None,target)
+                expected += jp.T@(world.model.body_mass[target]*mu*delta/distance2**1.5)
+        world.data.qfrc_applied[:] = 0
+        world.apply_attraction()
+        assert expected[-1]!=0
+        np.testing.assert_allclose(world.data.qfrc_applied,expected,rtol=1e-12,atol=1e-12*np.abs(expected).max())
+    finally:world.close()
+
+
+def test_mutual_attraction_conserves_linear_momentum():
+    import numpy as np
+    # Equal G and softening make every pair force reciprocal.
+    bodies = [box(f"b{i}",(3*i,(-1)**i,10+i%3),(.5,.5,.5),mass=1+i,
+                  simulation_override=dict(attraction=2*(1+i),softening=.1,initial_velocity=[0,.1*i,0]))
+              for i in range(4)]
+    world = run(bodies,gravity=0,floor=False)
+    def momentum():
+        world.mj.mj_subtreeVel(world.model,world.data)
+        return world.model.body_subtreemass[0]*world.data.subtree_linvel[0].copy()
+    try:
+        before = momentum()
+        advance(world,2)
+        assert np.abs(world.data.qvel).max()>.5
+        np.testing.assert_allclose(momentum(),before,atol=1e-9)
+    finally:world.close()

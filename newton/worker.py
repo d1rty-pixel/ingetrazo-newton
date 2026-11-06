@@ -473,6 +473,10 @@ class World:
                     raise ValueError("Initial velocity needs a freely movable body.")
                 dof = int(self.model.jnt_dofadr[jid])
                 self.data.qvel[dof:dof+3] = e["initial_velocity"]
+        if self.attractors:
+            sources,mu,softening = map(self.np.array,zip(*self.attractors))
+            targets = self.np.array(list(self.bodies.values()),dtype=int)
+            self.attraction = (sources.astype(int),mu[:,None],softening[:,None]**2,targets,self.model.body_mass[targets][:,None])
         for uid, name, cfg in pending:
             jid = self.mj.mj_name2id(self.model, self.mj.mjtObj.mjOBJ_JOINT, name)
             self.motors[uid] = dict(cfg, dof=int(self.model.jnt_dofadr[jid]),
@@ -664,16 +668,17 @@ class World:
     def apply_attraction(self):
         # Sources emit a Newtonian field mu = G*M. With the same G on all
         # bodies the forces are reciprocal and conserve total momentum.
-        for source,mu,softening in self.attractors:
-            for target in self.bodies.values():
-                if target==source:continue
-                delta = self.data.xipos[source]-self.data.xipos[target]
-                distance2 = float(delta@delta)+softening**2
-                if distance2<1e-18:continue
-                force = self.model.body_mass[target]*mu*delta/distance2**1.5
-                jp = self.np.zeros((3,self.model.nv))
-                self.mj.mj_jacBodyCom(self.model,self.data,jp,None,target)
-                self.data.qfrc_applied[:] += jp.T@force
+        if not self.attractors:return
+        np = self.np;sources,mu,softening2,targets,mass = self.attraction
+        delta = self.data.xipos[sources][:,None]-self.data.xipos[targets][None]
+        distance2 = np.einsum("stk,stk->st",delta,delta)+softening2
+        valid = (sources[:,None]!=targets[None])&(distance2>=1e-18)
+        scale = np.divide(mu,distance2**1.5,out=np.zeros_like(distance2),where=valid)
+        forces = mass*np.einsum("st,stk->tk",scale,delta)
+        # Not via xfrc_applied: the worker never clears it, so it stays usable for external loads.
+        torque = np.zeros(3)
+        for target,force in zip(targets.tolist(),forces):
+            self.mj.mj_applyFT(self.model,self.data,force,torque,self.data.xipos[target],target,self.data.qfrc_applied)
 
     def set_drag(self, drag):
         if drag is None:
