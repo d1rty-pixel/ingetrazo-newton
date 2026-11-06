@@ -195,7 +195,8 @@ def test_clones_share_the_document_mesh_and_keep_its_world_placement():
     for group in (plain, instance, hinged, nested):
         clone = movers[group.uid]
         assert clone.mesh is group.mesh
-        assert all(a is b for a, b in zip(clone.children, group.children))
+        assert len(clone.children) == len(group.children)
+        assert all(a is not b and a.mesh is b.mesh and a.xform == b.xform for a, b in zip(clone.children, group.children))
         placed = [x for v in world_mesh(clone).vertices for x in v.position.toTuple()]
         source = [x for v in world_mesh(group).vertices for x in v.position.toTuple()]
         assert placed == pytest.approx(source, abs=1e-5)

@@ -143,6 +143,21 @@ class AddDemo(Command):
         scene.version += 1
 
 
+def nested_clone(group):
+    """A workspace copy of a nested group that shares its mesh and nested placements' meshes."""
+    clone = Group(group.mesh, group.name)
+    clone.uid = group.uid
+    clone.xform = None if group.xform is None else QMatrix4x4(group.xform)
+    clone.component = group.component
+    clone.ext = copy.deepcopy(group.ext)
+    clone.material = copy.deepcopy(group.material)
+    clone.billboard = group.billboard
+    clone.layer = group.layer
+    clone.hidden = group.hidden
+    clone.children = [nested_clone(child) for child in group.children]
+    return clone
+
+
 class SimulationScene(Scene):
     """The temporary simulation's scene; its groups never open for editing.
 
@@ -224,7 +239,8 @@ def prepare(source,require_movable=True,hidden="needed"):
             joint["parent"] = reference_id(group)
         origin = joint["pivot"] if joint else center
         clone = Group(group.mesh, group.name)
-        clone.children = list(group.children)
+        # Own child objects: host panels set a child's xform directly (explode preview, copy_group).
+        clone.children = [nested_clone(child) for child in group.children]
         clone.component = group.component
         clone.uid = group.uid
         clone.ext = copy.deepcopy(group.ext)

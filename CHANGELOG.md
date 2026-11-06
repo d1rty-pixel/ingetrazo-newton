@@ -52,6 +52,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ### Fixed
 
+- The simulation can no longer change the document's nested groups through the Parts explode slider, *Place a Copy* or Edit ▸ Copy, and the check after a simulation now also reports reversed faces and changed face colours, materials or textures.
 - Windows: `install-local.ps1` works in Windows PowerShell 5.1; it reported "MuJoCo is not installed" for every interpreter because PowerShell dropped the quotes of its MuJoCo check.
 - Windows: `setup-runtime.ps1` accepts only a Python 3.12 64-bit and says so, replaces a `.venv` left by another Python instead of failing again, leaves a Linux `.venv` from WSL alone and installs the pinned `runtime-requirements.txt` (with numpy).
 - `install-local.ps1 -Update` and `install-local.sh --update` remove modules that a newer version no longer has.

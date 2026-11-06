@@ -70,3 +70,19 @@ Possible directions: choose the cone or solver by model size or contact count, o
 - How much the pyramidal cone changes sliding, rolling and grip results (impratio, gripper tests); CG and PGS hit the iteration limit, so their accuracy needs checking too.
 - Which threshold (degrees of freedom, contacts) and whether the switch may happen during a run.
 - Whether such clusters matter outside synthetic attraction tests (bulk material, many loose parts).
+
+## Idea: display rate setting for the simulation
+
+Status: idea, requested on 6 November 2026; not scoped.
+
+While a simulation runs, every worker result is applied to the view: `Session.apply()` raises `scene.version`, and the host rebuilds its consolidated buffers (17–31 ms per frame on the crank drive and CR10 models, see [known-issues.md](known-issues.md), "Every simulation frame rebuilds the viewport caches"). The display therefore settles at about 30 frames per second as a side effect, not as a deliberate limit.
+
+- A Newton preference *Display rate* (for example 30, 60 or unlimited frames per second; suggested default 60) that limits how often poses are applied to the view. The worker keeps simulating at full rate and real-time pacing is unchanged; only the redraw is throttled.
+- Halving the display rate halves the buffer rebuilds and frees GUI time for input and the control panel, already with the pinned host.
+- Stays useful after the host proposal "Display transforms without changing the scene" lands, as a way to save power or GPU time.
+
+Open questions:
+
+- Whether the latest pose is applied when the simulation pauses or resets, so the view never shows a stale frame.
+- Whether telemetry and the control panel follow the display rate or keep their own update rate.
+- Where it lives: *Preferences → Simulation* next to *Quality*, or the control panel's *Options* menu.

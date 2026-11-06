@@ -3,7 +3,9 @@ from __future__ import annotations
 from .i18n import tr
 
 import json
+import marshal
 import math
+import pickle
 import time
 from pathlib import Path
 from PySide6.QtCore import QObject, QProcess, QTimer, Signal
@@ -48,8 +50,29 @@ def mesh_marks(scene):
     for g in iter_groups(scene.groups):
         if g.mesh is not None:
             meshes[id(g.mesh)] = g.mesh
-    return {key: (m, m._mut_serial, len(m.vertices), len(m.edges), len(m.faces))
+    return {key: (m, m._mut_serial, len(m.vertices), len(m.edges), len(m.faces), face_marks(m))
             for key, m in meshes.items()}
+
+
+def face_marks(mesh):
+    """The first two vertices of every loop and a hash of all face attrs: what reversing or painting a face changes."""
+    faces = mesh.faces
+    try:
+        loops = [f.loop[0] for f in faces], [f.loop[1] for f in faces]
+    except IndexError:  # A degenerate loop must not stop Start.
+        loops = [f.loop[:2] for f in faces]
+    holes = [h[:2] for f in faces if f.hole_loops for h in f.hole_loops]
+    return loops, holes, attrs_hash([f.attrs for f in faces])
+
+
+def attrs_hash(attrs):
+    """A hash of the attrs' content, nested values included; the fallbacks cover values marshal cannot write."""
+    for dump in (lambda a: marshal.dumps(a, 2), pickle.dumps, repr):  # Version 2 writes no back-references, which follow refcounts.
+        try:
+            return hash(dump(attrs))
+        except Exception:
+            pass
+    return None
 
 
 def pending_redraws(scene):
@@ -60,13 +83,13 @@ def pending_redraws(scene):
 
 
 def changed_meshes(marks):
-    """Meshes whose geometry changed since ``mesh_marks``.
+    """Meshes whose geometry, winding or face attributes changed since ``mesh_marks``.
 
-    Winding and face attributes change without a mark; ReadOnlyHistory is
-    what keeps those out.
+    Winding is compared by the first two vertices of each outer and hole
+    loop, which any reversal of a loop changes.
     """
-    return [m for m, *mark in marks.values()
-            if mark != [m._mut_serial, len(m.vertices), len(m.edges), len(m.faces)]]
+    return [m for m, *mark, faces in marks.values()
+            if mark != [m._mut_serial, len(m.vertices), len(m.edges), len(m.faces)] or faces != face_marks(m)]
 
 
 class Workspace:
