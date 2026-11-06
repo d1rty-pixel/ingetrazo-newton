@@ -78,12 +78,10 @@ Status values: **open** (confirmed, not fixed), **observation** (reported, cause
 
 ## Position drive keeps a steady offset under load
 
-- **Status:** open
+- **Status:** fixed (unreleased)
 - **Reported:** 2026-11-05, with the limit hardness setting
-- **Where:** `newton/worker.py`, `World.step` (position drive: `kp = 100 * inertia`, no integral term)
-- **Symptom:** A servo stops short of its target by load / (100 × moved mass). In the drag-chain demo (`scripts/models/flexible_demos.py`, carriage 0.3 kg, 30 N/m) the chain pushes back with 0.4–1.6 N, so the carriage stays 1–4 cm off target; with hard limits (100 %, the default) the chain is stiffer and the offset slightly larger. `test_carrier_keeps_cable_inside_while_carriage_moves_both_ways` therefore allows 6 cm.
-- **Unverified:** whether an integral term (as the speed motor has) keeps the drive stable with couplings and stiff mechanisms.
-- **Next step:** add an anti-windup integral term to the position drive, then tighten the carrier test again.
+- **Symptom:** A servo stopped short of its target by load / (100 × moved mass). In the drag-chain demo (`scripts/models/flexible_demos.py`, carriage 0.3 kg) the carriage stayed 2.7–5.0 cm off target.
+- **Fix:** `newton/worker.py`, `World.step`: the position drive has an anti-windup integral term (`KI_POSITION`, limited to 15 % of the axis force). The carriage now ends within 0.2 cm; `test_carrier_keeps_cable_inside_while_carriage_moves_both_ways` checks 1 cm. Measurements: [test and measurement runs](lab/test-and-measurement-runs.md), "Position drive integral term".
 
 ## Worker inherited the host's `PYTHONPATH` (Flatpak)
 
