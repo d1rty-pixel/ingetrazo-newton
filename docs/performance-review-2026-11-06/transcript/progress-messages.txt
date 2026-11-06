@@ -1,0 +1,18 @@
+Historical source record: review progress messages, preserved in their original language.
+Earlier unrelated skill/model-management work is not included.
+
+1. Ich beschränke die Review auf die Newton-Extension und ihre internen Aufrufpfade. Ich priorisiere belegbare Engpässe; Impact-Schätzungen ohne Laufzeitmessung kennzeichne ich als solche.
+
+2. Zwei konkrete Verdachtsstellen sind sichtbar: Im Worker werden pro Physikschritt wiederholt große Jacobian-Arrays erzeugt; die UI setzt pro Telemetrie-Frame sämtliche Label-Styles neu. Ich messe beide Pfade isoliert, um ihren tatsächlichen Anteil einzuordnen. Den Host und deine beiden lokal geänderten Modell-Dateien lasse ich unverändert.
+
+User clarification: ingetrazo-source ignorieren
+
+3. Verstanden: `ingetrazo-source/` bleibt vollständig außerhalb der Review. Ich isoliere auch die Messungen so, dass sie nur Newton-Code, Qt und MuJoCo verwenden.
+
+4. Die ersten Messungen bestätigen zwei Engpässe:
+- Bei 100 Körpern mit gegenseitiger Anziehung braucht der Worker etwa **372 ms für 33 ms Simulationszeit**.
+- Bei 100 Telemetriezeilen kostet das wiederholte Setzen identischer Styles etwa **2,5 ms pro Update**; ohne diese Style-Wiederholungen sind es rund **0,2 ms**.
+
+Das sind isolierte synthetische Tests, keine FPS-Messungen deiner konkreten Szene.
+
+5. Die Anziehungsberechnung lässt sich im isolierten Gegenversuch deutlich beschleunigen: Bei 100 Körpern sank die Zeit von etwa **360 auf 13 ms**, indem Kräfte je Zielkörper vektorisiert summiert und dessen Jacobian nur einmal berechnet wurde. Die Kräfte stimmten am geprüften Zustand numerisch überein; für einen produktiven Fix fehlen noch Physik-Regressionsprüfungen. Außerdem liegen die Kollisionsvorschau und das synchrone Warten auf Prozessende im GUI-Pfad — diese Latenzen ordne ich getrennt vom Worker-Durchsatz ein.

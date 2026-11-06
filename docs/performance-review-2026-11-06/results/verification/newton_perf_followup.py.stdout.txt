@@ -1,0 +1,11 @@
+ATTRACTION: per-pair vs per-target Jacobian (same force math)
+{'n': 50, 'original_ms': 85.252, 'per_target_ms': 44.026, 'force_max_abs_error': 0.0}
+{'n': 50, 'vectorized_ms': 5.524, 'force_check': 'passed'}
+{'n': 100, 'original_ms': 385.677, 'per_target_ms': 188.756, 'force_max_abs_error': 0.0}
+{'n': 100, 'vectorized_ms': 14.22, 'force_check': 'passed'}
+WORKER PROTOCOL INITIALIZATION: unused vertices on analytic boxes
+{'vertices': 1000, 'payload_bytes': 17212, 'encode_ms': 0.32, 'decode_ms': 0.161}
+{'vertices': 100000, 'payload_bytes': 1700212, 'encode_ms': 32.392, 'decode_ms': 21.696}
+{'vertices': 250000, 'payload_bytes': 4250212, 'encode_ms': 80.865, 'decode_ms': 58.493}
+STOP: exact CollisionView.stop with a non-responding fake worker (500ms kill/reap latency)
+{'blocked_ui_ms': 500.082}

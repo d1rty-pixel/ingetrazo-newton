@@ -173,6 +173,34 @@ def test_context_menu_selects_only_the_physics_object_the_body_owns(panel,qtapp)
     assert not actions["Select axis object"].isEnabled() and not actions["Select connection object"].isEnabled()
 
 
+def test_collider_paint_skips_hidden_bodies_and_invisible_layers(panel):
+    from newton.model import box,AddDemo
+    from core.layers import Layer
+    bodies = [box(n,(i*3,0,1),(1,1,1)) for i,n in enumerate("ABC")]
+    panel.app.viewport.history.execute(AddDemo(bodies))
+    scene,view = panel.app.scene,panel.collision_view
+    scene.layers.append(Layer("Off"));scene.layers[-1].visible = False
+    bodies[1].hidden = True
+    bodies[2].layer = "Off"
+    shape = {"points":[[0,0,0],[1,0,0],[0,1,0]],"edges":[[0,1]],"faces":[]}
+    class Painter:
+        def __init__(self): self.lines=0
+        def drawLine(self,*a): self.lines += 1
+        def __getattr__(self,key): return lambda *a:None
+    panel.show_colliders.setChecked(True)
+    view.colliders = {b.uid:shape for b in bodies}
+    view.poses = {b.uid:([0,0,1],[0,0,0,1]) for b in bodies}
+    try:
+        painter = Painter();view.draw(panel.app.viewport,painter)
+        assert painter.lines==1
+        bodies[1].hidden = False;bodies[2].layer = None
+        painter = Painter();view.draw(panel.app.viewport,painter)
+        assert painter.lines==3
+    finally:
+        panel.show_colliders.setChecked(False)
+        view.colliders = {}
+
+
 def test_body_collision_shape_toggle_overrides_only_this_body(panel):
     from newton.model import box,AddDemo
     a,b = box("A",(0,0,1),(1,1,1)),box("B",(3,0,1),(1,1,1))
@@ -1735,8 +1763,8 @@ def test_control_panel_marks_errors_and_warnings_but_not_hints(panel):
 def test_control_panel_is_a_bottom_dock_under_the_view_and_the_sidebar_keeps_its_height(panel):
     window,dock = panel.app.window,panel.controls.dock
     assert window.dockWidgetArea(dock)==Qt.BottomDockWidgetArea
-    assert window.corner(Qt.BottomRightCorner)==Qt.RightDockWidgetArea
     # The host's restoreState undoes the corner; the next refresh puts it back.
+    # Not asserted before it: in tests the host restores after setup, from whatever layout .test-state last saved.
     window.setCorner(Qt.BottomRightCorner,Qt.BottomDockWidgetArea)
     panel.controls.refresh([],False)
     assert window.corner(Qt.BottomRightCorner)==Qt.RightDockWidgetArea
@@ -2709,3 +2737,27 @@ def test_grouping_a_connection_object_with_other_objects_keeps_one_valid_object(
     assert len(history.undo_stack)==steps+1 and placement(marker)[0]==pytest.approx(before,abs=1e-5)
     history.undo();ok()
     history.redo();ok()
+
+
+def test_control_telemetry_restyles_only_when_the_limit_state_changes(panel,monkeypatch):
+    group = select_demo_axis(panel,"Linear carriage")
+    joint = next(j for j in joint_rows(panel.app.scene) if j["body"]==group.name)
+    panel.show_controls()
+    label = panel.controls.rows[joint["uid"]][0]
+    calls = []
+    original = label.setStyleSheet
+    monkeypatch.setattr(label,"setStyleSheet",lambda text:(calls.append(text),original(text)))
+    state = dict(position=.25,target=.2,command=.2,load=0)
+    for _ in range(3):
+        panel.controls.telemetry({joint["uid"]:state})
+    assert len(calls)<=1
+    normal = (label.text(),label.toolTip(),label.styleSheet())
+    calls.clear()
+    panel.controls.telemetry({joint["uid"]:dict(state,at_limit=True)})
+    assert calls==["font-family: monospace; color: #e79b38"]
+    assert label.text().endswith(" !") and label.toolTip().endswith("At limit") and "#e79b38" in label.styleSheet()
+    panel.controls.telemetry({joint["uid"]:dict(state,at_limit=True)})
+    assert len(calls)==1
+    panel.controls.telemetry({joint["uid"]:state})
+    assert (label.text(),label.toolTip(),label.styleSheet())==normal
+    assert len(calls)==2

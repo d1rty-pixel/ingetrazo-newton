@@ -12,7 +12,7 @@ from PySide6.QtGui import QMatrix4x4, QVector3D
 from core.scene import Scene
 from core.group import Group, world_mesh
 from core.history import History
-from newton.model import KEY, Configure, AddDemo, box, demo, prepare
+from newton.model import KEY, Configure, AddDemo, box, demo, prepare, worker_specs
 from newton.worker import World
 
 
@@ -288,6 +288,42 @@ def test_worker_protocol_recovers_from_invalid_command():
                if s.startswith("NEWTON:")]
     assert [r["ok"] for r in replies] == [True, False, True]
     assert replies[2]["time"] == pytest.approx(8/240)
+
+
+def shape_bodies():
+    nested = Group(name="nested")
+    nested.adopt([box("leg", (0,4,0), (1,1,1)), box("leg", (2,4,0), (1,1,1))])
+    nested.xform.translate(0,0,5)
+    nested.ext = {KEY: dict(mode="dynamic", shape="compound", mass=1)}
+    groups = [box("box", (0,0,3), (1,1,1)), box("sphere", (3,0,3), (1,1,1), shape="sphere"),
+              box("hull", (6,0,3), (1,1,1), shape="hull"), nested]
+    return specs(groups)[1]
+
+
+def test_worker_payload_drops_vertices_only_where_the_worker_ignores_them():
+    bodies = shape_bodies()
+    before = copy.deepcopy(bodies)
+    payload = {b["shape"]: b for b in worker_specs(bodies)}
+    assert bodies == before
+    assert all("vertices" in b for b in bodies)
+    assert {s for s, b in payload.items() if "vertices" in b} == {"hull"}
+    assert payload["compound"]["parts"] == before[3]["parts"]
+    unknown = dict(before[0], shape="cone")
+    assert worker_specs([unknown, dict(uid="rope", flexible={})]) == [unknown, dict(uid="rope", flexible={})]
+
+
+def test_worker_builds_and_steps_shapes_sent_without_vertices():
+    worker = Path(__file__).resolve().parents[1]/"newton"/"worker.py"
+    bodies = worker_specs(shape_bodies())
+    payload = "\n".join(json.dumps(r) for r in [dict(op="init", bodies=bodies),
+        dict(op="step", count=8), dict(op="quit")]) + "\n"
+    result = subprocess.run([sys.executable, "-u", str(worker)], input=payload,
+                            capture_output=True, text=True, timeout=20)
+    assert result.returncode == 0, result.stderr
+    replies = [json.loads(s.split(":",1)[1]) for s in result.stdout.splitlines()
+               if s.startswith("NEWTON:")]
+    assert [r["ok"] for r in replies] == [True, True], replies
+    assert set(replies[1]["poses"]) == {b["uid"] for b in bodies}
 
 
 def test_real_extension_loader_and_mainwindow_session(qtapp, monkeypatch):

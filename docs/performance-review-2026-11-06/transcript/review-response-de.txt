@@ -1,0 +1,191 @@
+Historical source record: original German review response, including its Markdown formatting.
+Paths and figures refer to the original review, before archival and temporary-script cleanup.
+
+## Ergebnis
+
+**Der stärkste belegte Engpass ist die Anziehungsberechnung in `worker.py`.** Bei 100 gegenseitig anziehenden Körpern benötigt sie etwa **360–372 ms für 33,3 ms Simulationszeit**. Auf der GUI-Seite fallen vor allem das Zeichnen vieler Kollisionsformen, wiederholte Vorschauinitialisierung und unnötige Telemetrie-Styles auf.
+
+Die Review umfasst ausschließlich Newton; `ingetrazo-source/` wurde nicht analysiert. `session.py`, `model.py` und `panel.py` wurden ergänzend für die internen Aufrufpfade betrachtet. **Keine Repository-Dateien verändert.**
+
+### Messbasis
+
+Isolierte synthetische Tests unter Python 3.12, MuJoCo 3.3.7, NumPy 2.5.4 und PySide6 6.11.3; Worker-Messungen als Median über fünf Wiederholungen, Qt offscreen.
+
+Die Zahlen zeigen Größenordnung und Optimierungspotenzial auf diesem System — **keine gemessenen FPS oder Eingabelatenzen einer vollständigen Anwendungsszene**.
+
+## Priorisierte Findings
+
+### 1. P1 — Anziehung berechnet denselben Ziel-Jacobian für jedes Körperpaar erneut
+
+**Stelle:** `newton/worker.py:664–676`
+
+`apply_attraction()` durchläuft sämtliche Anziehungsquellen × Zielkörper. Für jedes Paar werden ein dichtes `(3, nv)`-Array angelegt, `mj_jacBodyCom()` aufgerufen und die Kraft in generalisierte Kräfte umgerechnet. Innerhalb eines Substeps hängt dieser Jacobian jedoch nur vom Zielkörper ab, nicht von der jeweiligen Quelle.
+
+| Körper | Ohne Zusatzkräfte | Mit linearer Dämpfung | Alle Körper als Anziehungsquelle |
+|---:|---:|---:|---:|
+| 10 | 0,039 ms | 0,653 ms | 2,955 ms |
+| 50 | 0,120 ms | 3,489 ms | 85,538 ms |
+| 100 | 0,202 ms | 7,808 ms | 371,809 ms |
+
+Jeweils acht Schritte, entsprechend **33,3 ms Simulationszeit**, mit einem Substep und ohne Kontakte.
+
+Bei 100 Körpern entstehen **79.200 Jacobian-Aufrufe pro Acht-Schritt-Batch**. Die Paarberechnung wächst mit Quellen × Körpern; zusätzlich wächst die Breite der dichten Jacobians mit den Freiheitsgraden.
+
+**Impact:** Hoch, sobald viele Anziehungsquellen aktiv sind. Im 100-Körper-Test nur ungefähr **0,09× Echtzeit**. Da nur eine Anfrage gleichzeitig läuft, verzögern lange Batches auch die Übernahme neuer Drag- und Steuerziele. Ohne aktivierte Anziehung entfällt dieser Engpass.
+
+**Belegtes Potenzial im Gegenversuch:**
+
+- Kräfte je Ziel summieren, dann einen Jacobian anwenden: **360 → 176 ms**.
+- Zusätzlich die Quellenberechnung je Ziel vektorisieren: **360 → 13,1 ms**, ungefähr **27× schneller**.
+
+Die Kräfte stimmten am geprüften Zustand innerhalb `1e-12` überein. Das ist noch kein Nachweis identischer Langzeitdynamik.
+
+**Minimaler Ansatz:** Kraftsummierung je Zielkörper vorziehen, Jacobian einmal berechnen; anschließend Paarberechnung vektorisieren. Physikalische Regressionstests vor Übernahme.
+
+---
+
+### 2. P1 bei großen Szenen — Kollisionsoverlay verbraucht bereits allein ein vollständiges Framebudget
+
+**Stelle:** `newton/collision_view.py:106–132`, insbesondere `:114`
+
+Für jeden sichtbaren Collider wird `scene.groups` linear nach seiner UID durchsucht. Das erzeugt **O(Collider × Gruppen)** Arbeit pro Paint. Hinzu kommen pro Frame neue Matrizen, `QVector3D`-Objekte, Punktlisten und einzelne Painter-Aufrufe.
+
+Synthetischer Box-Test mit acht Punkten und zwölf Kanten, ohne Flächen und mit vereinfachter Projektion:
+
+| Collider/Gruppen | Original | Mit UID-Index einschließlich Indexaufbau |
+|---:|---:|---:|
+| 100 | 3,0 ms | 2,1 ms |
+| 500 | 13,3 ms | 10,4 ms |
+| 1.000 | 30,8 ms | 21,0 ms |
+
+**Impact:** Bei 500 Collidern beansprucht dieser Pfad im Test rund **80 % eines 16,7-ms-Framebudgets**; bei 1.000 überschreitet er es deutlich. Da er im GUI-Paint läuft, betrifft das auch Eingabeverarbeitung und Timer. Relevant nur bei aktivierter Kollisionsanzeige; komplexere Formen können weitere Kosten verursachen.
+
+**Minimaler Ansatz:**
+
+1. UID→Gruppe und Layer-Sichtbarkeit einmal pro Paint oder passend invalidiert aufbauen.
+2. Statische Formdaten vorbereiten; Qt-Kanten möglichst gebündelt zeichnen.
+3. Bei unveränderter Pose transformierte Punkte wiederverwenden.
+
+Der Index spart im 1.000-Collider-Test etwa **9,8 ms beziehungsweise 32 %**. Er beseitigt nicht die verbleibenden Zeichenkosten.
+
+---
+
+### 3. P2 — Vorschauinitialisierung wiederholt teure GUI-Arbeit und überträgt unbenötigte Geometrie
+
+**Stellen:**  
+`newton/collision_view.py:53–61, 73–85`  
+`newton/model.py:247–264`  
+`newton/session.py:198–204`
+
+Die Vorschau wird anhand der globalen `scene.version` invalidiert. Jede Erhöhung kann somit eine komplette Neuinitialisierung auslösen, auch wenn sich die Kollisionsgeometrie nicht geändert hat. Nach 150 ms Debounce folgen:
+
+- vollständiges `prepare()` im GUI-Thread,
+- neuer Worker-Prozess und MuJoCo-Modellaufbau,
+- JSON-Encoding ebenfalls im GUI-Thread.
+
+Zusätzlich enthält jede normale Körperspezifikation alle Vertices. Für analytische `box`- und `sphere`-Formen verwendet der Worker diese überhaupt nicht (`worker.py:330–335`).
+
+**Gemessener reiner JSON-Aufwand mit einfachen synthetischen Koordinaten:**
+
+| Überflüssige Vertices | Payload | Encoding im GUI-Thread | Decoding im Worker |
+|---:|---:|---:|---:|
+| 100.000 | 1,70 MB | ca. 31 ms | ca. 21 ms |
+| 250.000 | 4,25 MB | ca. 78 ms | ca. 54 ms |
+
+**Impact:** Schon die Serialisierung kann sichtbare **30–80-ms-GUI-Pausen** verursachen. Geometrieaufbereitung, Python-Listenaufbau, Prozessstart und Modellkompilierung kommen hinzu; deren Gesamtzeit wurde hier nicht gemessen. Wiederholte Invalidierungen verstärken den Effekt. Der Payload betrifft auch den normalen Simulationsstart.
+
+**Minimaler Ansatz:** Vertices nur für Formen übertragen, die sie benötigen; Vorschaucache an kollisionsrelevante Änderungen koppeln. Für weitergehende Auslagerung zuerst einen klaren Datensnapshot erzeugen — nicht einfach GUI-/Szenenobjekte aus einem Hintergrundthread verwenden.
+
+---
+
+### 4. P2 — Prozessbeendigung wartet synchron im GUI-Thread
+
+**Stellen:**  
+`newton/collision_view.py:63–67`  
+`newton/session.py:399–406`
+
+Beide Pfade rufen unmittelbar hintereinander auf:
+
+```python
+process.kill()
+process.waitForFinished(1000)
+```
+
+Die Vorschau macht das nicht nur beim Abschalten, sondern auch bei Invalidierung und nach erfolgreichem Einlesen des Ergebnisses.
+
+**Impact:** Der GUI-Callback kann bis zum Prozessende beziehungsweise bis zum **1.000-ms-Timeout** blockieren. Das ist ein belegtes Latenzrisiko im Code, **kein gemessener regelmäßiger Einsekunden-Freeze**; reale Kill-/Reap-Zeiten wurden nicht untersucht.
+
+**Minimaler Ansatz:** Prozess asynchron beenden und über `finished` aufräumen; gegebenenfalls zeitgesteuerte Eskalation. Veraltete Prozesssignale müssen dabei weiterhin sicher abgefangen werden.
+
+---
+
+### 5. P2 — Telemetrie löst pro Frame unnötige Qt-Stylearbeit aus
+
+**Stelle:** `newton/controls.py:710–724`, insbesondere `:723`
+
+Jedes Telemetrieupdate setzt für jedes vorhandene Label erneut das Stylesheet — auch wenn sich `at_limit` überhaupt nicht geändert hat. Damit entsteht wiederholte Style-/Repolish-Arbeit zusätzlich zu Text- und Tooltipupdates.
+
+**Messung mit 100 Labels, einschließlich offscreen Qt-Eventverarbeitung:**
+
+| Eingaben | Original | Identische Stylezuweisungen unterdrückt |
+|---|---:|---:|
+| Unveränderte Werte | 2,52 ms | 0,21 ms |
+| Wechselnde Positions-/Lastwerte | 2,53 ms | 1,29 ms |
+
+**Impact:** Im dynamischen Test rund **1,2 ms Ersparnis je Update**, bei konstanten Werten etwa **2,3 ms**. Das entspricht ungefähr **7–14 % eines 60-Hz-Framebudgets**. Bei wenigen Achsen ist der absolute Gewinn entsprechend kleiner.
+
+**Minimaler Ansatz:** Stylesheet nur bei Zustandswechsel setzen. Text und Tooltip ebenfalls nur bei geändertem dargestelltem Inhalt aktualisieren; bei Bedarf Telemetriedarstellung unabhängig von der Physikrate begrenzen.
+
+Die Messung verwendet vereinfachte Labels und eine ersetzte Übersetzungsfunktion, nicht das vollständige Steuerpult.
+
+---
+
+### 6. P2 — Dämpfung und lokale Gravitation verwenden einen unnötig allgemeinen dichten Jacobian-Pfad
+
+**Stelle:** `newton/worker.py:653–662`
+
+Für jeden betroffenen Körper und Substep werden translatorischer und rotatorischer Jacobian erzeugt und verarbeitet. Auch bei ausschließlich linearer Dämpfung werden Winkelgeschwindigkeit und Drehmomentpfad ausgewertet.
+
+**Impact:** Bei 100 freien Körpern erhöht aktivierte lineare Dämpfung die Batchzeit von **0,20 auf 7,81 ms**. Der Zusatzaufwand entspricht etwa **23 % der 33,3 ms simulierten Zeit**. Zusätzliche Substeps vervielfachen die Häufigkeit dieses Pfads.
+
+Wichtig: Das Profil zeigt **nicht nur ein Allokationsproblem**. Die `zeros()`-Aufrufe waren ein kleinerer Anteil; wiederholte Jacobian-Auswertung und Matrixoperationen dominieren.
+
+**Minimaler Ansatz:** Inaktive translatorische beziehungsweise rotatorische Zweige überspringen; MuJoCo-Funktionen für Körpergeschwindigkeit und Kraftanwendung als Alternative prüfen. Wiederverwendete Puffer allein werden den Gesamtaufwand voraussichtlich nicht beseitigen. Einen konkreten Speedup habe ich hierfür nicht verifiziert.
+
+---
+
+### 7. P3 — Performancewerte erfassen nicht die vollständige Anzeige- oder Eingabelatenz
+
+**Stellen:**  
+`newton/worker.py:647–650, 727`  
+`newton/session.py:210–260`  
+`newton/controls.py:726–734`
+
+- `output_ms` misst die Erstellung der Pose-/Joint-Daten, **nicht** JSON-Encoding oder Pipe-Ausgabe.
+- `ui_ms` beginnt erst nach JSON-Decoding und endet vor dem späteren Paint; auch die nachfolgenden Metrics-Slots sind nicht enthalten.
+- `roundtrip_ms` endet vor dem aktuellen `apply()` und dessen Paint.
+- `RealtimeMeter` misst Simulationsdurchsatz, nicht Frame-Pacing oder Maus→sichtbare-Reaktion.
+
+**Impact:** Kein unmittelbarer Durchsatzverlust, aber ein Diagnoseproblem: Niedrige Worker- und UI-Zeiten können gleichzeitig mit sichtbarem Ruckeln auftreten. Die oben gemessenen Collider-Paintkosten bleiben beispielsweise außerhalb von `ui_ms`.
+
+**Minimaler Ansatz:** Encoding/Decoding, Apply und Overlay-Paint getrennt instrumentieren; Frameintervalle und p95/p99 zusätzlich zum mittleren Durchsatz erfassen. Für Interaktion Zieländerungen und zugehörige Ergebnisframes mit Sequenznummern korrelieren.
+
+## Einordnung der übrigen Module und Eventpfade
+
+- **`interaction.py`: kein belegter Hotspot im Drag-Hover.** Es wird nur das neueste Ziel gespeichert (`:81–91`), nicht pro Mausereignis IPC ausgelöst. Die lineare Mover-Suche beim Klick (`:63`) ist gegenüber einem per Frame laufenden Pfad nachrangig. Die Kosten des aufgerufenen Host-Pickings bleiben ausdrücklich außerhalb dieser Review.
+- **`virtual_controls.py`: kein wesentlicher Laufzeitengpass erkennbar.** Interpolation ist linear in der Zahl beteiligter Achsen. Validierung und Auflösung skalieren mit den gespeicherten Zustandswerten, sind aber nicht Teil jedes Physik-Substeps.
+- **`performance.py`: kein relevanter Rechenengpass.** Das Zeitfenster verwendet eine `deque`; Entfernen alter Samples ist amortisiert O(1).
+- **`controls.py`: zusätzlicher, ungemessener Editier-Hotspot.** `detail_uid` ist Teil der Build-Signatur (`:283–288`); ein Auswahlwechsel kann deshalb das gesamte Steuerpult neu aufbauen. Bei vielen Zeilen besser Auswahlhervorhebung separat aktualisieren. Das ist kein nachgewiesener Per-Frame-Rebuild.
+- **Threading:** Der Worker ist ein separater Prozess. Es wurde kein Drag-/GUI-Datenrennen nachgewiesen. Die relevanten Probleme sind synchron ausgeführte GUI-Arbeit und lange Worker-Batches, nicht fehlende Locks.
+- **Backpressure funktioniert:** `session.py:267–277` erlaubt nur eine offene Anfrage. Das verhindert Queue-Wachstum. Neue Ziele warten allerdings auf den laufenden Batch und den nächsten 16-ms-Tick; langsame Batches verschlechtern dadurch unmittelbar die Steuerreaktion.
+
+## Fehlende Absicherung und empfohlene Reihenfolge
+
+1. **Anziehung:** Skalierungstest mit 10/50/100 Körpern und mehreren Quellen; Kraftgleichheit, Impulserhaltung, Softening und verbundene Körper nach Optimierung prüfen.
+2. **GUI-Latenz:** Collider-Paint und Telemetrie mit großen Mengen benchmarken; ein Eventloop-Heartbeat sollte blockierende Initialisierung und Prozessbeendigung sichtbar machen.
+3. **Initialisierung:** Sicherstellen, dass analytische Formen ohne Vertexpayload funktionieren und nicht kollisionsrelevante Änderungen keinen Neuaufbau auslösen.
+4. **Messabdeckung:** Durchsatz, Paintzeit und Eingabereaktion getrennt erfassen.
+
+**Umsetzungspriorität:** Anziehung zuerst, falls diese Funktion tatsächlich genutzt wird. Für allgemeine Bedienflüssigkeit danach Collider-Lookups/Zeichenpfad, Vorschauinitialisierung und asynchrones Prozessende. Das Unterdrücken identischer Telemetrie-Styles ist der kleinste klar gemessene Quick Win.
+
+Die vollständige Testsuite wurde wegen ihrer Host-Abhängigkeit nicht ausgeführt. Die isolierten Messskripte liegen unter `/tmp/opencode/newton_perf_review.py`, `/tmp/opencode/newton_perf_followup.py` und `/tmp/opencode/newton_perf_ui_followup.py`.

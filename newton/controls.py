@@ -719,9 +719,12 @@ class Controls(QWidget):
                 command = (state.get("command", state.get("target", joint["target"]))*scale+offset)*factor
                 tip = tr("Target: {target} · Ramp: {command} · Load: {load:.0f}%", target=f"{target:.{digits}f}", command=f"{command:.{digits}f}", load=state.get("load", 0)*100)
                 at_limit = state.get("at_limit")
-                label.setToolTip(tip+"\n"+tr("At limit") if at_limit else tip)
-                label.setStyleSheet("font-family: monospace; color: #e79b38" if at_limit else "font-family: monospace;")
-                label.setText(f"{(value*scale+offset)*factor:.{digits}f} {shown.unit}"+(" !" if at_limit else ""))
+                # setStyleSheet repolishes the label, so write only on change
+                for current, new, write in ((label.toolTip(), tip+"\n"+tr("At limit") if at_limit else tip, label.setToolTip),
+                                            (label.styleSheet(), "font-family: monospace; color: #e79b38" if at_limit else "font-family: monospace;", label.setStyleSheet),
+                                            (label.text(), f"{(value*scale+offset)*factor:.{digits}f} {shown.unit}"+(" !" if at_limit else ""), label.setText)):
+                    if new != current:
+                        write(new)
 
     def show_performance(self, metrics):
         self.performance_label.setVisible(bool(metrics))

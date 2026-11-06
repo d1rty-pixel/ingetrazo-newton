@@ -11,6 +11,7 @@ from PySide6.QtGui import QMatrix4x4, QQuaternion
 from core.history import History
 from . import keep_pose
 from .worker import joint_settings
+from .model import worker_specs
 
 
 def worker_environment():
@@ -179,7 +180,7 @@ class Session(QObject):
         # -E: the host's PYTHONPATH (e.g. Flatpak's /app site-packages) must not leak into the worker's interpreter.
         process.setArguments(["-E", "-u", str(Path(__file__).with_name("worker.py"))])
         process.setWorkingDirectory(str(Path(__file__).parent))
-        process.started.connect(lambda: self.send(dict(op="init", bodies=specs,
+        process.started.connect(lambda: self.send(dict(op="init", bodies=worker_specs(specs),
                                                        gravity=gravity, floor=floor,
                                                        linear_damping=linear_damping,angular_damping=angular_damping,quality=quality)))
         process.readyReadStandardOutput.connect(self.read)

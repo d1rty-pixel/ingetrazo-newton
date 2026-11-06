@@ -87,3 +87,91 @@ def test_initial_velocity_restored_on_reload():
         world.load(dict(bodies=bodies,gravity=0,floor=False))
         assert advance(world)[body.uid][0] == pytest.approx([0,2,10],abs=.001)
     finally:world.close()
+
+
+def attraction_scene():
+    attract = lambda mu,softening:dict(simulation_override=dict(attraction=mu,softening=softening))
+    hinge = lambda pivot:dict(type="hinge",pivot=pivot,axis=[0,1,1])
+    return [box("heavy",(0,0,10),(1,1,1),mass=5,**attract(3,.2)),
+            box("light",(3,1,11),(.5,.5,.5),mass=.5,**attract(.4,.05)),
+            box("coincident",(3,1,11),(.4,.4,.4),mass=2,**attract(1.5,0)),
+            box("passive",(-2,4,9),(1,1,1),mass=3),
+            box("hinged",(6,0,10),(2,.2,.2),mass=1.5,joint=hinge([5,0,10]),**attract(.7,.1))]
+
+
+def test_attraction_matches_per_pair_jacobians():
+    import numpy as np
+    world = run(attraction_scene(),gravity=0,floor=False)
+    try:
+        world.data.qpos[-1] = .6
+        world.mj.mj_fwdPosition(world.model,world.data)
+        expected = np.zeros(world.model.nv)
+        for source,mu,softening in world.attractors:
+            for target in world.bodies.values():
+                if target==source:continue
+                delta = world.data.xipos[source]-world.data.xipos[target]
+                distance2 = float(delta@delta)+softening**2
+                if distance2<1e-18:continue
+                jp = np.zeros((3,world.model.nv))
+                world.mj.mj_jacBodyCom(world.model,world.data,jp,None,target)
+                expected += jp.T@(world.model.body_mass[target]*mu*delta/distance2**1.5)
+        world.data.qfrc_applied[:] = 0
+        world.apply_attraction()
+        assert expected[-1]!=0
+        np.testing.assert_allclose(world.data.qfrc_applied,expected,rtol=1e-12,atol=1e-12*np.abs(expected).max())
+    finally:world.close()
+
+
+def test_mutual_attraction_conserves_linear_momentum():
+    import numpy as np
+    # Equal G and softening make every pair force reciprocal.
+    bodies = [box(f"b{i}",(3*i,(-1)**i,10+i%3),(.5,.5,.5),mass=1+i,
+                  simulation_override=dict(attraction=2*(1+i),softening=.1,initial_velocity=[0,.1*i,0]))
+              for i in range(4)]
+    world = run(bodies,gravity=0,floor=False)
+    def momentum():
+        world.mj.mj_subtreeVel(world.model,world.data)
+        return world.model.body_subtreemass[0]*world.data.subtree_linvel[0].copy()
+    try:
+        before = momentum()
+        advance(world,2)
+        assert np.abs(world.data.qvel).max()>.5
+        np.testing.assert_allclose(momentum(),before,atol=1e-9)
+    finally:world.close()
+
+
+
+def test_environment_matches_dense_jacobians():
+    import numpy as np
+    overrides = [dict(gravity=[1,-2,3]),dict(linear_damping=1.5),dict(angular_damping=2.5),
+                 dict(gravity=[0,0,0],linear_damping=.7,angular_damping=1.2)]
+    free = [box(f"free{i}",(3*i,-4,10),(1,.6,.3),mass=1+i,simulation_override=o) for i,o in enumerate(overrides)]
+    hinged = [box(f"hinged{i}",(6,3*i,10),(2,.2,.2),mass=1.5,simulation_override=o,
+                  joint=dict(type="hinge",pivot=[5,3*i,10],axis=[0,1,1])) for i,o in enumerate(overrides)]
+    world = run(free+hinged,floor=False)
+    model,data = world.model,world.data
+    try:
+        rng = np.random.default_rng(1)
+        for body in free:
+            adr = model.jnt_qposadr[model.body_jntadr[world.bodies[body.uid]]]
+            quaternion = rng.normal(size=4);data.qpos[adr+3:adr+7] = quaternion/np.linalg.norm(quaternion)
+        for body,angle in zip(hinged,[.6,-.4,1.1,.3]):
+            data.qpos[model.jnt_qposadr[model.body_jntadr[world.bodies[body.uid]]]] = angle
+        data.qvel[:] = 3*rng.normal(size=model.nv)
+        world.mj.mj_fwdPosition(model,data)
+        expected = np.zeros(model.nv)
+        for body,raw in zip(free+hinged,overrides*2):
+            bid = world.bodies[body.uid];mass = float(model.body_mass[bid])
+            gravity = np.asarray(raw.get("gravity",world.global_gravity))-world.global_gravity
+            linear,angular = raw.get("linear_damping",0),raw.get("angular_damping",0)
+            jp = np.zeros((3,model.nv));jr = np.zeros((3,model.nv))
+            world.mj.mj_jacBodyCom(model,data,jp,jr,bid)
+            force = mass*gravity-linear*mass*(jp@data.qvel)
+            rotation = data.ximat[bid].reshape(3,3)
+            torque = -angular*(rotation@(model.body_inertia[bid]*(rotation.T@(jr@data.qvel))))
+            expected += jp.T@force+jr.T@torque
+        data.qfrc_applied[:] = 0
+        world.apply_environment()
+        assert len(world.environments)==8 and np.all(expected[-4:]!=0)
+        np.testing.assert_allclose(data.qfrc_applied,expected,rtol=1e-12,atol=1e-12*np.abs(expected).max())
+    finally:world.close()

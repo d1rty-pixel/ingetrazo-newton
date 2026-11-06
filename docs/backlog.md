@@ -51,3 +51,22 @@ Open questions:
 
 - Whether it also applies to virtual controls, and how it relates to an axis that a virtual control manages (those have no strip of their own).
 - Whether many axes need a bulk action (hide all of a group, hide by name pattern) rather than one click each.
+
+## Idea: contact solver settings for large clustered scenes
+
+Status: idea, deferred on 6 November 2026; changes the friction model, so it needs a decision and regression tests first.
+
+Measured with 200 free boxes that attract each other until they form one cluster (1,200 degrees of freedom, about 700–1,000 contacts): `mj_step` grows from 0.5 ms to over 30 s per eight-step batch, the real-time factor drops to 0. MuJoCo's Newton solver with the elliptic friction cone factorizes an almost dense 1,200 × 1,200 matrix in each of its iterations. Single `mj_step` at the same clustered state:
+
+| Solver | ms per step | Iterations |
+| --- | ---: | ---: |
+| Newton, elliptic cone (current: `iterations="80"`, `cone="elliptic"`, `impratio="10"` in `worker.py`) | 146 | 20 |
+| Newton, pyramidal cone | 22 | 20 |
+| PGS | 12.7 | 80 (limit) |
+| CG | 5.5 | 80 (limit) |
+
+Possible directions: choose the cone or solver by model size or contact count, or expose it as a quality option. Open questions:
+
+- How much the pyramidal cone changes sliding, rolling and grip results (impratio, gripper tests); CG and PGS hit the iteration limit, so their accuracy needs checking too.
+- Which threshold (degrees of freedom, contacts) and whether the switch may happen during a run.
+- Whether such clusters matter outside synthetic attraction tests (bulk material, many loose parts).
