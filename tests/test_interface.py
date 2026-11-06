@@ -2048,6 +2048,43 @@ def test_geometry_changed_during_simulation_is_reported_after_reset(panel,qtapp)
     assert message_text(panel.controls)=="The geometry changed during the simulation. Check the model before saving it."
 
 
+def test_face_attribute_change_during_simulation_is_reported_after_reset(panel,qtapp):
+    seed_demo(panel,"Servo door")
+    panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+    panel.session.workspace.scene.groups[0].mesh.faces[0].attrs["color"] = (1.0,0.0,0.0,1.0)
+    panel.session.reset()
+    assert message_text(panel.controls)=="The geometry changed during the simulation. Check the model before saving it."
+
+
+def test_changed_meshes_sees_reversed_loops_and_face_attributes():
+    from core.group import Group
+    from core.mesh import Mesh
+    from newton.session import changed_meshes,mesh_marks
+    def square(x,size=1.0,hole=None):
+        loop = [QVector3D(x,0,0),QVector3D(x+size,0,0),QVector3D(x+size,size,0),QVector3D(x,size,0)]
+        return loop,[hole] if hole else None
+    meshes = [Mesh() for _ in range(3)]
+    for m in meshes:
+        m.add_face(*square(0,3,square(1)[0]))
+        m.add_face(*square(5))
+        m.faces[1].attrs.update(color=(.5,.5,.5,1.0),texture={"path":"a.png","uvw":[0.0]*8},tags={"x"})
+    # marshal cannot write a function: the mark falls back to repr.
+    meshes[2].faces[0].attrs["probe"] = lambda: None
+    scene = SimpleNamespace(mesh=Mesh(),groups=[Group(m) for m in meshes])
+    def edited(change):
+        marks = mesh_marks(scene)
+        assert not changed_meshes(marks)
+        change()
+        return changed_meshes(marks)
+    a,b,c = meshes
+    assert a.faces[0].hole_loops and edited(lambda:a.faces[0].loop.reverse())==[a]
+    assert edited(lambda:b.faces[0].hole_loops[0].reverse())==[b]
+    assert edited(lambda:c.faces[1].attrs.update(color=(1.0,0.0,0.0,1.0)))==[c]
+    assert edited(lambda:a.faces[0].attrs.update(material="Oak"))==[a]
+    assert edited(lambda:b.faces[1].attrs["texture"]["uvw"].__setitem__(0,1.0))==[b]
+    assert edited(lambda:None)==[]
+
+
 def test_render_flags_of_shared_meshes_survive_the_simulation(panel,qtapp):
     groups = seed_demo(panel,"Servo door")
     mesh = groups[0].mesh
