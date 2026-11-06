@@ -1,5 +1,16 @@
 # Test and measurement runs
 
+## Release 0.15.0 full suite (Linux, 6 November 2026)
+
+Canonical full suite on branch `release/0.15.0` before the release commit, host pinned at `e61132a`:
+
+```text
+.venv/bin/python -m pytest tests -q --basetemp=.test-state/pytest
+445 passed, 15 warnings in 105.43s (0:01:45)
+```
+
+The 15 warnings are host deprecation warnings (`QImage.mirrored`).
+
 ## Environment forces F6 and clustered contacts (Linux, 6 November 2026)
 
 - F6: `apply_environment` applies forces with one `mj_applyFT` per body and calls `mj_jacBodyCom` only for active damping terms. 100 free bodies, eight-step batch, pinned to one core, old → new: gravity override only 7.8–8.1 → 1.0 ms; linear damping 8.0–8.5 → 2.7 ms; linear and angular damping 7.9–8.1 → 5.4 ms. Archived probe "damping" at 100 bodies: 7.8 → 2.7 ms. A regression test compares `qfrc_applied` with the old dense formula (free and hinged bodies, every damping combination) at rtol 1e-12.

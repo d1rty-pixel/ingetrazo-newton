@@ -1,14 +1,13 @@
 # Known issues
 
-Bugs and observations that are known but not yet fixed. Each entry states what is confirmed and what is still unverified. Remove an entry when its fix is merged; mention the fix in the commit message.
+Bugs and observations that are known but not yet fixed. Each entry states what is confirmed and what is still unverified. Remove an entry when its fix is merged; mention the fix in the commit message and the changelog.
 
-Status values: **open** (confirmed, not fixed), **observation** (reported, cause unknown), **fixed** (kept until the fix is released).
+Status values: **open** (confirmed, not fixed), **observation** (reported, cause unknown).
 
 ## Extension-side performance bottlenecks (6 November 2026 review)
 
-- **Status:** open (partly fixed); trigger-dependent synthetic measurements and code-path risks, not a full-application FPS diagnosis.
+- **Status:** open (partly fixed; the fixed parts are in the changelog); trigger-dependent synthetic measurements and code-path risks, not a full-application FPS diagnosis.
 - **Evidence:** [review, scripts and measurement archive](performance-review-2026-11-06/README.md). The archive separates original reported values from fresh verification logs.
-- **Fixed, not yet released:** per-pair attraction Jacobians (F1, now one force application per target, 100 bodies ~370 → ~3 ms per eight-step batch); linear group and layer lookup per collider in the collider paint (F2, 1,000 colliders ~31 → ~20 ms); unused vertices sent for box, sphere and compound shapes (F3 payload part); duplicate telemetry styles (F5); dense environment forces (F6, gravity override only ~8 → ~1 ms, linear damping ~8 → ~2.7 ms per batch at 100 bodies). See [test and measurement runs](lab/test-and-measurement-runs.md).
 - **Still open, measured:** the remaining collider drawing cost (F2: matrices, point lists and individual draw calls per paint). Contact solving in large clusters is a separate backlog item (`docs/backlog.md`).
 - **Still open, code-path risks with unmeasured incidence:** preview invalidation from the global scene version and synchronous GUI preparation (F3); GUI-thread `waitForFinished(1000)` during process teardown (F4); metrics that omit serialization or actual paint phases (F7). Selection-triggered full control-panel rebuilding is an additional unmeasured hotspot, not a demonstrated per-frame rebuild.
 - **Unverified:** representative-scene impact, real process shutdown latency and live input latency.
@@ -17,7 +16,6 @@ Status values: **open** (confirmed, not fixed), **observation** (reported, cause
 
 - **Status:** open
 - **What:** `.test-state/` QSettings are never reset, so a key left behind by one test or run reaches the next. A detach test in `tests/test_controls_dock.py` that fails between detaching and attaching leaves `newton/controls_detached=true`; four later tests then fail (`test_toolbar_action_shows_and_hides_the_control_panel`, `test_open_control_shows_the_dock_and_expands_the_row`, `test_the_float_button_moves_the_panel_into_a_window_of_its_own_and_back`, `test_a_detached_panel_stays_detached_when_it_is_reopened`).
-- **Related, fixed:** `test_control_panel_is_a_bottom_dock_under_the_view_and_the_sidebar_keeps_its_height` failed in a fresh `.test-state` (for example a new worktree): in the tests the host's `restoreState` runs after Newton's `setup()` and restores the default layout, which puts the bottom-right corner on the bottom dock. The test no longer asserts the corner before the refresh that restores it; the application defers extensions, so the order there is right.
 - **Possible fix:** remove `controls.DETACHED_KEY` (or the whole `newton/` group) in the `panel` fixture before `MainWindow()`.
 
 ## Document marked modified after a simulation
@@ -35,7 +33,6 @@ Status values: **open** (confirmed, not fixed), **observation** (reported, cause
 - **Symptom:** In `test_sidebar_rows_keep_their_height_at_every_width`, the rows of *Simulation overrides* lose their height at narrow sidebar widths once the *Key bindings* section is visible for the selected body. The test window was raised from 1100 to 2500 px, which makes it pass.
 - **Checked:** Only that the taller window removes the symptom.
 - **Unverified:** The cause. It may be a real height-for-width problem of the sidebar (see AGENTS.md, "Icons, pictograms and layout") or an artefact of the test window being too small for the added section; this was not distinguished. Check in the live sidebar before relying on the larger window.
-
 
 ## The temporary simulation's edit guard has gaps
 
@@ -67,33 +64,10 @@ Status values: **open** (confirmed, not fixed), **observation** (reported, cause
 - **Unverified:** whether it also happens on Windows, with a docked toolbar, with other (native) floating toolbars, while paused, or without other toolbar extensions (`igz_toolbars`, `organize_toolbar`) installed. The offscreen platform does not reproduce real window-manager behaviour.
 - **Next step:** reproduce on a real display; compare a native IngeTrazo toolbar floated in the same way to separate a host/Qt-Wayland issue from a Newton issue.
 
-
-## Starting a large model copies all geometry
-
-- **Status:** fixed
-- **Reported:** 2026-11-05, CR10 sliding electronics compartment model (about 250 000 vertices)
-- **Symptom:** Pressing Start takes about 10 s before the simulation runs; the simulation itself is fast.
-- **Checked:** `prepare()` (`newton/model.py`) copied every included group for the temporary simulation with `transformed_mesh`, which welds the whole mesh again; groups with children were welded into one mesh first. The clones now share the document's mesh and nested placements, and all points are read without a copy; on this model `prepare()` dropped from 11.3 s to 0.84 s (see `docs/lab/test-and-measurement-runs.md`).
-- **Unverified:** the display cost per frame: a clone with children now draws as its nested placements (up to 141 on this model) instead of one merged mesh. Live runs in the Flatpak (see `docs/lab/test-and-measurement-runs.md`) were too noisy to decide it: 22 and 17 frames per second shared against 28 and 2 merged, with the IngeTrazo window in the background. A repeatable benchmark with the window in front is still needed.
-
-## Position drive keeps a steady offset under load
-
-- **Status:** fixed (unreleased)
-- **Reported:** 2026-11-05, with the limit hardness setting
-- **Symptom:** A servo stopped short of its target by load / (100 × moved mass). In the drag-chain demo (`scripts/models/flexible_demos.py`, carriage 0.3 kg) the carriage stayed 2.7–5.0 cm off target.
-- **Fix:** `newton/worker.py`, `World.step`: the position drive has an anti-windup integral term (`KI_POSITION`, limited to 15 % of the axis force). The carriage now ends within 0.2 cm; `test_carrier_keeps_cable_inside_while_carriage_moves_both_ways` checks 1 cm. Measurements: [test and measurement runs](lab/test-and-measurement-runs.md), "Position drive integral term".
-
-## Worker inherited the host's `PYTHONPATH` (Flatpak)
-
-- **Status:** fixed (unreleased)
-- **Symptom:** Start failed with "Importing the numpy C-extensions failed … `_multiarray_umath.cpython-313-x86_64-linux-gnu.so`".
-- **Cause:** The Flatpak launcher exports `PYTHONPATH=/app/lib/python3.13/site-packages`. The worker process inherited it, so the external Python 3.12 loaded IngeTrazo's numpy built for Python 3.13.
-- **Fix:** The worker is started with `python -E` (`newton/session.py`, `newton/collision_view.py`), which ignores all `PYTHON*` environment variables.
-
 ## Axis and connection objects: known gaps
 
 - **Status:** open
 - **Reported:** 2026-11-04, with the introduction of axis objects (`newton/axis_objects.py`)
-- **Symptom:** Grouping an axis or connection object together with other objects (Make Group) moves it into the new group, out of the top level; Newton then creates a second object and keeps the axis, so the group holds a stale object. While a group is open, only name and visibility are synced; moves of bodies or objects inside the open group are not mirrored until after leaving it.
-- **Open decision:** whether a grouped object may live inside the group (needs nested lookup and the container's transform in `markers()`/`placement()`), or Newton pulls it back to the top level in the same undo step (recommended: the object stays a top-level child of the axes layer). `test_grouping_an_axis_object_with_other_objects_keeps_one_valid_object` is xfail until decided.
+- **Symptom:** While a group is open for editing, only name and visibility of axis and connection objects are synced; moves of bodies or objects inside the open group may not be mirrored until after leaving it.
+- **Unverified:** whether moves inside an open group still lag; not rechecked after the hide/rename fix.
 - **Checked:** unit tests cover move, rotate, undo/redo, body move, copy/paste, delete and loading documents without axis objects. Not checked in a live IngeTrazo session yet.
