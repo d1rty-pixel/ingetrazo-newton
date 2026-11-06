@@ -2038,6 +2038,214 @@ def test_simulation_refuses_every_edit_and_never_opens_a_group(panel,qtapp):
     assert panel.controls.hint.text()=="The simulation was reset and the original model is restored."
 
 
+REFUSED = "The model cannot be edited during the simulation. Reset the simulation first."
+
+
+def group_state(g):
+    xform = None if g.xform is None else tuple(g.xform.data())
+    return (g.name,g.hidden,getattr(g,"locked",False),g.layer,repr(g.material),xform,g.component,
+            [id(c) for c in g.children or ()],[group_state(c) for c in g.children or ()])
+
+
+def run_refused(ws,actions):
+    """Runs each action and checks that it reached the workspace history and was refused there."""
+    seen = []
+    refused = ws.history.refused
+    ws.history.refused = lambda text:(seen.append(text),refused(text))
+    for name,action in actions:
+        before = len(seen)
+        action()
+        assert len(seen)>before,f"{name} did not reach history.execute"
+    assert set(seen)=={REFUSED} and not ws.history.undo_stack
+
+
+def assembly(panel):
+    """A static group holding two plain groups (no matrix of their own) and one movable box."""
+    from core.group import Group,transformed_mesh
+    from core.mesh import Mesh
+    from newton.model import AddDemo,box
+    parts = []
+    for i in range(2):
+        b = box(f"Part {i+1}",(i*.4,2,.5),(.3,.3,.3))
+        parts.append(Group(transformed_mesh(b.mesh,b.xform),b.name))
+    holder = Group(Mesh(),"Assembly");holder.adopt(parts)
+    body = box("Newton body",(0,0,1),(.3,.3,.3))
+    panel.app.viewport.history.execute(AddDemo([holder,body]))
+    panel.app.viewport.notify_scene_changed();panel.refresh()
+    return holder,parts
+
+
+def test_browser_actions_are_refused_during_the_simulation(panel,qtapp):
+    from newton.session import changed_meshes
+    from views.outliner import COL_EYE,COL_ISOLATE,COL_LOCK,COL_NAME
+    source = seed_demo(panel,"Servo door")
+    states = [group_state(g) for g in source]
+    panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+    ws,win = panel.session.workspace,panel.app.window
+    outliner = win.project_browser.outliner
+    outliner.refresh()
+    leaf = next(g for g in ws.scene.groups if g.name=="Door leaf")
+    frame = next(g for g in ws.scene.groups if g.name=="Door frame")
+    clones = [group_state(g) for g in ws.scene.groups]
+    row = lambda g:outliner._items[id(g)]
+    def key(k):
+        outliner.tree.setCurrentItem(row(leaf))
+        QApplication.sendEvent(outliner.tree,QKeyEvent(QEvent.KeyPress,k,Qt.NoModifier))
+    def select_row():
+        outliner.tree.clearSelection();row(leaf).setSelected(True)
+    run_refused(ws,[
+        ("rename in the cell",lambda:row(leaf).setText(COL_NAME,"Renamed")),
+        ("rename selected",lambda:outliner.batch_rename([leaf,frame],["A","B"])),
+        ("eye",lambda:outliner.cell_clicked(row(leaf),COL_EYE)),
+        ("padlock",lambda:outliner.cell_clicked(row(leaf),COL_LOCK)),
+        ("isolate target",lambda:outliner.cell_clicked(row(leaf),COL_ISOLATE)),
+        ("eye header",lambda:outliner._on_header_clicked(COL_EYE)),
+        ("padlock header",lambda:outliner._on_header_clicked(COL_LOCK)),
+        ("Space",lambda:key(Qt.Key_Space)),
+        ("layer",lambda:outliner.assign_layer([leaf],"Newton test layer")),
+        ("paint",lambda:outliner.paint_groups([leaf],material={"color":(1,0,0)})),
+        ("remove paint",lambda:outliner.paint_groups([leaf],clear=True)),
+        ("make unique",lambda:outliner.make_unique_rows([leaf])),
+        ("explode",lambda:outliner.make_from_rows([leaf],"explode")),
+        ("delete",lambda:outliner.delete_parts([leaf])),
+        ("delete row",lambda:(select_row(),outliner.delete_row())),
+    ])
+    # Every clone carries a matrix, so the host itself refuses a drop into one.
+    outliner.tree.apply_drop(("into",row(frame)),[row(leaf)])
+    assert outliner.reparent([leaf],frame) is False
+    assert message_text(panel.controls)==REFUSED
+    assert [group_state(g) for g in ws.scene.groups]==clones and ws.scene.edit_group is None
+    assert [group_state(g) for g in source]==states and not changed_meshes(ws.marks)
+    panel.session.reset()
+    assert [group_state(g) for g in source]==states
+
+
+def test_properties_actions_are_refused_during_the_simulation(panel,qtapp):
+    from newton.session import changed_meshes
+    holder,parts = assembly(panel)
+    state = group_state(holder)
+    panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+    ws,win,vp = panel.session.workspace,panel.app.window,panel.app.viewport
+    tray = win.tray
+    clone = next(g for g in ws.scene.groups if g.name=="Assembly")
+    assert [c.mesh for c in clone.children]==[p.mesh for p in parts]
+    vp.scene.select([clone]);tray.on_scene_changed()
+    assert tray.parts._container is clone and len(tray.parts._items)==2
+    def rename_info():
+        tray.entity_info.refresh();tray.entity_info._name_edit.setText("Renamed")
+        tray.entity_info._on_name_edited()
+    first = lambda:tray.parts._items[0]
+    def keep_in_file():
+        rows = tray.components._components_in_model()
+        groups = next(gs for _n,_f,gs,_t in rows if clone in gs)
+        dict((t,cb) for t,cb,*_ in tray.components._in_model_actions(groups))["Keep in File"]()
+    def delete_scene():
+        tray.scenes._on_add();tray.scenes.refresh()
+        tray.scenes.list.setCurrentRow(0);tray.scenes._on_delete()
+    run_refused(ws,[
+        ("entity info name",rename_info),
+        ("part rename",lambda:first().setText(0,"Renamed part")),
+        ("part visibility",lambda:first().setCheckState(0,Qt.Unchecked)),
+        ("all parts visible",tray.parts._on_all_visible),
+        ("explode step",lambda:tray.parts._run_explode(.5)),
+        ("reassemble",tray.parts._on_reassemble),
+        ("material finish",lambda:tray.materials._set_finish("Steel","metal")),
+        ("keep in file",keep_in_file),
+        ("delete scene",delete_scene),
+    ])
+    assert message_text(panel.controls)==REFUSED
+    assert group_state(holder)==state and not changed_meshes(ws.marks)
+    panel.session.reset()
+    assert group_state(holder)==state
+
+
+def test_direct_view_settings_during_the_simulation_stay_in_the_workspace(panel,qtapp):
+    from core.layers import Layer
+    source = seed_demo(panel,"Servo door")
+    doc = panel.app.scene
+    doc.layers.append(Layer("Newton test layer"))
+    states = [group_state(g) for g in source]
+    panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+    ws,win = panel.session.workspace,panel.app.window
+    leaf = next(g for g in ws.scene.groups if g.name=="Door leaf")
+    fill = doc.display_style.section_fill
+    # These bypass the history in the host too; they act on the workspace's copies.
+    win.layers_dock.panel.set_visible(["Newton test layer"],False)
+    win.project_browser.outliner.set_section_fill(not fill)
+    win.tray.scenes._on_add()
+    ws.scene.select([leaf]);win.bim_tray.bim._on_tag()
+    assert not ws.scene.layer("Newton test layer").visible and ws.scene.saved_views and leaf.ifc
+    assert win._parked["scene"] is doc
+    assert doc.layer("Newton test layer").visible and doc.display_style.section_fill==fill
+    assert not doc.saved_views and [group_state(g) for g in source]==states
+    assert all(getattr(g,"ifc",None) is None for g in source)
+
+
+def test_explode_slider_preview_leaves_the_document_alone(panel,qtapp):
+    holder,parts = assembly(panel)
+    before = group_state(holder)
+    panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+    ws,tray = panel.session.workspace,panel.app.window.tray
+    clone = next(g for g in ws.scene.groups if g.name=="Assembly")
+    panel.app.viewport.scene.select([clone]);tray.on_scene_changed()
+    slider = tray.parts._explode_slider
+    slider.sliderPressed.emit()
+    try:
+        slider.setValue(80)
+        assert all(c.xform is not None for c in clone.children),"the preview moves the clone's parts"
+        assert group_state(holder)==before
+    finally:
+        slider.sliderReleased.emit()
+    assert group_state(holder)==before and all(c.xform is None for c in clone.children)
+
+
+def test_place_a_copy_leaves_the_document_alone(panel,qtapp):
+    holder,parts = assembly(panel)
+    before = group_state(holder)
+    panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+    ws,win,vp = panel.session.workspace,panel.app.window,panel.app.viewport
+    clone = next(g for g in ws.scene.groups if g.name=="Assembly")
+    components = win.tray.components
+    groups = next(gs for _n,_f,gs,_t in components._components_in_model() if clone in gs)
+    try:
+        dict((t,cb) for t,cb,*_ in components._in_model_actions(groups))["Place a Copy"]()
+        assert all(c.xform is not None for c in clone.children),"copy_group gave the clone's parts a matrix"
+        assert group_state(holder)==before
+    finally:
+        vp.active_tool.on_cancel(vp)
+        win._activate_tool("select")
+    assert not ws.history.undo_stack
+
+
+def test_edit_copy_during_the_simulation_leaves_the_document_alone(panel,qtapp):
+    from PySide6.QtGui import QAction,QKeySequence
+    holder,parts = assembly(panel)
+    before = group_state(holder)
+    panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+    ws,win,vp = panel.session.workspace,panel.app.window,panel.app.viewport
+    clone = next(g for g in ws.scene.groups if g.name=="Assembly")
+    vp.scene.select([clone])
+    copy = next(a for a in win.findChildren(QAction) if a.shortcut()==QKeySequence(QKeySequence.Copy))
+    copy.trigger()
+    assert vp.clipboard and all(c.xform is not None for c in clone.children),"Copy reached copy_group on the clone"
+    assert group_state(holder)==before
+    panel.session.reset()
+    assert group_state(holder)==before
+
+
+def test_start_and_reset_keep_the_documents_nested_groups(panel,qtapp):
+    holder,parts = assembly(panel)
+    before = group_state(holder)
+    panel.start_or_pause();wait(qtapp,lambda:panel.session.ready)
+    clone = next(g for g in panel.session.workspace.scene.groups if g.name=="Assembly")
+    assert not {id(c) for c in clone.children}&{id(p) for p in parts}
+    assert [(c.uid,c.mesh,c.name) for c in clone.children]==[(p.uid,p.mesh,p.name) for p in parts]
+    assert holder.children==parts and group_state(holder)==before
+    panel.session.reset()
+    doc = panel.app.scene
+    assert holder in doc.groups and all(a is b for a,b in zip(holder.children,parts)) and group_state(holder)==before
+
+
 def test_geometry_changed_during_simulation_is_reported_after_reset(panel,qtapp):
     from PySide6.QtGui import QVector3D
     seed_demo(panel,"Servo door")
