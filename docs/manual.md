@@ -1,6 +1,6 @@
 # Newton – Manual
 
-This manual describes how to use Newton 0.14.0. Overview is in the [README](../README.md), installation in [installation.md](installation.md), the example models in [example-models.md](example-models.md).
+This manual describes how to use Newton 0.15.0. Overview is in the [README](../README.md), installation in [installation.md](installation.md), the example models in [example-models.md](example-models.md).
 
 ## Basic workflow
 
