@@ -4,6 +4,10 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ## Unreleased
 
+### Documentation
+
+- New [FAQ](docs/faq.md), starting with why bodies on a layer shown during the simulation stay invisible (hidden bodies left out at Start) and how to include them.
+
 ## 0.15.0 — 2026-11-06
 
 ### Added

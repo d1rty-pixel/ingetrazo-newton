@@ -64,6 +64,7 @@ Ready-made examples are in [`models/`](models) and described in [docs/example-mo
 | [docs/installation.md](docs/installation.md) | Installing the extension: extension library, manual per platform, release zip, update, verification |
 | [docs/runtime-setup.md](docs/runtime-setup.md) | The runtime (Python 3.12 + MuJoCo): button, command line, manual per platform, troubleshooting |
 | [docs/manual.md](docs/manual.md) | How to use every function, technical notes and limits |
+| [docs/faq.md](docs/faq.md) | Frequently asked questions |
 | [docs/example-models.md](docs/example-models.md) | The bundled models and their verification values |
 | [docs/known-issues.md](docs/known-issues.md) | Known bugs and observations |
 | [docs/host-proposals.md](docs/host-proposals.md) | Ideas for IngeTrazo itself, found while working on Newton |
