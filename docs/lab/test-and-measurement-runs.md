@@ -1,5 +1,9 @@
 # Test and measurement runs
 
+## Extension-only performance review archive (Linux, 6 November 2026)
+
+The [review archive](../performance-review-2026-11-06/README.md) preserves prioritized findings, three host-free synthetic probes, historical measurements and fresh verification output. It covers worker force scaling, telemetry styling, collider drawing and initialization, synchronous shutdown and metric boundaries. Historical figures and new raw logs are explicitly separated. No production code or models were changed; the host-dependent full test suite was not run.
+
 ## Windows installation test (Windows)
 
 Run on 5 November 2026 on Windows 11 Pro 10.0.26300 x64, Windows PowerShell 5.1, with `scripts/lab/windows-install-test.ps1` (sandbox under `%TEMP%`, real IngeTrazo installation only read). Machine: IngeTrazo 0.6.0 from the installer, Python 3.14 only (no 3.12, no `uv`, no `pwsh`), WSL2 present.

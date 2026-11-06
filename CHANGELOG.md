@@ -64,6 +64,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ### Documentation
 
+- Archived the extension-only performance review, reproducible synthetic probes and measurement records under `docs/performance-review-2026-11-06/`; no performance fixes are included.
 - Windows is tested: release zip, installation scripts, runtime setup (button, command line, manual) and simulation on Windows 11 with IngeTrazo 0.6.0. The README shows the status of every platform as a badge. `scripts/lab/windows-install-test.ps1` repeats the test in a sandbox.
 - New `docs/installation.md` (extension library, manual install per platform, release zip, verification) and `docs/ai-skill.md` (using the skill with Claude Code and Codex); `docs/runtime-setup.md` now starts with the automatic setup and has manual steps per platform; shorter README with a platform status table.
 - Test model `models/z0-contact-test.igz` and the decisions for the planned warning about bodies below the ground at Z = 0 (resting on Z = 0 does not count; the warning does not block the start).

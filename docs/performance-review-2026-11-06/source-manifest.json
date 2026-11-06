@@ -1,0 +1,44 @@
+{
+  "review_date": "2026-11-06",
+  "reviewed_revision": "2e0d838bcd6298c3a36289d84f198e4f7d3d2da7",
+  "branch_base": "origin/main",
+  "archive_branch": "docs/newton-performance-review-2026-11-06",
+  "host_source_reviewed": false,
+  "production_changes": false,
+  "historical_output_completeness": "Partial broad-probe output retained as numeric records; complete follow-up stdout retained in results/review-session.md. New complete verification logs are separate.",
+  "script_preservation": "Final temporary scripts copied byte-for-byte; intermediate overwritten versions are not available. scripts/run.py substitutes machine-local paths in memory for reproduction.",
+  "original_scripts": [
+    {
+      "temporary_path": "/tmp/opencode/newton_perf_review.py",
+      "archived_path": "scripts/newton_perf_review.py",
+      "sha256": "21257800fee82cc554f97ce84efe4e10c034cb04fa193c7056d96a9127990e3a"
+    },
+    {
+      "temporary_path": "/tmp/opencode/newton_perf_followup.py",
+      "archived_path": "scripts/newton_perf_followup.py",
+      "sha256": "3fb1c4367eb4d914255e0ec1460e3127fee8757bcea96a3579f132b4cf9ae0d2"
+    },
+    {
+      "temporary_path": "/tmp/opencode/newton_perf_ui_followup.py",
+      "archived_path": "scripts/newton_perf_ui_followup.py",
+      "sha256": "6befdc97218c579d901d06faf404efc633a0759d9082f23dc9488f7fdc637f25"
+    }
+  ],
+  "reviewed_source_sha256": {
+    "newton/worker.py": "4133503442ba3dfc18444a7934603e98643d7636bb655cbed25d54c56a58962d",
+    "newton/controls.py": "44fae3004b46b4a870caadff6f8a3994aa5d46c67500dc29ecdd316085af7769",
+    "newton/interaction.py": "cd19c8ca81ab64a690faed06a8c0610641f523bd62962c7cd8037ef6807be946",
+    "newton/collision_view.py": "f3d17fd2b3764c0fa81618b6ff1f07c0fa1f07c6723af372c180cb35f429c826",
+    "newton/virtual_controls.py": "afdd1c4acc5dec3a1b5eb0e2cb81791d41b3bfeee0f8c585e6040cbb27c05d2c",
+    "newton/performance.py": "9923558eb89ee092efbe7861efafec21f675ac2ee595a0b4b075558c56971d1a",
+    "newton/session.py": "88914b07edda292fd00f781daed80758dfb2772f46040eb644c5fdfe0f816b64",
+    "newton/model.py": "8e083c6d2151d4268038ed47aa78852640bb3c73d3a90d06bc05c45f123d07e7",
+    "newton/panel.py": "0553b034a7aa6e2b43387d92a7a3bae36d65d2b0255ae4c7f917759dd2fae694",
+    "newton/range_control.py": "538e0f377bd47dfc37eff92cae117800c3f4f162bd765f18fb885451b2f3fe70",
+    "newton/binding_fields.py": "422f3b4018ca54817810684e878d7ae03e05705a6db36ceef846b86dd66743d6"
+  },
+  "excluded_user_modified_models_sha256": {
+    "models/industrial-robot-synchronous-gripper.igz": "ad075a7bd53281b050d66a75726f9d7c2341d44a2ead0698be25b0277576d708",
+    "models/z0-contact-test.igz": "a53748b1f32e7bdcbede0dffae865dc6c222924d7c29ffe252c95af710c67d2e"
+  }
+}

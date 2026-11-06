@@ -1,0 +1,84 @@
+WORKER: median ms per batch of 8 physics steps (33.3ms simulated)
+{"n": 10, "mode": "base", "step8_ms": 0.039, "nv": 60}
+{"n": 10, "mode": "damping", "step8_ms": 0.656, "nv": 60}
+{"n": 10, "mode": "attraction-all", "step8_ms": 2.986, "nv": 60}
+{"n": 50, "mode": "base", "step8_ms": 0.115, "nv": 300}
+{"n": 50, "mode": "damping", "step8_ms": 3.547, "nv": 300}
+{"n": 50, "mode": "attraction-all", "step8_ms": 86.422, "nv": 300}
+{"n": 100, "mode": "base", "step8_ms": 0.203, "nv": 600}
+{"n": 100, "mode": "damping", "step8_ms": 8.0, "nv": 600}
+         3358 function calls in 0.009 seconds
+
+   Ordered by: cumulative time
+   List reduced from 25 to 12 due to restriction <12>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.009    0.009 /home/equinox/git/private/ingetrazo-newton/newton/worker.py:578(step)
+        8    0.007    0.001    0.008    0.001 /home/equinox/git/private/ingetrazo-newton/newton/worker.py:653(apply_environment)
+      800    0.001    0.000    0.001    0.000 {built-in method mujoco._functions.mj_jacBodyCom}
+     1600    0.000    0.000    0.000    0.000 {built-in method numpy.zeros}
+        8    0.000    0.000    0.000    0.000 {built-in method mujoco._functions.mj_step}
+      800    0.000    0.000    0.000    0.000 {method 'reshape' of 'numpy.ndarray' objects}
+        1    0.000    0.000    0.000    0.000 /home/equinox/git/private/ingetrazo-newton/newton/worker.py:565(poses)
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+        1    0.000    0.000    0.000    0.000 {built-in method builtins.any}
+        4    0.000    0.000    0.000    0.000 /home/equinox/git/private/ingetrazo-newton/newton/worker.py:641(<genexpr>)
+      100    0.000    0.000    0.000    0.000 {method 'tolist' of 'numpy.ndarray' objects}
+        1    0.000    0.000    0.000    0.000 {built-in method mujoco._functions.mj_fwdPosition}
+
+
+
+{"n": 100, "mode": "attraction-all", "step8_ms": 370.588, "nv": 600}
+         159366 function calls in 0.541 seconds
+
+   Ordered by: cumulative time
+   List reduced from 25 to 12 due to restriction <12>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.541    0.541 /home/equinox/git/private/ingetrazo-newton/newton/worker.py:578(step)
+        8    0.453    0.057    0.540    0.068 /home/equinox/git/private/ingetrazo-newton/newton/worker.py:664(apply_attraction)
+    79200    0.058    0.000    0.058    0.000 {built-in method mujoco._functions.mj_jacBodyCom}
+    79200    0.030    0.000    0.030    0.000 {built-in method numpy.zeros}
+        8    0.000    0.000    0.000    0.000 {built-in method mujoco._functions.mj_step}
+        1    0.000    0.000    0.000    0.000 /home/equinox/git/private/ingetrazo-newton/newton/worker.py:565(poses)
+      800    0.000    0.000    0.000    0.000 {method 'values' of 'dict' objects}
+        9    0.000    0.000    0.000    0.000 {built-in method mujoco._functions.mj_fwdPosition}
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+        1    0.000    0.000    0.000    0.000 {built-in method builtins.any}
+        4    0.000    0.000    0.000    0.000 /home/equinox/git/private/ingetrazo-newton/newton/worker.py:641(<genexpr>)
+      100    0.000    0.000    0.000    0.000 {method 'tolist' of 'numpy.ndarray' objects}
+
+
+
+TELEMETRY: median ms per update including offscreen Qt event processing
+{"n": 10, "cached_style": false, "ms": 0.264}
+{"n": 10, "cached_style": true, "ms": 0.023}
+{"n": 50, "cached_style": false, "ms": 1.208}
+{"n": 50, "cached_style": true, "ms": 0.105}
+{"n": 100, "cached_style": false, "ms": 2.515}
+{"n": 100, "cached_style": true, "ms": 0.207}
+COLLIDER DRAW: synthetic boxes, no host rendering; median ms per draw
+{"n": 100, "ms": 2.304}
+{"n": 500, "ms": 13.242}
+{"n": 1000, "ms": 31.534}
+         48016 function calls in 0.042 seconds
+
+   Ordered by: cumulative time
+   List reduced from 35 to 12 due to restriction <12>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.042    0.042 <stdin>:121(draw)
+        1    0.019    0.019    0.042    0.042 /home/equinox/git/private/ingetrazo-newton/newton/collision_view.py:106(draw)
+     1000    0.000    0.000    0.010    0.000 {built-in method builtins.next}
+     2000    0.010    0.000    0.010    0.000 /home/equinox/git/private/ingetrazo-newton/newton/collision_view.py:114(<genexpr>)
+     1000    0.003    0.000    0.005    0.000 <stdin>:111(project)
+    12000    0.004    0.000    0.004    0.000 {method 'drawLine' of 'PySide6.QtGui.QPainter' objects}
+     8000    0.002    0.000    0.002    0.000 {method 'map' of 'PySide6.QtGui.QMatrix4x4' objects}
+     1000    0.002    0.000    0.002    0.000 {built-in method numpy.asarray}
+     1000    0.001    0.000    0.001    0.000 /home/equinox/git/private/ingetrazo-newton/.venv/lib/python3.12/site-packages/numpy/_core/numeric.py:170(ones)
+     2000    0.001    0.000    0.001    0.000 {method 'setPen' of 'PySide6.QtGui.QPainter' objects}
+     8000    0.001    0.000    0.001    0.000 {method 'toTuple' of 'PySide6.QtGui.QVector3D' objects}
+     1000    0.000    0.000    0.000    0.000 {built-in method builtins.any}
+
+
+

@@ -4,6 +4,15 @@ Bugs and observations that are known but not yet fixed. Each entry states what i
 
 Status values: **open** (confirmed, not fixed), **observation** (reported, cause unknown), **fixed** (kept until the fix is released).
 
+## Extension-side performance bottlenecks (6 November 2026 review)
+
+- **Status:** open; trigger-dependent synthetic measurements and code-path risks, not a full-application FPS diagnosis.
+- **Evidence:** [review, scripts and measurement archive](performance-review-2026-11-06/README.md). The archive separates original reported values from fresh verification logs. No production fix is included.
+- **Confirmed in isolated probes:** redundant per-pair attraction Jacobians (`worker.py:664–676`, F1); repeated linear group lookup and expensive collider painting (`collision_view.py:106–132`, F2); unused vertex serialization for analytic shapes (F3); duplicate telemetry styles (`controls.py:710–724`, F5); dense damping/environment operations (`worker.py:653–662`, F6).
+- **Confirmed code-path risks, real incidence unmeasured:** full preview invalidation from global scene version and synchronous GUI preparation (F3); GUI-thread `waitForFinished(1000)` during process teardown (F4); metrics that omit serialization or actual paint phases (F7).
+- **Unverified:** representative-scene impact, real process shutdown latency, live input latency, and long-term physics equivalence of the attraction counterfactual. Selection-triggered full control-panel rebuilding is an additional unmeasured hotspot, not a demonstrated per-frame rebuild.
+- **Next steps:** follow F1–F7 in the archive; retain force/physics regression checks and single-in-flight backpressure. No host analysis is part of this review; the existing viewport-cache issue below is separate.
+
 ## Document marked modified after a simulation
 
 - **Status:** observation

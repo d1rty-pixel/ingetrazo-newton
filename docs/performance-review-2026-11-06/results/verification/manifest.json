@@ -1,0 +1,98 @@
+{
+  "started_utc": "2026-11-06T10:56:11.648994+00:00",
+  "python": "3.12.14 (main, Sep 29 2026, 15:01:18) [Clang 22.1.3 ]",
+  "executable": "/home/equinox/git/private/ingetrazo-newton/.venv/bin/python",
+  "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.43",
+  "machine": "x86_64",
+  "processor": "",
+  "repository": "/home/equinox/git/private/ingetrazo-newton",
+  "source_revision": "2e0d838bcd6298c3a36289d84f198e4f7d3d2da7",
+  "dependencies": {
+    "mujoco": "3.3.7",
+    "numpy": "2.5.4",
+    "PySide6": "6.11.3"
+  },
+  "source_sha256": {
+    "__init__.py": "a010481988dc2ae9bd6553367cac4c76fa899ce1a23904d0feebfd6c29bb5c52",
+    "axis_edit.py": "6c8f45a0039dc506c24fe817014462e90d5fd1a2d0cd95f53914ecd5331ca7a9",
+    "axis_guides.py": "8266e7be458ec0980ba99a923e5c93b731f3ceaa3ec820fba711470331b433dc",
+    "axis_objects.py": "294cfc17805d1e52c57c5aa53d03d1610695123c63aee3f835ac1133571763a8",
+    "binding_fields.py": "422f3b4018ca54817810684e878d7ae03e05705a6db36ceef846b86dd66743d6",
+    "collision_ui.py": "0dbcb06f9bb3f56ed765303cef21c5b7f8d902ff6f3896445ad63f20b021d0da",
+    "collision_view.py": "f3d17fd2b3764c0fa81618b6ff1f07c0fa1f07c6723af372c180cb35f429c826",
+    "connection_ui.py": "b01d5167038ed80d0a30998d0a24eaf7c79fd260f7423ea3678dac4721bab985",
+    "connections.py": "c0eb373323a86b3e9cc60a164036285a9e18764e9e00ef86578c49f652be80f3",
+    "controls.py": "44fae3004b46b4a870caadff6f8a3994aa5d46c67500dc29ecdd316085af7769",
+    "coupling_ui.py": "a78c71545b9391ae9abbd1da2e1d62fbfba7ee7326010f0d93aa8deffc8530a5",
+    "environment_ui.py": "df849362e05ddcc3461e75a24a7f932e9d60978aac510aa0e857a846bf60afa0",
+    "eraser.py": "a46951630e48aa468cf49166385e352895fbb90ecfbb3998cdbf7c9c11ed7116",
+    "flexible.py": "05b3bbeb2ae38abe6b449683a2cf64acfef9e4abb736c646095aba1b50507ea1",
+    "flexible_ui.py": "510def4bcc77c347dcab30f5f488e23da46aa490a137c2e348a51bba8ef83b53",
+    "glow.py": "d8b77b9872bbc5dd1d228f74a777c7e37672e8aa56204cea306788cde506ee40",
+    "help_texts.py": "d51daef14c38299dc0917599ce4dafc2235b27c7edd2fb37000205a4580ebc82",
+    "i18n.py": "72b61b0a2202688c2ac51c336135587c2d12902e8fb169350643012b37cee337",
+    "icons.py": "93ccc40a8667709b45a8cf9df17ecc8c07d71ad24b4dd03213896dfeae9fd948",
+    "interaction.py": "cd19c8ca81ab64a690faed06a8c0610641f523bd62962c7cd8037ef6807be946",
+    "joints.py": "6aeab43524845ee21187dffcaf137f8bf9a7cff5b44f9f51008acda1bef6527d",
+    "keep_pose.py": "fdeb6ca144985f01e4cdccc8066b2150658dc8659fcbc8e926bf6df170a3b6e2",
+    "key_bindings.py": "2cee9287337caff0f3aaad974c01845f22f55f9b1251295be9d6ee47000880fb",
+    "key_caps.py": "8ca36108e44f6905883c6842d7befb71900e69ff29cb1c0bc232b1d17e254967",
+    "key_slots.py": "8c19bda210bba385e46a276160cd4df0b96d5ded2f5c7f5f74f93a3fee7b349e",
+    "model.py": "8e083c6d2151d4268038ed47aa78852640bb3c73d3a90d06bc05c45f123d07e7",
+    "panel.py": "0553b034a7aa6e2b43387d92a7a3bae36d65d2b0255ae4c7f917759dd2fae694",
+    "performance.py": "9923558eb89ee092efbe7861efafec21f675ac2ee595a0b4b075558c56971d1a",
+    "preferences.py": "a8cf52f493c93ea384d662811b00b87b7337f65c3a494e0fd54f5e0eb5b80472",
+    "profile_parameters.py": "f444753cc37ad8e4d97cb4c23b3f117b53ce6a6675470871b160c87dd25e3ef9",
+    "profile_sync.py": "733c86ba6ed88254512043cf7188f397f9af9327e99a4b05244bf8e01da0001d",
+    "profile_ui.py": "a86b3a48bb3b618fa7008e229d38b1f98ec0d3db61d3a7bf90fa951681d0a4d7",
+    "profiles.py": "2efaf18e70d8505cc1b36f3ba6529b7f1845f91a974f8e1bbb2c84993725fe3a",
+    "range_control.py": "538e0f377bd47dfc37eff92cae117800c3f4f162bd765f18fb885451b2f3fe70",
+    "reference_table.py": "339dd21cdfc68f01ade7846533bf871398ae38503212a4c129e3c44655d482c1",
+    "references.py": "a1522af085060e5c566e658b82b9ffa1469b3d13dcfc7a31a824b8f47d793e22",
+    "runtime_setup.py": "024b220307aac4b2cdc181e2ee17963583d3d6e0e0e93adabd90d59945a88828",
+    "runtime_ui.py": "db4ce3ab2f881cf70f91912e6bb0b9b4042288ac1f3f849bb726fb4de2d3f6e8",
+    "session.py": "88914b07edda292fd00f781daed80758dfb2772f46040eb644c5fdfe0f816b64",
+    "toolbar.py": "1ff80f837af337f49ec76cdfc23a9088f9d6d96ae34bd99826feff4ab4d1610b",
+    "tooltips.py": "33cd64860c4cb3c789e5a0516d4fa3e4001f8cfd6c1397e105cf312036e403a1",
+    "units.py": "1a0f69ad6e2183663d0d8c2d9d8e655df4c627df04c4b1feb63c55dc4299018c",
+    "virtual_controls.py": "afdd1c4acc5dec3a1b5eb0e2cb81791d41b3bfeee0f8c585e6040cbb27c05d2c",
+    "virtual_editor.py": "4c48c644836ae2cf3f73db7fcefe50f1f08c7ab94a2d60998a2ee0d1280e76bc",
+    "worker.py": "4133503442ba3dfc18444a7934603e98643d7636bb655cbed25d54c56a58962d"
+  },
+  "runs": [
+    {
+      "script": "newton_perf_review.py",
+      "original_sha256": "21257800fee82cc554f97ce84efe4e10c034cb04fa193c7056d96a9127990e3a",
+      "executed_sha256": "30e6726d3875f6ca29b9907a8ad854799a532176a9022022cd425690409c0962",
+      "command": [
+        "/home/equinox/git/private/ingetrazo-newton/.venv/bin/python",
+        "-B",
+        "-"
+      ],
+      "returncode": 0
+    },
+    {
+      "script": "newton_perf_followup.py",
+      "original_sha256": "3fb1c4367eb4d914255e0ec1460e3127fee8757bcea96a3579f132b4cf9ae0d2",
+      "executed_sha256": "3fb1c4367eb4d914255e0ec1460e3127fee8757bcea96a3579f132b4cf9ae0d2",
+      "command": [
+        "/home/equinox/git/private/ingetrazo-newton/.venv/bin/python",
+        "-B",
+        "-"
+      ],
+      "returncode": 0
+    },
+    {
+      "script": "newton_perf_ui_followup.py",
+      "original_sha256": "6befdc97218c579d901d06faf404efc633a0759d9082f23dc9488f7fdc637f25",
+      "executed_sha256": "6befdc97218c579d901d06faf404efc633a0759d9082f23dc9488f7fdc637f25",
+      "command": [
+        "/home/equinox/git/private/ingetrazo-newton/.venv/bin/python",
+        "-B",
+        "-"
+      ],
+      "returncode": 0
+    }
+  ],
+  "finished_utc": "2026-11-06T10:56:24.330815+00:00"
+}

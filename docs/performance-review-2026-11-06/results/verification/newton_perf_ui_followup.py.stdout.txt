@@ -1,0 +1,12 @@
+{'probe': 'changing telemetry', 'n': 10, 'cached': False, 'ms': 0.273}
+{'probe': 'changing telemetry', 'n': 10, 'cached': True, 'ms': 0.139}
+{'probe': 'changing telemetry', 'n': 50, 'cached': False, 'ms': 1.223}
+{'probe': 'changing telemetry', 'n': 50, 'cached': True, 'ms': 0.67}
+{'probe': 'changing telemetry', 'n': 100, 'cached': False, 'ms': 2.494}
+{'probe': 'changing telemetry', 'n': 100, 'cached': True, 'ms': 1.384}
+{'probe': 'collider draw', 'n': 100, 'variant': 'original', 'ms': 2.397}
+{'probe': 'collider draw', 'n': 100, 'variant': 'indexed', 'ms': 2.216}
+{'probe': 'collider draw', 'n': 500, 'variant': 'original', 'ms': 13.85}
+{'probe': 'collider draw', 'n': 500, 'variant': 'indexed', 'ms': 11.046}
+{'probe': 'collider draw', 'n': 1000, 'variant': 'original', 'ms': 31.809}
+{'probe': 'collider draw', 'n': 1000, 'variant': 'indexed', 'ms': 21.248}
