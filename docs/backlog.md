@@ -35,3 +35,19 @@ Open questions to settle before any work:
 - How a timeline relates to the existing control panel, the per-axis targets and the servo/motor ramps (acceleration, deceleration).
 - Whether playback must be deterministic and reproducible (fixed time step) so a sequence gives the same result every run.
 - How much of this the IngeTrazo host offers for UI (timeline widget, extension API) and what Newton has to build itself; see `docs/host-proposals.md`.
+
+## Idea: hide and unhide controls in the control panel
+
+Status: idea, not agreed or scoped.
+
+With many actuated axes the control panel gets long. A roller conveyor with 100+ velocity axes shows one strip per roller. The user should be able to hide controls and bring them back.
+
+- Sidebar: a switch in the axis's motion section, for example "Show in control panel".
+- Control panel: a hide button in each strip, and a toggle such as "Show hidden controls" to reach hidden strips again.
+- Hiding changes the display only: drive, target, key binding and virtual control membership stay as they are, also while a simulation runs.
+- The state is saved per axis in the `.igz`.
+
+Open questions:
+
+- Whether it also applies to virtual controls, and how it relates to an axis that a virtual control manages (those have no strip of their own).
+- Whether many axes need a bulk action (hide all of a group, hide by name pattern) rather than one click each.
