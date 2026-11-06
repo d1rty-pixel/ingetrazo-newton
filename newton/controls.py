@@ -3,23 +3,31 @@
 All strips share one grid, so a sequence editor's timeline can later sit beside them. A strip expands
 in place for its key binding and, for a virtual control, its states.
 """
-from PySide6.QtCore import Qt, QSettings, QTimer
+from PySide6.QtCore import Qt, QSettings, QTimer, QSize
 from PySide6.QtGui import QKeySequence, QPalette, QColor
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QScrollArea, QFrame,
-    QPushButton, QToolButton, QButtonGroup, QDoubleSpinBox, QMenu, QSizePolicy, QDockWidget)
+    QPushButton, QToolButton, QButtonGroup, QDoubleSpinBox, QMenu, QSizePolicy, QDockWidget, QComboBox)
 from .i18n import tr
 from . import keep_pose
 from . import help_texts as help
-from .icons import icon, pixmap
+from .icons import attach, icon, pixmap
 from .key_caps import KeyCaps
 from .reference_table import ReferenceTable
 from .units import signature as units_signature, SPAN_METRES
 
 MAX_BODY_ROWS = 6
 KEEP_KEY = "newton/keep_warnings_on_reset"
+DETACHED_KEY = "newton/controls_detached"
+GEOMETRY_KEY = "newton/controls_geometry"
 DEFAULT_HEIGHT = 300
 ROW_HEIGHT = 48
 COL_ICON, COL_NAME, COL_ACTUAL, COL_TARGET, COL_KEY, COL_MORE = range(6)
+
+
+def icon_px():
+    """The host's toolbar icon size, so the list's icons and its handle follow the preference."""
+    from views.icons import toolbar_icon_px
+    return toolbar_icon_px()
 
 
 def keep_on_reset():
@@ -43,12 +51,42 @@ def muted(label, size=None):
     return label
 
 
+class DetachedWindow(QWidget):
+    """The control panel as a window of its own: movable and resizable by the window manager, closing it hides the panel."""
+
+    def __init__(self, controls, parent):
+        super().__init__(parent, Qt.Window)
+        self.setWindowTitle(tr("Controls"))
+        self.setLayout(QVBoxLayout())
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        geometry = QSettings().value(GEOMETRY_KEY)
+        if not (geometry and self.restoreGeometry(geometry)):
+            self.resize(960, 380)
+
+    def take(self, controls):
+        controls.layout().insertWidget(0, controls.header)
+        controls.header.show()
+        self.layout().addWidget(controls)
+        controls.show()
+
+    def release(self):
+        controls = self.layout().itemAt(0).widget()
+        controls.layout().removeWidget(controls.header)
+        self.layout().removeWidget(controls)
+        self.hide()
+
+    def closeEvent(self, event):
+        QSettings().setValue(GEOMETRY_KEY, self.saveGeometry())
+        super().closeEvent(event)
+
+
 class Controls(QWidget):
     def __init__(self, panel):
         super().__init__(panel.app.window)
         self.panel = panel
         self.kept = None
         self.expanded = set()
+        self.key_editing = set()
         self.holding = False
         self.signature = None
         self.last = ([], False)
@@ -109,6 +147,9 @@ class Controls(QWidget):
         self.keep_pose.toggled.connect(lambda on: QSettings().setValue(keep_pose.SETTING, on))
         self.options_button.setMenu(options)
         bar.addWidget(self.options_button)
+        self.float_button = attach(QToolButton(), "dock_float")
+        self.float_button.clicked.connect(self.toggle_detached)
+        bar.addWidget(self.float_button)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -136,6 +177,8 @@ class Controls(QWidget):
         layout.addWidget(self.scroll, 1)
 
         self.dock = self.make_dock()
+        self.detached = None
+        self.show_detached(False)
 
         panel.session.metrics.connect(self.show_performance)
         panel.session.frame.connect(self.show_time)
@@ -152,7 +195,7 @@ class Controls(QWidget):
         window = self.panel.app.window
         dock = QDockWidget(tr("Controls"), window)
         dock.setObjectName("newton_console_dock")
-        dock.setFeatures(QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
+        dock.setFeatures(QDockWidget.DockWidgetClosable)
         dock.setAllowedAreas(Qt.BottomDockWidgetArea)
         dock.setWidget(self)
         dock.setTitleBarWidget(self.header)
@@ -162,13 +205,53 @@ class Controls(QWidget):
         dock.hide()
         return dock
 
+    def show_detached(self, detached):
+        self.float_button.setToolTip(tr("Attach the control panel") if detached else tr("Detach the control panel"))
+
+    def toggle_detached(self):
+        self.attach() if self.detached is not None and self.detached.isVisible() else self.detach()
+
+    def detach(self):
+        """A floating QDockWidget cannot be moved on Wayland, so the panel moves into a window of its own and the dock stays hidden."""
+        if self.detached is None:
+            self.detached = DetachedWindow(self, self.panel.app.window)
+        self.dock.setWidget(None)
+        self.dock.setTitleBarWidget(None)
+        self.dock.hide()
+        self.detached.take(self)
+        self.detached.show()
+        self.detached.raise_()
+        QSettings().setValue(DETACHED_KEY, True)
+        self.show_detached(True)
+
+    def attach(self):
+        QSettings().setValue(DETACHED_KEY, False)
+        self.detached.release()
+        self.dock.setWidget(self)
+        self.dock.setTitleBarWidget(self.header)
+        self.dock.show()
+        self.show_detached(False)
+
+    def is_open(self):
+        return self.detached.isVisible() if self.detached is not None and self.detached.isVisible() else not self.dock.isHidden()
+
+    def open(self):
+        if QSettings().value(DETACHED_KEY, False, type=bool) and (self.detached is None or not self.detached.isVisible()):
+            self.detach()
+        elif self.detached is not None and self.detached.isVisible():
+            self.detached.raise_()
+        else:
+            self.dock.show()
+
     def keep_sidebar_height(self):
         """Host adapter: the sidebar keeps the full window height and the dock sits under the 3D view only; the host's restoreState undoes it."""
         self.panel.app.window.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
 
     def toggle(self):
-        if self.dock.isHidden():
+        if not self.is_open():
             self.panel.show_controls()
+        elif self.detached is not None and self.detached.isVisible():
+            self.detached.close()
         else:
             self.dock.hide()
 
@@ -198,7 +281,7 @@ class Controls(QWidget):
         joints = [j for j in joints if j["drive"] != "free" and not j.get("coupling") and j["uid"] not in taken]
         bindings = self.bindings()
         signature = (repr(joints), repr(virtual), active, units_signature(), repr(slot_labels(self.panel)),
-                     repr(bindings), self.panel.detail_uid, tuple(sorted(self.expanded)),
+                     repr(bindings), self.panel.detail_uid, tuple(sorted(self.expanded)), tuple(sorted(self.key_editing)), icon_px(),
                      self.palette().color(QPalette.Window).name())
         if signature != self.signature and not self.holding:
             self.signature = signature
@@ -243,12 +326,12 @@ class Controls(QWidget):
         self.joint_inputs = {}
         self.virtual_inputs = {}
         self.range_controls = []
-        grid.setColumnMinimumWidth(COL_ICON, 30)
+        grid.setColumnMinimumWidth(COL_ICON, icon_px()+8)
         grid.setColumnMinimumWidth(COL_NAME, 190)
         grid.setColumnMinimumWidth(COL_ACTUAL, 118)
         grid.setColumnMinimumWidth(COL_TARGET, 330)
         grid.setColumnMinimumWidth(COL_KEY, 215)
-        grid.setColumnMinimumWidth(COL_MORE, 34)
+        grid.setColumnMinimumWidth(COL_MORE, icon_px()+10)
         grid.setColumnStretch(COL_TARGET, 3)
         grid.setRowMinimumHeight(0, 26)
         for col, text in ((COL_NAME, tr("Control")), (COL_ACTUAL, tr("Actual")), (COL_TARGET, tr("Target")), (COL_KEY, tr("Key"))):
@@ -268,7 +351,7 @@ class Controls(QWidget):
             frame.setStyleSheet(f"QFrame#stripe {{ background: rgba({base.red()},{base.green()},{base.blue()},{base.alpha()}); "
                                 f"border-top: 1px solid rgba({mid.red()},{mid.green()},{mid.blue()},90); }}")
             grid.addWidget(frame, r, 0, 1, COL_MORE+1)
-            grid.setRowMinimumHeight(r, ROW_HEIGHT)
+            grid.setRowMinimumHeight(r, max(ROW_HEIGHT, icon_px()+14))
 
         def group_caption(text):
             nonlocal row
@@ -298,7 +381,7 @@ class Controls(QWidget):
 
     def icon_cell(self, grid, r, name):
         mark = QLabel()
-        mark.setPixmap(pixmap(name, 22))
+        mark.setPixmap(pixmap(name, icon_px()))
         mark.setAlignment(Qt.AlignCenter)
         grid.addWidget(mark, r, COL_ICON)
 
@@ -346,7 +429,7 @@ class Controls(QWidget):
         self.range_controls.append(control)
         grid.addWidget(control, r, COL_TARGET)
         self.rows[uid] = (actual, joint, shown)
-        self.key_cell(grid, r, "joint", uid, bindings)
+        self.key_cell(grid, r, "joint", uid, joint, bindings, active)
         return self.expansion(grid, r+1, "joint", uid, joint, bindings, active)
 
     def virtual_row(self, grid, r, control, active, bindings):
@@ -399,7 +482,7 @@ class Controls(QWidget):
             grid.addWidget(slider, r, COL_TARGET)
             self.virtual_inputs[control_id] = ("slider", number)
         self.show_virtual(control_id, control, value)
-        self.key_cell(grid, r, "control", control_id, bindings)
+        self.key_cell(grid, r, "control", control_id, control, bindings, active)
         return self.expansion(grid, r+1, "control", control_id, control, bindings, active)
 
     def show_virtual(self, control_id, control, value):
@@ -427,26 +510,28 @@ class Controls(QWidget):
         v.addStretch()
         return cell, title
 
-    def key_cell(self, grid, r, kind, ident, bindings):
+    def key_cell(self, grid, r, kind, ident, subject, bindings, active):
         from .key_bindings import find
         from .key_slots import slot_name
         binding = find(bindings or [], kind, ident)
+        editable = not active and bindings is not None
         cell = QWidget()
         h = QHBoxLayout(cell)
         h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(8)
-        key = ""
-        if binding is not None:
+        if binding is None or (kind, ident) in self.key_editing:
+            h.addWidget(self.slot_picker(kind, ident, subject, binding, editable))
+        else:
+            key = ""
             slots = self.panel.key_slots.actions
             n = binding["slot"]
             key = slots[n-1].shortcut().toString(QKeySequence.NativeText) if n <= len(slots) else ""
-        if key:
-            caps = KeyCaps(key)
-            caps.setFixedHeight(caps.sizeHint().height())
-            h.addWidget(caps, 0, Qt.AlignVCenter)
-        else:
-            h.addWidget(muted(QLabel(tr("No key"))))
-        if binding is not None:
+            if key:
+                caps = KeyCaps(key)
+                caps.setFixedHeight(caps.sizeHint().height())
+                h.addWidget(caps, 0, Qt.AlignVCenter)
+            else:
+                h.addWidget(muted(QLabel(tr("No key"))))
             text = QWidget()
             t = QVBoxLayout(text)
             t.setContentsMargins(0, 0, 0, 0)
@@ -456,21 +541,65 @@ class Controls(QWidget):
             t.addWidget(muted(QLabel(tr("Toggle") if binding["mode"] == "toggle" else tr("Step")), 8))
             t.addStretch()
             h.addWidget(text)
+            modify = QPushButton(tr("Modify"))
+            modify.setEnabled(editable)
+            modify.clicked.connect(lambda: self.modify_key((kind, ident)))
+            h.addWidget(modify)
         h.addStretch()
         grid.addWidget(cell, r, COL_KEY)
         more = QToolButton()
         more.setAutoRaise(True)
+        px = icon_px()
+        more.setIconSize(QSize(px, px))
+        more.setFixedSize(px+8, px+8)
         more.setArrowType(Qt.DownArrow if (kind, ident) in self.expanded else Qt.RightArrow)
         more.setToolTip(tr("Key binding") if kind == "joint" else tr("Key binding and states"))
+        more.setEnabled(self.has_more(kind, binding))
         more.clicked.connect(lambda: self.toggle_row((kind, ident)))
         grid.addWidget(more, r, COL_MORE)
+
+    def has_more(self, kind, binding):
+        """A virtual control always has its states to show; an axis has only the settings of a key binding it does not have yet."""
+        return kind == "control" or binding is not None
+
+    def slot_picker(self, kind, ident, subject, binding, editable):
+        from .binding_fields import slot_labels
+        from .key_bindings import fresh
+        from .toolbar import compact
+        combo = compact(QComboBox())
+        combo.addItem(tr("No key"), None)
+        for n, label in slot_labels(self.panel, (binding["slot"],) if binding else ()):
+            combo.addItem(label, n)
+        combo.setCurrentIndex(max(0, combo.findData(binding["slot"] if binding else None)))
+        combo.setToolTip(tr(help.KEY_BINDING_SLOT))
+        combo.setEnabled(editable)
+
+        def chosen(_index):
+            slot = combo.currentData()
+            self.key_editing.discard((kind, ident))
+            if slot is None:
+                new = None
+            elif binding is None:
+                new = fresh(kind, ident, subject, slot, "toggle")
+            else:
+                new = dict(binding, slot=slot)
+            self.store_binding(kind, ident, new)
+            QTimer.singleShot(0, lambda: self.refresh(*self.last))
+        combo.activated.connect(chosen)
+        return combo
+
+    def modify_key(self, key):
+        self.key_editing.add(key)
+        self.refresh(*self.last)
 
     def toggle_row(self, key):
         self.expanded.symmetric_difference_update({key})
         self.refresh(*self.last)
 
     def expansion(self, grid, r, kind, ident, subject, bindings, active):
-        if (kind, ident) not in self.expanded:
+        from .key_bindings import find
+        binding = find(bindings or [], kind, ident)
+        if (kind, ident) not in self.expanded or not self.has_more(kind, binding):
             return r
         box = QFrame()
         v = QVBoxLayout(box)
@@ -483,10 +612,12 @@ class Controls(QWidget):
             editor.setEnabled(not active)
             editor.setMaximumWidth(760)
             v.addWidget(editor, 0, Qt.AlignLeft)
-        v.addWidget(muted(QLabel(tr("Key binding").upper()), 7))
-        fields = self.key_fields(kind, ident, subject, bindings, active)
-        fields.setMaximumWidth(760)
-        v.addWidget(fields, 0, Qt.AlignLeft)
+        if binding is not None:
+            v.addWidget(muted(QLabel(tr("Key binding").upper()), 7))
+            fields = self.key_fields(kind, ident, subject, bindings, active)
+            fields.slot.hide()
+            fields.setMaximumWidth(760)
+            v.addWidget(fields, 0, Qt.AlignLeft)
         grid.addWidget(box, r, 0, 1, COL_MORE+1)
         return r+1
 

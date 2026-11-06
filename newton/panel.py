@@ -966,7 +966,7 @@ class NewtonPanel(QWidget):
 
     def show_controls(self):
         self.controls.refresh(self.control_rows,self.session.workspace is not None)
-        self.controls.dock.show()
+        self.controls.open()
 
     def virtual_controls(self):
         """The controls the control panel shows; during a simulation the ones it started with."""

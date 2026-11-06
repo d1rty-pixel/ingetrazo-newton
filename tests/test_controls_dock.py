@@ -1,7 +1,9 @@
-from PySide6.QtWidgets import QLabel, QToolButton
+from PySide6.QtWidgets import QComboBox, QLabel, QToolButton
 
+from newton.key_bindings import with_bindings
 from newton.virtual_controls import with_controls
 from test_interface import panel, seed_coupled_robot  # noqa: F401 (fixture)
+from test_key_bindings import toggle
 from test_virtual_controls import control, eligible_rows
 
 
@@ -23,16 +25,20 @@ def test_virtual_controls_come_first_and_every_row_shows_name_actual_target_and_
     assert shown.index("VIRTUAL CONTROLS") < shown.index("Flap") < shown.index("AXES")
     assert set(controls.virtual_inputs) == {"c1"} and first["uid"] not in controls.rows
     assert controls.rows and all(label.text() == "—" for label, _, _ in controls.rows.values())
-    assert "No key" in shown
+    assert len([c for c in controls.scroll.widget().findChildren(QComboBox) if c.itemText(0) == "No key" and c.toolTip()]) == len(controls.rows)+1
     assert controls.virtual_state_labels["c1"].text() == "S0"
     assert not controls.start_button.isHidden() and controls.time_label.text() == "Time: 0.00 s"
 
 
 def test_a_row_expands_in_place_for_its_key_binding_and_collapses_again(panel):
     seed_coupled_robot(panel)
-    uid = next(iter(eligible_rows(panel)))["uid"]
+    row = next(iter(eligible_rows(panel)))
+    uid = row["uid"]
+    panel.app.set_document_data(with_bindings(None, [toggle(uid, 1, row["upper"], 0)]))
     panel.show_controls()
     controls = panel.controls
+    handles = [b for b in controls.scroll.widget().findChildren(QToolButton) if b.toolTip() == "Key binding"]
+    assert [h.isEnabled() for h in handles].count(True) == 1
     arrow(panel, "Key binding").click()
     assert ("joint", uid) in controls.expanded and "KEY BINDING" in texts(panel)
     arrow(panel, "Key binding").click()
@@ -42,7 +48,8 @@ def test_a_row_expands_in_place_for_its_key_binding_and_collapses_again(panel):
 def test_a_virtual_row_expands_with_its_states_above_the_key_binding(panel):
     seed_coupled_robot(panel)
     first = eligible_rows(panel)[0]
-    panel.app.set_document_data(with_controls(None, [control(joints=(first["uid"],), states=((0,), (1,)))]))
+    panel.app.set_document_data(with_bindings(with_controls(None, [control(joints=(first["uid"],), states=((0,), (1,)))]),
+                                              [toggle("c1", 1, 1, 0, kind="control")]))
     panel.show_controls()
     arrow(panel, "Key binding and states").click()
     shown = texts(panel)
@@ -75,6 +82,34 @@ def test_the_header_carries_the_transport_and_the_two_keep_options(panel):
     assert controls.header.isAncestorOf(controls.time_label) and controls.header.isAncestorOf(controls.options_button)
 
 
+def test_the_float_button_moves_the_panel_into_a_window_of_its_own_and_back(panel):
+    controls = panel.controls
+    panel.show_controls()
+    assert controls.header.isAncestorOf(controls.float_button) and controls.dock.titleBarWidget() is controls.header
+    assert controls.float_button.toolTip() == "Detach the control panel"
+    controls.float_button.click()
+    window = controls.detached
+    assert window.isVisible() and window.isWindow() and controls.dock.isHidden()
+    assert window.isAncestorOf(controls) and controls.isAncestorOf(controls.header) and controls.header.isVisibleTo(controls)
+    assert controls.float_button.toolTip() == "Attach the control panel" and controls.is_open()
+    panel.show_controls()
+    assert window.isVisible() and controls.dock.isHidden()
+    controls.float_button.click()
+    assert not window.isVisible() and not controls.dock.isHidden() and controls.dock.widget() is controls
+    assert controls.dock.titleBarWidget() is controls.header and controls.float_button.toolTip() == "Detach the control panel"
+
+
+def test_a_detached_panel_stays_detached_when_it_is_reopened(panel):
+    controls = panel.controls
+    panel.show_controls()
+    controls.float_button.click()
+    controls.toggle()
+    assert not controls.detached.isVisible() and controls.dock.isHidden() and not controls.is_open()
+    panel.show_controls()
+    assert controls.detached.isVisible() and controls.dock.isHidden()
+    controls.float_button.click()
+
+
 def test_the_pressed_switch_button_takes_the_accent_colour(panel, qtapp):
     seed_coupled_robot(panel)
     first = eligible_rows(panel)[0]
@@ -88,13 +123,13 @@ def test_the_dock_is_remembered_by_the_host_window_state(panel, monkeypatch):
     from views.main_window import MainWindow
     first = panel.app.window
     panel.show_controls()
-    panel.controls.dock.setFloating(True)
+    panel.controls.dock.show()
     first._saved_version = first.viewport.scene.version
     first.close()
     second = MainWindow()
     try:
         remembered = next(d for d in second._extension_docks if d.objectName() == "extension_newton").widget().controls.dock
-        assert not remembered.isHidden() and remembered.isFloating()
+        assert not remembered.isHidden()
     finally:
         second._saved_version = second.viewport.scene.version
         second.close()
