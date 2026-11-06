@@ -1,5 +1,10 @@
 # Test and measurement runs
 
+## Environment forces F6 and clustered contacts (Linux, 6 November 2026)
+
+- F6: `apply_environment` applies forces with one `mj_applyFT` per body and calls `mj_jacBodyCom` only for active damping terms. 100 free bodies, eight-step batch, pinned to one core, old → new: gravity override only 7.8–8.1 → 1.0 ms; linear damping 8.0–8.5 → 2.7 ms; linear and angular damping 7.9–8.1 → 5.4 ms. Archived probe "damping" at 100 bodies: 7.8 → 2.7 ms. A regression test compares `qfrc_applied` with the old dense formula (free and hinged bodies, every damping combination) at rtol 1e-12.
+- Live check in IngeTrazo (Flatpak, MCP): 200 boxes, override gravity 0, attraction 0.5, softening 0.1. The real-time factor started at about 0.6 and fell to about 0 once the boxes clustered. Headless reproduction: before contact a batch takes ~33 ms (attraction ~13 ms, environment ~20 ms before F6); in the cluster `mj_step` grows to over 30 s per batch with ~900 contacts. Cause and solver comparison: [backlog](../backlog.md#idea-contact-solver-settings-for-large-clustered-scenes).
+
 ## Performance fixes F1, F2, F3, F5 (Linux, 6 November 2026)
 
 Fixes from the [performance review](../performance-review-2026-11-06/review.md) on branch `perf/review-2026-11-06-fixes`. Full suite: 435 passed. The archived probes (`docs/performance-review-2026-11-06/scripts/run.py`) were rerun against the changed code; they measure the `newton/` of the checkout that contains `run.py`, so their "original" variants now measure the new code. A rerun with the new `--root` option against a worktree of the unchanged code gave 369.6 ms for 100 attracting bodies, matching the archive. Medians, same synthetic workloads as the review.

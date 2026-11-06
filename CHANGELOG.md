@@ -47,6 +47,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 - The worker's protocol lines use the prefix `NEWTON:` instead of `IGPHYSICS:` (internal, no effect for users).
 - Attraction between bodies is computed once per body instead of once per pair: 100 mutually attracting bodies need about 3 ms instead of about 370 ms per 33 ms of simulated time, so such scenes run in real time. The forces are unchanged.
 - Shown collision shapes paint faster in large models (1,000 shapes: about 20 ms instead of 31 ms per frame), and the joint values in the control panel only restyle when a joint reaches or leaves its limit (100 changing values: about 1.3 ms instead of 2.5 ms per update).
+- Per-body simulation overrides (own gravity, damping) are cheaper: a body that only overrides gravity no longer needs a Jacobian per step, and damping computes only the parts that are set (100 bodies with own gravity: about 8 ms → 1 ms per 33 ms of simulated time; with linear damping about 8 → 2.7 ms).
 - Start and the collision preview no longer send the vertices of box, sphere and compound shapes to the Newton process, which never used them; a detailed mesh with a box collision shape no longer slows down the start (250,000 vertices: about 80 ms of encoding saved).
 
 ### Fixed
