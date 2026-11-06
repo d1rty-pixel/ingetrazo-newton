@@ -108,11 +108,16 @@ class CollisionView(QObject):
         session = self.panel.session
         colliders = session.colliders if session.workspace else self.colliders
         selected = {g.uid for g in self.panel.selected()}
+        scene = self.panel.app.scene
+        groups = {g.uid:g for g in scene.groups}
+        hidden_layers = {l.name for l in scene.layers if not l.visible}
+        fills = QColor(255,190,50,24),QColor(20,180,230,24)
+        pens = QPen(QColor(255,190,50),3),QPen(QColor(20,180,230),2)
         painter.save()
         for uid,shape in colliders.items():
             if not self.shown(uid):continue
-            g = next((g for g in self.panel.app.scene.groups if g.uid==uid),None)
-            if g is None or g.hidden or any(l.name==g.layer and not l.visible for l in self.panel.app.scene.layers):continue
+            g = groups.get(uid)
+            if g is None or g.hidden or g.layer in hidden_layers:continue
             if session.workspace:
                 matrix = session.frame_of(uid)
             else:
@@ -122,11 +127,11 @@ class CollisionView(QObject):
             if not points:continue
             xs,ys,front = viewport.world_to_pixels(points)
             painter.setPen(Qt.NoPen)
-            painter.setBrush(QColor(255,190,50,24) if uid in selected else QColor(20,180,230,24))
+            painter.setBrush(fills[uid not in selected])
             for face in shape.get("faces",[]):
                 if all(front[i] for i in face):
                     painter.drawPolygon(QPolygonF([QPointF(float(xs[i]),float(ys[i])) for i in face]))
-            painter.setPen(QPen(QColor(255,190,50) if uid in selected else QColor(20,180,230),3 if uid in selected else 2))
+            painter.setPen(pens[uid not in selected])
             for a,b in shape["edges"]:
                 if front[a] and front[b]:painter.drawLine(int(xs[a]),int(ys[a]),int(xs[b]),int(ys[b]))
         painter.restore()

@@ -173,6 +173,34 @@ def test_context_menu_selects_only_the_physics_object_the_body_owns(panel,qtapp)
     assert not actions["Select axis object"].isEnabled() and not actions["Select connection object"].isEnabled()
 
 
+def test_collider_paint_skips_hidden_bodies_and_invisible_layers(panel):
+    from newton.model import box,AddDemo
+    from core.layers import Layer
+    bodies = [box(n,(i*3,0,1),(1,1,1)) for i,n in enumerate("ABC")]
+    panel.app.viewport.history.execute(AddDemo(bodies))
+    scene,view = panel.app.scene,panel.collision_view
+    scene.layers.append(Layer("Off"));scene.layers[-1].visible = False
+    bodies[1].hidden = True
+    bodies[2].layer = "Off"
+    shape = {"points":[[0,0,0],[1,0,0],[0,1,0]],"edges":[[0,1]],"faces":[]}
+    class Painter:
+        def __init__(self): self.lines=0
+        def drawLine(self,*a): self.lines += 1
+        def __getattr__(self,key): return lambda *a:None
+    panel.show_colliders.setChecked(True)
+    view.colliders = {b.uid:shape for b in bodies}
+    view.poses = {b.uid:([0,0,1],[0,0,0,1]) for b in bodies}
+    try:
+        painter = Painter();view.draw(panel.app.viewport,painter)
+        assert painter.lines==1
+        bodies[1].hidden = False;bodies[2].layer = None
+        painter = Painter();view.draw(panel.app.viewport,painter)
+        assert painter.lines==3
+    finally:
+        panel.show_colliders.setChecked(False)
+        view.colliders = {}
+
+
 def test_body_collision_shape_toggle_overrides_only_this_body(panel):
     from newton.model import box,AddDemo
     a,b = box("A",(0,0,1),(1,1,1)),box("B",(3,0,1),(1,1,1))
