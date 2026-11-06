@@ -1763,8 +1763,8 @@ def test_control_panel_marks_errors_and_warnings_but_not_hints(panel):
 def test_control_panel_is_a_bottom_dock_under_the_view_and_the_sidebar_keeps_its_height(panel):
     window,dock = panel.app.window,panel.controls.dock
     assert window.dockWidgetArea(dock)==Qt.BottomDockWidgetArea
-    assert window.corner(Qt.BottomRightCorner)==Qt.RightDockWidgetArea
     # The host's restoreState undoes the corner; the next refresh puts it back.
+    # Not asserted before it: in tests the host restores after setup, from whatever layout .test-state last saved.
     window.setCorner(Qt.BottomRightCorner,Qt.BottomDockWidgetArea)
     panel.controls.refresh([],False)
     assert window.corner(Qt.BottomRightCorner)==Qt.RightDockWidgetArea
