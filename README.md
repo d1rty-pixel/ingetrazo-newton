@@ -2,7 +2,7 @@
 
 [![Release](https://img.shields.io/github/v/release/d1rty-pixel/ingetrazo-newton)](https://github.com/d1rty-pixel/ingetrazo-newton/releases)
 [![Licence](https://img.shields.io/github/license/d1rty-pixel/ingetrazo-newton)](LICENSE)
-![IngeTrazo](https://img.shields.io/badge/IngeTrazo-0.6.0-blue)
+![IngeTrazo](https://img.shields.io/badge/IngeTrazo-0.6.1-blue)
 ![Extension API](https://img.shields.io/badge/Extension%20API-2-blue)
 ![MuJoCo](https://img.shields.io/badge/MuJoCo-3.3.7-informational)
 ![Python](https://img.shields.io/badge/Python-3.12-informational)

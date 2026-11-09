@@ -4,7 +4,7 @@ Ideas for IngeTrazo itself, found while working on Newton: fixes, extension poin
 
 Newton is always developed against the pinned host version (see [AGENTS.md](../AGENTS.md)). An entry here never blocks, postpones or reshapes Newton work; the Newton-side solution is built anyway. When a proposal lands in a host version that Newton pins, replace the Newton workaround and remove the entry.
 
-File references are to the host commit pinned in [AGENTS.md](../AGENTS.md) ("Development setup") when the entry was written or last updated (2026-11-05: `e61132a`, v0.6.0).
+File references are to the host commit pinned in [AGENTS.md](../AGENTS.md) ("Development setup") when the entry was written or last updated (2026-11-09: `ffc7187`, v0.6.1; entries written before that refer to `e61132a`, v0.6.0).
 
 Status values: **idea** (noted, not proposed), **proposed** (issue or pull request upstream, link it), **accepted** (merged upstream, not yet pinned), **rejected** (upstream declined; keep the reason).
 
@@ -178,6 +178,6 @@ Each entry states: what was found in the host, the proposal, what Newton could r
 
 - **Status:** proposed, [ingelibre/ingetrazo#1241](https://github.com/ingelibre/ingetrazo/pull/1241)
 - **Found:** 2026-11-06, audit of Browser and Tray actions during a simulation
-- **Host today:** `History.execute` (`core/history.py:239`) returns `None`, so callers cannot tell a refusal from success. `MaterialsPanel._restamp` (`views/tray.py:2648–2670`) updates the paint tool and reports "Material … updated" after a refusal; `_place_view` with `open_sheet` (`views/outliner.py:3720`) would raise `ValueError`. "Simplify Mesh after a refused command" above has the same cause.
+- **Host today:** `History.execute` (`core/history.py:239`) returns `None`, so callers cannot tell a refusal from success. `MaterialsPanel._restamp` (`views/tray.py:2648–2670`) updates the paint tool and reports "Material … updated" after a refusal; `_place_view` with `open_sheet` (`views/outliner.py:3720`) would raise `ValueError`; `ScenesPanel._on_add` (`views/tray.py:4535`, new in 0.6.1) raises `IndexError` (`scene.saved_views[-1]`) after a refusal, which fails two Newton tests (see known issues). "Simplify Mesh after a refused command" above has the same cause.
 - **Proposal:** let `execute` return whether the command ran, or have these callers check `history.last_rejected`.
 - **Others:** any workspace or extension that refuses commands.

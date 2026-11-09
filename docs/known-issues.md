@@ -12,6 +12,12 @@ Status values: **open** (confirmed, not fixed), **observation** (reported, cause
 - **Still open, code-path risks with unmeasured incidence:** preview invalidation from the global scene version and synchronous GUI preparation (F3); GUI-thread `waitForFinished(1000)` during process teardown (F4); metrics that omit serialization or actual paint phases (F7). Selection-triggered full control-panel rebuilding is an additional unmeasured hotspot, not a demonstrated per-frame rebuild.
 - **Unverified:** representative-scene impact, real process shutdown latency and live input latency.
 
+## Two tests fail on IngeTrazo 0.6.1: the host adds a scene after a refused command
+
+- **Status:** open (host bug, [ingelibre/ingetrazo#1241](https://github.com/ingelibre/ingetrazo/pull/1241) commented 2026-11-09)
+- **What:** `test_properties_actions_are_refused_during_the_simulation` and `test_direct_view_settings_during_the_simulation_stay_in_the_workspace` fail with `IndexError` in the host's `ScenesPanel._on_add` (`views/tray.py:4535`, `scene.saved_views[-1]`): Newton refuses *Add scene* during a simulation, and the host then reads the scene that was never added. They pass on 0.6.0. The tests stay unchanged on purpose, so they show when the host is fixed or changes.
+- **Also failing:** `test_sidebar_rows_keep_their_height_at_every_width[260]` (8 px of horizontal scroll). It fails on 0.6.0 as well, cause not examined.
+
 ## Test settings persist between runs
 
 - **Status:** open

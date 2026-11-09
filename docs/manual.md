@@ -216,4 +216,4 @@ Newton uses the Python package `newton`, the model key `group.ext["newton"]`, th
 - Bounce is an approximation through MuJoCo's contact damping. The optional ground is an infinite plane at Z=0.
 - Ball joints exist only as connections (no ball axis with drive or limits). No universal joints, replay, magnetism, buoyancy or SketchyPhysics script compatibility yet.
 - One simulation per window; the workspace blocks switching projects. No guaranteed frame rate for large models.
-- IngeTrazo's 0.x API is subject to change. Checked was v0.6.0, commit `e61132a7f8a098ca77fb6b0e7cac488c1bd410cb`.
+- IngeTrazo's 0.x API is subject to change. Checked was v0.6.1, commit `ffc7187bbaf8222ea5f5f19e33f6c4ed81ad4ad5`.

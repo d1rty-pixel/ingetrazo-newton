@@ -4,7 +4,7 @@ Guidance for coding agents and contributors working on Newton, a physics extensi
 
 ## Architecture
 
-- `newton/` is the extension package that IngeTrazo loads (`setup(app)` in `newton/__init__.py`). It targets IngeTrazo 0.6.0 / Extension API 2 and must not modify IngeTrazo core files. Where API 2 lacks a hook, Newton uses a local adapter (for example `preferences.py` wraps the host preferences dialog).
+- `newton/` is the extension package that IngeTrazo loads (`setup(app)` in `newton/__init__.py`). It targets IngeTrazo 0.6.1 / Extension API 2 and must not modify IngeTrazo core files. Where API 2 lacks a hook, Newton uses a local adapter (for example `preferences.py` wraps the host preferences dialog).
 - `newton/worker.py` is a standalone process: standard library, `mujoco` and `numpy` only, no Qt and no IngeTrazo imports. It speaks JSON lines prefixed with `NEWTON:` over stdin/stdout. `session.py` (simulation) and `collision_view.py` (collision preview) start it with `python -E -u worker.py` using the interpreter from `runtime.json` or the Runtime preference.
 - Model data lives in `group.ext["newton"]` and is saved in the `.igz`. Settings use the `newton/` QSettings prefix. Axis overlays, axis objects and connection objects (wire groups with `ext["newton"]["axis_of"]` or `["connection_of"]`, see `axis_objects.py`) use the reserved layer `Newton Axes`. The joint and `point_attachment` data stay authoritative; a history hook syncs the objects in the same undo step. There are no aliases for older names.
 - `runtime_setup.py` creates, checks and locates the runtime (Python 3.12 + MuJoCo in `<IngeTrazo data>/newton-runtime/`); it is standard library only, doubles as a command line (`python newton/runtime_setup.py --help`) and has two maintainer switches (`RUNTIME_SETUP_ENABLED`, `DOWNLOAD_UV`). `runtime_ui.py` is the preferences widget. The pinned `uv` hashes and `runtime-requirements.txt` must be updated together with `UV_VERSION`, `MUJOCO_VERSION` and `requirements-dev.txt`. See [docs/runtime-setup.md](docs/runtime-setup.md).
@@ -16,7 +16,7 @@ The tests import IngeTrazo itself, so a checkout of the exact host version must 
 
 ```bash
 git clone https://github.com/ingelibre/ingetrazo.git ingetrazo-source
-git -C ingetrazo-source checkout e61132a7f8a098ca77fb6b0e7cac488c1bd410cb
+git -C ingetrazo-source checkout ffc7187bbaf8222ea5f5f19e33f6c4ed81ad4ad5
 ```
 
 Python 3.12 (64-bit) environment in `.venv` (git-ignored):
