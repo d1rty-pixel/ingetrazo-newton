@@ -102,3 +102,40 @@ def test_coupling_and_reserved_layer_survive_native_file_roundtrip(tmp_path):
     world.load(dict(bodies=specs))
     assert len(world.motors)==6 and world.model.neq==1
     world.close()
+
+
+def test_motor_leader_turns_follower_continuously_with_ratio():
+    from core.scene import Scene
+    a = box("Crank",(0,0,1),(.1,.1,.1),joint=dict(type="hinge",drive="velocity",pivot=[.05,.05,1.05],
+            axis=[0,1,0],force=20,target=3,max_speed=3,acceleration=6))
+    b = box("Wheel",(0,1,1),(.1,.1,.1),joint=dict(type="hinge",drive="free",pivot=[.05,1.05,1.05],
+            axis=[0,1,0],force=0,limited=False,max_speed=50,acceleration=100,
+            coupling=dict(master=a.uid,ratio=-2.5)))
+    scene = Scene();scene.groups.extend([a,b])
+    _,specs,_ = prepare(scene)
+    world = World()
+    world.load(dict(bodies=specs,gravity=0,floor=False))
+    try:
+        for _ in range(90):
+            result = world.step(8)
+        crank,wheel = (result["joints"][g.uid] for g in (a,b))
+        # Past one turn: a motor leader is not held at a position like a servo.
+        assert crank["position"]>2*math.pi
+        assert crank["velocity"]==pytest.approx(3,abs=.05)
+        assert wheel["position"]==pytest.approx(-2.5*crank["position"],abs=.01)
+        with pytest.raises(ValueError,match="shared"):
+            world.step(8,{b.uid:1})
+    finally:
+        world.close()
+
+
+def test_motor_leader_keeps_its_speed_target_and_free_leaders_stay_rejected():
+    def j(**kw):
+        return joint_settings(dict(dict(type="hinge",pivot=[0,0,0],axis=[0,1,0],force=10),**kw))
+    follower = j(drive="free",limited=True,lower=-1,upper=1,max_speed=4,coupling=dict(master="a",ratio=2))
+    motor = j(drive="velocity",target=3,max_speed=3)
+    result = resolve_couplings(dict(a=motor,b=follower))["a"]
+    assert result["limited"] and (result["lower"],result["upper"])==pytest.approx((-.5,.5))
+    assert result["target"]==3 and result["max_speed"]==pytest.approx(2)
+    with pytest.raises(ValueError,match="servo or motor"):
+        resolve_couplings(dict(a=j(drive="free"),b=j(drive="free",coupling=dict(master="a",ratio=1))))

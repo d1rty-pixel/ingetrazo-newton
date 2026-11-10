@@ -4,6 +4,10 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ## Unreleased
 
+### Changed
+
+- *Axis coupling*: an axis can now also follow a motor (speed drive), not only a servo. A gear train or a crank mechanism behind one motor runs without end instead of stopping at a servo target; the motor carries the load of all followers, and a limited follower limits the motor's travel.
+
 ### Fixed
 
 - Opening a model saved before axis and connection objects existed (including most example models) no longer marks it as changed. Newton rebuilds those objects from the saved axes, which counted as an edit, so after Start and Reset the title showed `*` and closing asked to save although nothing was edited.

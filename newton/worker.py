@@ -145,8 +145,8 @@ def resolve_couplings(joints):
             raise ValueError("Coupled axis is missing or refers to itself.")
         if master.get("coupling"):
             raise ValueError("Coupling chains and cycles are not supported.")
-        if master["type"]!=j["type"] or master["drive"]!="position":
-            raise ValueError("Choose a matching position actuator.")
+        if master["type"]!=j["type"] or master["drive"] not in ("position","velocity"):
+            raise ValueError("Choose a matching servo or motor axis.")
         if j["limited"]:
             # Couplings relate motion from the start poses (MuJoCo's qpos0).
             low,high = sorted((master["start"]+(j["lower"]-j["start"])/c["ratio"],
@@ -155,8 +155,10 @@ def resolve_couplings(joints):
                 low,high = max(low,master["lower"]),min(high,master["upper"])
             if high-low<1e-8:
                 raise ValueError("Coupled axes have no shared travel.")
-            master.update(limited=True,lower=low,upper=high,
-                          target=max(low,min(high,master["target"])))
+            master.update(limited=True,lower=low,upper=high)
+            if master["drive"]=="position":
+                # A motor's target is a speed, not a place within the travel.
+                master["target"] = max(low,min(high,master["target"]))
         master["max_speed"] = min(master["max_speed"],j["max_speed"]/abs(c["ratio"]))
         master["acceleration"] = min(master["acceleration"],j["acceleration"]/abs(c["ratio"]))
         master["deceleration"] = min(master["deceleration"],j["deceleration"]/abs(c["ratio"]))

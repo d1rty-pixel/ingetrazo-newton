@@ -3024,3 +3024,14 @@ def test_control_telemetry_restyles_only_when_the_limit_state_changes(panel,monk
     panel.controls.telemetry({joint["uid"]:state})
     assert (label.text(),label.toolTip(),label.styleSheet())==normal
     assert len(calls)==2
+
+
+def test_coupling_picker_offers_motor_axes_but_not_passive_ones(panel):
+    groups = seed_coupled_robot(panel)
+    turret,upper,forearm = groups[1:4]
+    turret.ext[KEY]["joint"]["drive"] = "velocity"
+    upper.ext[KEY]["joint"]["drive"] = "free"
+    panel.app.scene.select([forearm])
+    panel.app.viewport.notify_scene_changed()
+    offered = {uid for uid,_,_ in panel.coupling_editor.candidates()}
+    assert turret.uid in offered and upper.uid not in offered

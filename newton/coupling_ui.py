@@ -86,7 +86,7 @@ class CouplingEditor(QWidget):
         if not j:
             return
         for uid,row in self.axes.items():
-            if uid!=self.group.uid and row["type"]==j["type"] and row["drive"]=="position" and not row.get("coupling"):
+            if uid!=self.group.uid and row["type"]==j["type"] and row["drive"] in ("position","velocity") and not row.get("coupling"):
                 body = next((g for g in self.panel.app.scene.groups if g.uid==uid),None)
                 yield uid,body,row["body"]+" · "+row["name"]
 

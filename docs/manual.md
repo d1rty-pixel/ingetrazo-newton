@@ -89,9 +89,9 @@ Every connection is also its own object **Connection · <body>** made of edges o
 
 ## Axes moving together
 
-In the section **Axis coupling → Follow axis → Choose…** an axis can follow a position drive of the same type; the menu shows only matching axes. The chosen leader axis appears as a row, its unlink icon makes the axis independent again. **Same direction/Opposite direction** refers to the spatial direction of the two axes. A ratio of 1 means the same distance or angle. By default every axis is independent.
+In the section **Axis coupling → Follow axis → Choose…** an axis can follow a servo (position) or motor (speed) drive of the same type; the menu shows only matching axes. A motor as leader turns its followers without end, for example a gear train behind a crank that runs continuously; a servo moves them to a target. The chosen leader axis appears as a row, its unlink icon makes the axis independent again. **Same direction/Opposite direction** refers to the spatial direction of the two axes. A ratio of 1 means the same distance or angle. By default every axis is independent.
 
-The coupling is enforced in the MuJoCo solver. The control panel shows only the leading control; the following axis cannot be dragged. The permitted distances, speeds and accelerations are limited to the common range. The leading drive provides the shared force or torque; the force limit of the following axis is not used as a second drive. A leading drive can have several direct follower axes. Coupling chains, loops and mixed rotation/linear couplings are not yet included.
+The coupling is enforced in the MuJoCo solver. The control panel shows only the leading control; the following axis cannot be dragged. The permitted distances, speeds and accelerations are limited to the common range; a limited follower also limits the travel of a leading motor. The leading drive provides the shared force or torque; the force limit of the following axis is not used as a second drive. A leading drive can have several direct follower axes. Coupling chains, loops and mixed rotation/linear couplings are not yet included.
 
 When a leading axis is removed or its body is fixed, its follower axes become independent again. This operation can be undone as one step. Couplings are stored in the model; custom profiles do not copy references to other model bodies.
 
