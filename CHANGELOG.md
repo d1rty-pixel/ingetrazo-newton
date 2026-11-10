@@ -4,6 +4,8 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ## Unreleased
 
+## 0.16.0 — 2026-11-11
+
 ### Added
 
 - Example model `models/gear-train-carousel.igz`: a man turns a crank that drives a carousel through spur gears, a ring gear and bevel gears (36:11) that mesh through their teeth (one convex shape per tooth, contact solver PGS); a worm and worm wheel follow through an axis coupling, and the man's arm is a closed linkage on the crank. See *Example models*.

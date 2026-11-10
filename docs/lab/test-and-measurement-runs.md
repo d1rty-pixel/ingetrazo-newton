@@ -1,5 +1,9 @@
 # Test and measurement runs
 
+## Release 0.16.0 full suite (Linux, 11 November 2026)
+
+Canonical full suite on `main` before the release commit, host pinned at `ffc7187`: 451 passed, 2 failed in 580 s. The two failures are the known host crash in `ScenesPanel._on_add` after a refused command (`test_properties_actions_are_refused_during_the_simulation`, `test_direct_view_settings_during_the_simulation_stay_in_the_workspace`, see known issues); they are unrelated to the changes of this release.
+
 ## Gear train carousel with tooth contacts (Linux, 10 November 2026)
 
 `scripts/models/gear_train_contact.py` (MuJoCo 3.3.7, PGS, quality Balanced, 12 s, values from 3 s on). Each meshing pair's phase comes from a kinematic search (follower turned at the exact ratio over one driver tooth pitch, 48 phases); smallest clearance: spur 40 → pinion 16 0.48 mm, pinion → ring gear 48 0.03 mm (internal tooth tips shortened to 0.8 module; 0.04 mm interference without), bevel 20 → bevel 20 0.36 mm (36 → 11: 0.24 mm), worm wheel → worm 0.08 mm. The ratios found (−2.5, +1/3, +1, +30) are those of the original couplings.
