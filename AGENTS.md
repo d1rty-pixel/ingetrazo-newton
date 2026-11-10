@@ -42,7 +42,7 @@ Canonical full suite (about 435 tests, 100–120 s on Linux):
 ```
 
 - Tests run Qt offscreen (`tests/conftest.py`) and use IngeTrazo's real loader and `MainWindow`. Settings and autosave go to `.test-state/`, never to the user's profile.
-- Run focused tests during development (`pytest tests/test_interface.py -k <name>`), the full suite once before a commit.
+- Run the tests that cover the change (`pytest tests/test_interface.py -k <name>`, or the affected test files), also before a commit. The full suite is only needed for a release, and releases are made in `../ingetrazo-extensions`, not in this repository.
 - `tests/test_newton.py` runs the worker as a subprocess with `sys.executable`; keep the worker importable without IngeTrazo.
 - In a git worktree (for example under `.claude/worktrees/`), symlink `ingetrazo-source` from the main checkout and use the main checkout's `.venv` interpreter; `.test-state/` is per worktree, so parallel suites do not share settings.
 - Record notable test suite runs, measurements and manual checks in [docs/lab/test-and-measurement-runs.md](docs/lab/test-and-measurement-runs.md).
