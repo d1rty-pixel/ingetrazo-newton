@@ -1,12 +1,32 @@
 """Wide sidebar slider paired with a compact, precise numeric input."""
 from PySide6.QtCore import Qt,QEvent,QObject,Signal
-from PySide6.QtWidgets import QWidget,QHBoxLayout,QSlider,QAbstractSpinBox
+from PySide6.QtWidgets import QWidget,QHBoxLayout,QSlider,QAbstractSpinBox,QStyle,QStyleOptionSlider
 from views.tray import style_slider
 
 
 class ScrollSafeSlider(QSlider):
     def wheelEvent(self,event):
         event.ignore()  # Scroll the sidebar without changing a parameter.
+
+    def mousePressEvent(self,event):
+        # The styled groove only page-steps on a click; the handle should jump under the cursor and then follow the drag.
+        if event.button()==Qt.LeftButton and self.isEnabled():
+            option = QStyleOptionSlider();self.initStyleOption(option)
+            groove = self.style().subControlRect(QStyle.CC_Slider,option,QStyle.SC_SliderGroove,self)
+            handle = self.style().subControlRect(QStyle.CC_Slider,option,QStyle.SC_SliderHandle,self)
+            if not handle.contains(event.position().toPoint()):
+                span = max(1,groove.width()-handle.width())
+                x = event.position().x()-groove.x()-handle.width()/2
+                self.setValue(QStyle.sliderValueFromPosition(self.minimum(),self.maximum(),round(x),span))
+        super().mousePressEvent(event)
+
+
+def style_range(slider):
+    """The host's slider look with a larger handle, which is easy to miss at 16 px."""
+    style_slider(slider)
+    slider.setStyleSheet(slider.styleSheet()+
+        " QSlider::handle:horizontal { width: 24px; height: 24px; margin: -9px 0; border-radius: 12px; }")
+    slider.setMinimumHeight(32)
 
 
 class WheelGuard(QObject):
@@ -37,8 +57,7 @@ class RangeControl(QWidget):
         self.expand = True
         self.slider = ScrollSafeSlider(Qt.Horizontal)
         self.slider.setRange(0,self.STEPS)
-        style_slider(self.slider)
-        self.slider.setMinimumHeight(32)
+        style_range(self.slider)
         # Narrow enough that a narrow sidebar does not scroll sideways; the slider still stays usable.
         self.slider.setMinimumWidth(80)
         number.setButtonSymbols(QAbstractSpinBox.NoButtons)
@@ -59,8 +78,7 @@ class RangeControl(QWidget):
         self.sync()
 
     def refresh_style(self):
-        style_slider(self.slider)
-        self.slider.setMinimumHeight(32)
+        style_range(self.slider)
 
     def sync(self,*args):
         value = self.number.value()

@@ -380,6 +380,7 @@
   "Show collision shape": "Kollisionsform anzeigen",
   "Show collision shapes": "Kollisionsformen anzeigen",
   "Show collision shapes in new windows": "Kollisionsformen in neuen Fenstern anzeigen",
+  "Show in the Newton sidebar": "In der Newton-Seitenleiste anzeigen",
   "Show or hide the control panel": "Steuerpult ein- oder ausblenden",
   "Show properties of the selection": "Eigenschaften der Auswahl anzeigen",
   "Shows or hides the collision shape of this body only. The global setting in the preferences stays as it is.": "Blendet nur die Kollisionsform dieses Körpers ein oder aus. Die globale Einstellung in den Einstellungen bleibt unverändert.",

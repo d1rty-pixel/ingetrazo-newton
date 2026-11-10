@@ -51,6 +51,21 @@ def muted(label, size=None):
     return label
 
 
+class ClickCell(QWidget):
+    """A name or icon cell that opens the control's settings in the sidebar."""
+    def __init__(self, action):
+        super().__init__()
+        self.action = action
+        self.setCursor(Qt.PointingHandCursor)
+        self.setToolTip(tr("Show in the Newton sidebar"))
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.action()
+        else:
+            super().mousePressEvent(event)
+
+
 class DetachedWindow(QWidget):
     """The control panel as a window of its own: movable and resizable by the window manager, closing it hides the panel."""
 
@@ -379,11 +394,25 @@ class Controls(QWidget):
         if old:
             old.deleteLater()
 
-    def icon_cell(self, grid, r, name):
+    def icon_cell(self, grid, r, name, action):
+        cell = ClickCell(action)
+        h = QHBoxLayout(cell)
+        h.setContentsMargins(0, 0, 0, 0)
         mark = QLabel()
         mark.setPixmap(pixmap(name, icon_px()))
         mark.setAlignment(Qt.AlignCenter)
-        grid.addWidget(mark, r, COL_ICON)
+        h.addWidget(mark)
+        grid.addWidget(cell, r, COL_ICON)
+
+    def show_in_sidebar(self, uid=None):
+        """Open the Newton tab; for an axis, with its body selected (not while a simulation shows clones)."""
+        panel = self.panel
+        scene = panel.app.scene
+        group = next((g for g in scene.groups if g.uid == uid), None) if uid and not panel.session.workspace else None
+        if group is not None:
+            scene.select([group])
+            panel.app.viewport.notify_scene_changed()
+        panel.show_sidebar()
 
     def value_label(self, grid, r):
         label = QLabel()
@@ -396,9 +425,10 @@ class Controls(QWidget):
     def joint_row(self, grid, r, joint, active, bindings):
         from .range_control import RangeControl
         uid = joint["uid"]
-        self.icon_cell(grid, r, "drive_velocity" if joint["drive"] == "velocity" else "drive_position")
+        show = lambda: self.show_in_sidebar(uid)
+        self.icon_cell(grid, r, "drive_velocity" if joint["drive"] == "velocity" else "drive_position", show)
         kind = tr("Motor") if joint["drive"] == "velocity" else tr("Servo")
-        grid.addWidget(self.name_cell(joint["name"], kind+" · "+joint["body"])[0], r, COL_NAME)
+        grid.addWidget(self.name_cell(joint["name"], kind+" · "+joint["body"], show)[0], r, COL_NAME)
         actual = self.value_label(grid, r)
         actual.setText(tr("—"))
         shown = display_units(joint)
@@ -436,10 +466,11 @@ class Controls(QWidget):
         from .virtual_controls import clamp
         from .range_control import RangeControl
         control_id = control["id"]
-        self.icon_cell(grid, r, "controls")
+        show = self.show_in_sidebar
+        self.icon_cell(grid, r, "controls", show)
         switch = control["kind"] == "switch"
         kind = tr("Switch") if switch else tr("Slider")
-        cell, self.name_labels[control_id] = self.name_cell(control["name"], kind+" · "+tr("{count} axes", count=len(control["joints"])))
+        cell, self.name_labels[control_id] = self.name_cell(control["name"], kind+" · "+tr("{count} axes", count=len(control["joints"])), show)
         grid.addWidget(cell, r, COL_NAME)
         value = clamp(control, self.panel.session.virtual_values.get(control_id, control["initial"]))
         self.virtual_state_labels[control_id] = self.value_label(grid, r)
@@ -494,8 +525,8 @@ class Controls(QWidget):
         else:
             label.setText(f"{value*100:.0f} %")
 
-    def name_cell(self, name, sub):
-        cell = QWidget()
+    def name_cell(self, name, sub, action):
+        cell = ClickCell(action)
         v = QVBoxLayout(cell)
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(0)

@@ -380,6 +380,7 @@
   "Show collision shape": "Show collision shape",
   "Show collision shapes": "Show collision shapes",
   "Show collision shapes in new windows": "Show collision shapes in new windows",
+  "Show in the Newton sidebar": "Show in the Newton sidebar",
   "Show or hide the control panel": "Show or hide the control panel",
   "Show properties of the selection": "Show properties of the selection",
   "Shows or hides the collision shape of this body only. The global setting in the preferences stays as it is.": "Shows or hides the collision shape of this body only. The global setting in the preferences stays as it is.",

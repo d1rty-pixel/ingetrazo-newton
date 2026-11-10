@@ -4,6 +4,10 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ## Unreleased
 
+### Added
+
+- Control panel: a click on the name or icon of a control opens the Newton tab in the sidebar; for an axis its body is selected as well (not while a simulation runs).
+
 ### Changed
 
 - *Axis coupling*: an axis can now also follow a motor (speed drive), not only a servo. A gear train or a crank mechanism behind one motor runs without end instead of stopping at a servo target; the motor carries the load of all followers, and a limited follower limits the motor's travel.
@@ -11,6 +15,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 ### Fixed
 
 - Opening a model saved before axis and connection objects existed (including most example models) no longer marks it as changed. Newton rebuilds those objects from the saved axes, which counted as an edit, so after Start and Reset the title showed `*` and closing asked to save although nothing was edited.
+- Sliders (everywhere in Newton): a click on the track now moves the handle there and can be dragged on, and the handle is larger (24 px) so it is hit at the first try.
 
 ### Documentation
 
