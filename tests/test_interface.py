@@ -1705,6 +1705,24 @@ def test_documents_without_axis_objects_get_them_on_load_without_an_undo_step(pa
     assert not history.undo_stack
 
 
+def test_a_document_rebuilding_its_axis_objects_opens_clean_and_stays_clean_after_a_simulation(panel,qtapp):
+    from core.history import MoveGroupCommand
+    from newton.axis_objects import markers
+    win = panel.window()
+    # Saved before axis objects existed: the pendulum's axis is rebuilt on open.
+    assert win.open_path(Path(__file__).resolve().parents[1]/"models"/"domino-30-with-pendulum.igz")
+    scene = panel.app.scene
+    assert markers(scene) and not win._is_dirty() and not win.windowTitle().endswith("*")
+    panel.start_or_pause()
+    wait(qtapp,lambda:panel.session.ready,30)
+    panel.session.reset()
+    wait(qtapp,lambda:not panel.session.workspace)
+    assert not win._is_dirty() and not win.windowTitle().endswith("*")
+    body = next(g for g in scene.groups if g not in markers(scene))
+    panel.app.viewport.history.execute(MoveGroupCommand(body,QVector3D(.1,0,0)))
+    assert win._is_dirty(),"a real edit still marks the document"
+
+
 def test_dragging_a_body_previews_its_axis_object_and_dragging_the_axis_object_its_glyph(panel):
     from newton.axis_objects import markers,owner_id
     group = select_demo_axis(panel)

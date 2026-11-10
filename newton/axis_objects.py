@@ -345,5 +345,9 @@ def sync_loaded(panel,viewport):
         return
     commands = plan(scene,capture(scene),size=gizmo_size)
     if commands:
+        version = scene.version
         ensure_axis_layer(scene)
         SyncAxes(commands).do(scene)
+        # The objects follow from the saved body data, so rebuilding them is not an edit:
+        # counted like Scene.bump_view(), a document that opened clean stays clean.
+        scene.view_version += scene.version-version

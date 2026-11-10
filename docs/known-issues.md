@@ -24,14 +24,6 @@ Status values: **open** (confirmed, not fixed), **observation** (reported, cause
 - **What:** `.test-state/` QSettings are never reset, so a key left behind by one test or run reaches the next. A detach test in `tests/test_controls_dock.py` that fails between detaching and attaching leaves `newton/controls_detached=true`; four later tests then fail (`test_toolbar_action_shows_and_hides_the_control_panel`, `test_open_control_shows_the_dock_and_expands_the_row`, `test_the_float_button_moves_the_panel_into_a_window_of_its_own_and_back`, `test_a_detached_panel_stays_detached_when_it_is_reopened`).
 - **Possible fix:** remove `controls.DETACHED_KEY` (or the whole `newton/` group) in the `panel` fixture before `MainWindow()`.
 
-## Document marked modified after a simulation
-
-- **Status:** observation
-- **Reported:** 2026-11-05, Windows installation test (GUI phase), IngeTrazo 0.6.0 on Windows 11
-- **Symptom:** After opening `models/domino-30-with-pendulum.igz`, Start and Reset, the title shows `*` and closing asks whether to save, although nothing was edited. The screenshot taken while the simulation ran already shows the marker.
-- **Unverified:** whether opening alone sets it (for example the history hook that creates missing axis or connection objects) or the simulation workspace does.
-- **Next step:** open the model in a test window, read the modified state before and after Start/Reset.
-
 ## Simulation override rows are squashed at narrow widths with the Key bindings section visible
 
 - **Status:** observation

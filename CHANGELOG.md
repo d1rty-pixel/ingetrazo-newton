@@ -4,6 +4,10 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ## Unreleased
 
+### Fixed
+
+- Opening a model saved before axis and connection objects existed (including most example models) no longer marks it as changed. Newton rebuilds those objects from the saved axes, which counted as an edit, so after Start and Reset the title showed `*` and closing asked to save although nothing was edited.
+
 ### Documentation
 
 - New [FAQ](docs/faq.md), starting with why bodies on a layer shown during the simulation stay invisible (hidden bodies left out at Start) and how to include them.
