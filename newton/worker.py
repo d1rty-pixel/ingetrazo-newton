@@ -455,6 +455,11 @@ class World:
         # expensive Hessian factorisation while retaining elliptic friction.
         use_cg = self.model.nv>80 and (bool(flexible) or self.quality=="quick")
         self.model.opt.solver = self.mj.mjtSolver.mjSOL_CG if use_cg and self.quality!="precise" else self.mj.mjtSolver.mjSOL_NEWTON
+        # PGS is the model's or user's choice: gears driven by tooth contacts blow up under the Newton
+        # solver (a single step turns gentle contacts into a kick) and run cleanly with PGS.
+        self.solver = data.get("solver","automatic")
+        if self.solver not in ("automatic","pgs"):raise ValueError("Unknown contact solver.")
+        if self.solver=="pgs":self.model.opt.solver = self.mj.mjtSolver.mjSOL_PGS
         self.model.opt.iterations = {"quick":40 if use_cg else 20,"balanced":80,"precise":120}[self.quality]
         self.model.opt.tolerance = {"quick":1e-5,"balanced":1e-6 if use_cg else 1e-8,"precise":1e-9}[self.quality]
         self.data = self.mj.MjData(self.model)
@@ -655,7 +660,7 @@ class World:
         posed = time.perf_counter();result = self.poses()
         result["performance"] = dict(newton_ms=newton_ms,output_ms=(time.perf_counter()-posed)*1000,
             contacts=int(self.data.ncon),constraints=int(self.data.nefc),bodies=len(self.bodies),
-            iterations=int(self.data.solver_niter[0]),substeps=self.substeps,quality=self.quality)
+            iterations=int(self.data.solver_niter[0]),substeps=self.substeps,quality=self.quality,solver=self.solver)
         return result
 
     def apply_environment(self):

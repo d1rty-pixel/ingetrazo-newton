@@ -172,7 +172,7 @@ class Session(QObject):
         self.watchdog.setSingleShot(True)
         self.watchdog.timeout.connect(lambda: self.fail(tr("The Newton process did not answer within 15 seconds. The simulation was reset.")))
 
-    def start(self, python, scene, specs, movers, gravity, floor,linear_damping=0,angular_damping=0,quality="balanced",controls=(),bindings=()):
+    def start(self, python, scene, specs, movers, gravity, floor,linear_damping=0,angular_damping=0,quality="balanced",controls=(),bindings=(),solver="automatic"):
         if self.workspace or self.app.workspace() is not None:
             raise ValueError(tr("The simulation cannot start while another workspace is open. Close that workspace first."))
         if not Path(python).is_file():
@@ -205,7 +205,8 @@ class Session(QObject):
         process.setWorkingDirectory(str(Path(__file__).parent))
         process.started.connect(lambda: self.send(dict(op="init", bodies=worker_specs(specs),
                                                        gravity=gravity, floor=floor,
-                                                       linear_damping=linear_damping,angular_damping=angular_damping,quality=quality)))
+                                                       linear_damping=linear_damping,angular_damping=angular_damping,quality=quality,
+                                                       solver=solver)))
         process.readyReadStandardOutput.connect(self.read)
         process.readyReadStandardError.connect(self.read_stderr)
         process.errorOccurred.connect(lambda error: self.fail(

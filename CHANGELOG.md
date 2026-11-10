@@ -6,16 +6,19 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ### Added
 
-- Example model `models/gear-train-carousel.igz`: a man turns a crank that drives a carousel through spur gears, worm and worm wheel, a ring gear and bevel gears. A motor leads all shafts through axis couplings, and the man's arm is a closed linkage on the crank. See *Example models*.
+- Example model `models/gear-train-carousel.igz`: a man turns a crank that drives a carousel through spur gears, a ring gear and bevel gears (36:11) that mesh through their teeth (one convex shape per tooth, contact solver PGS); a worm and worm wheel follow through an axis coupling, and the man's arm is a closed linkage on the crank. See *Example models*.
 - Control panel: a click on the name or icon of a control opens the Newton tab in the sidebar; for an axis its body is selected as well (not while a simulation runs).
+- *Contact solver*: how contact forces are computed, as a default for every model under *Preferences → Simulation* and per model in the new sidebar section *Model* (saved in the file, shown also with nothing selected). *PGS* lets gears drive each other through their teeth; with the standard solver such gears were thrown apart after a fraction of a second.
 
 ### Changed
 
 - *Axis coupling*: an axis can now also follow a motor (speed drive), not only a servo. A gear train or a crank mechanism behind one motor runs without end instead of stopping at a servo target; the motor carries the load of all followers, and a limited follower limits the motor's travel.
+- Rims around linked bodies are calmer. Collision exemptions (dashed cyan) appear only while the pointer is over the *Collision exemptions* block or *Exempt body…* is picking; models that exempt every moving part from every other lit up nearly the whole model on each selection. Linked rims are plain lines without fill and halo, so a large reference body such as a frame no longer washes over the bodies in front of it; only the body a pick would take keeps its filled rim.
 
 ### Fixed
 
 - Opening a model saved before axis and connection objects existed (including most example models) no longer marks it as changed. Newton rebuilds those objects from the saved axes, which counted as an edit, so after Start and Reset the title showed `*` and closing asked to save although nothing was edited.
+- Sidebar, *Simulation overrides*: the section no longer scrolls sideways in a narrow sidebar. The *Attraction* field reserved room for its largest value (10¹²) and made the sidebar about 8 px too wide as soon as its vertical scroll bar showed; the override fields now shrink with the sidebar.
 - Sliders (everywhere in Newton): a click on the track now moves the handle there and can be dragged on, and the handle is larger (24 px) so it is hit at the first try.
 
 ### Documentation

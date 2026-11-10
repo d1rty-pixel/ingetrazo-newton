@@ -377,7 +377,7 @@ def test_preferences_organize_and_stage_global_simulation(panel):
     try:
         page = NewtonPreferences(panel)
         assert page.tabs.count() == 5
-        explained = [page.colliders,page.shortcuts_button,page.quality,page.gravity.parentWidget(),
+        explained = [page.colliders,page.shortcuts_button,page.quality,page.solver,page.gravity.parentWidget(),
                      page.floor,page.linear,page.angular,page.python.parentWidget()]
         texts = [w.toolTip() for w in explained]
         assert all(texts) and len(set(texts)) == len(texts)
@@ -394,6 +394,41 @@ def test_preferences_organize_and_stage_global_simulation(panel):
             name = "newton/"+key
             if value is None:st.remove(name)
             else:st.setValue(name,value)
+        st.sync()
+
+
+def test_contact_solver_defaults_in_the_preferences_and_is_chosen_per_model_in_the_sidebar(panel,monkeypatch):
+    from PySide6.QtCore import QSettings
+    from newton.model import contact_solver
+    from newton.preferences import NewtonPreferences
+    st = QSettings();saved = st.value("newton/contact_solver")
+    seed_demo(panel,"Servo door")
+    started = []
+    monkeypatch.setattr(panel.session,"start",lambda *a,**k:started.append(k["solver"]))
+    own = lambda:(panel.app.document_data() or {}).get("solver")
+    combo = panel.model_solver
+    def choose(key):
+        combo.setCurrentIndex(combo.findData(key));combo.activated.emit(combo.currentIndex())
+    try:
+        assert not hasattr(NewtonPreferences(panel),"model_solver"),"the preferences hold only the default"
+        panel.app.scene.select([]);panel.refresh()
+        assert panel.model_section.isVisibleTo(panel),"model settings show without a selection"
+        assert combo.currentData()=="" and contact_solver(panel.app.document_data())=="automatic"
+        page = NewtonPreferences(panel)
+        page.solver.setCurrentIndex(page.solver.findData("pgs"));page.commit();page.deleteLater()
+        assert own() is None and contact_solver(panel.app.document_data())=="pgs","the default applies to every model"
+        st.setValue("newton/contact_solver","automatic")
+        choose("pgs")
+        assert own()=="pgs" and contact_solver(panel.app.document_data())=="pgs","the model's own choice wins"
+        panel.start_or_pause()
+        assert started==["pgs"]
+        panel.app.viewport.history.undo();panel.refresh()
+        assert own() is None and combo.currentData()=="","one undo step, and the sidebar follows it"
+        choose("pgs");choose("")
+        assert own() is None
+    finally:
+        if saved is None:st.remove("newton/contact_solver")
+        else:st.setValue("newton/contact_solver",saved)
         st.sync()
 
 
@@ -1972,12 +2007,28 @@ def test_collision_exemptions_and_connections_get_their_own_rim_colours(panel):
     vp.history.execute(pair_command(a,c,False))
     assert [g.name for g in glow.linked(scene,[c],"exemption")]==["a"]
     scene.select([a])
-    image = QImage(vp.width(),vp.height(),QImage.Format_ARGB32);image.fill(QColor(0,0,0,0))
-    painter = QPainter(image);glow.draw(panel,vp,painter);painter.end()
-    colours = {image.pixelColor(x,y).rgb()&0xffffff for x in range(image.width()) for y in range(image.height()) if image.pixelColor(x,y).alpha()==255}
-    assert QColor(*COLOURS["connected"]).rgb()&0xffffff in colours
-    assert QColor(*COLOURS["exemption"]).rgb()&0xffffff in colours
-    assert QColor(*COLOURS["actual"]).rgb()&0xffffff not in colours
+    panel.refresh_widgets()
+    def colours():
+        image = QImage(vp.width(),vp.height(),QImage.Format_ARGB32);image.fill(QColor(0,0,0,0))
+        painter = QPainter(image);glow.draw(panel,vp,painter);painter.end()
+        return {image.pixelColor(x,y).rgb()&0xffffff for x in range(image.width()) for y in range(image.height()) if image.pixelColor(x,y).alpha()==255}
+    exemption = QColor(*COLOURS["exemption"]).rgb()&0xffffff
+    found = colours()
+    assert QColor(*COLOURS["connected"]).rgb()&0xffffff in found
+    assert QColor(*COLOURS["actual"]).rgb()&0xffffff not in found
+    assert exemption not in found,"exemptions often pair every part with every other; they show only on demand"
+    from PySide6.QtCore import QPointF
+    from PySide6.QtGui import QEnterEvent
+    panel.collision_box.enterEvent(QEnterEvent(QPointF(1,1),QPointF(1,1),QPointF(1,1)))
+    assert exemption in colours(),"hovering the exemption block shows them"
+    panel.collision_box.leaveEvent(QEvent(QEvent.Leave))
+    assert exemption not in colours()
+    panel.collision_pairs.pick()
+    try:
+        assert exemption in colours(),"the exempt bodies show while the next one is picked"
+    finally:
+        panel.app.window._activate_tool("select")
+    assert exemption not in colours()
 
 
 def test_selection_outlines_linked_bodies_and_picks_outline_their_candidate(panel):
@@ -2016,6 +2067,16 @@ def test_selection_outlines_linked_bodies_and_picks_outline_their_candidate(pane
         assert painted()>linked_only
     finally:
         vp.active_tool = None
+    def inside(group):
+        image = QImage(vp.width(),vp.height(),QImage.Format_ARGB32);image.fill(QColor(0,0,0,0))
+        painter = QPainter(image);glow.draw(panel,vp,painter);painter.end()
+        world = glow.points(scene,group)
+        xs,ys,_ = vp.world_to_pixels([[sum(p[i] for p in world)/len(world) for i in range(3)]])
+        return image.pixelColor(int(xs[0]),int(ys[0])).alpha()
+    assert inside(c)==0,"a linked rim is a plain line, so a large body does not wash over the ones in front"
+    glow.offer(panel,c)
+    assert inside(c)>0,"the body a click would take is filled"
+    glow.offer(panel,None)
     offered = []
     button = ChooseButton("Choose…",lambda:[("b",b,"b")],lambda k:None,"none",offered.append)
     button.fill()
@@ -2862,7 +2923,7 @@ def test_manual_fold_holds_until_the_selection_changes_and_is_not_stored(panel):
 def test_sidebar_sections_follow_the_agreed_order(panel):
     select_demo_axis(panel)
     titles = [f.header.text() for f in panel.sections]
-    assert titles==["Generic","Profile","Material","Body","Collisions","Motion","Mechanical connection","Axis coupling","Simulation overrides"]
+    assert titles==["Generic","Profile","Material","Body","Collisions","Motion","Mechanical connection","Axis coupling","Simulation overrides","Model"]
     layout = panel.sections[0].parentWidget().layout()
     assert [layout.itemAt(i).widget() for i in range(len(titles))]==list(panel.sections)
 

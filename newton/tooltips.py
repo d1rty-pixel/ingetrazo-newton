@@ -15,6 +15,7 @@ def row(form,field,text,*inputs):
 
 def apply(panel):
     joint = panel.joint_form
+    row(panel.model_form,panel.model_solver,help.TIP_CONTACT_SOLVER)
     tip(help.TIP_PROFILE_APPLY,panel.profile_combo)
     tip(help.TIP_PROFILE_STATUS,panel.profile_status)
     tip(help.TIP_PROFILE_UNLINK,panel.profile_unlink)

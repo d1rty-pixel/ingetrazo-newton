@@ -121,6 +121,24 @@ def test_quality_preserves_geometry_and_elapsed_simulation_time(quality):
     finally:world.close()
 
 
+def test_contact_solver_option_selects_pgs_and_rejects_unknown_values():
+    body = box("drop",(0,0,3),(1,2,1))
+    world = load([body])
+    try:
+        assert world.model.opt.solver==world.mj.mjtSolver.mjSOL_NEWTON
+        assert advance(world,.1)["performance"]["solver"]=="automatic"
+    finally:world.close()
+    world = load([body],solver="pgs")
+    try:
+        assert world.model.opt.solver==world.mj.mjtSolver.mjSOL_PGS
+        result = advance(world,.5)
+        assert result["performance"]["solver"]=="pgs"
+        assert result["poses"][body.uid][0][2] == pytest.approx(3-.5*9.81*.5**2,abs=.02)
+    finally:world.close()
+    with pytest.raises(ValueError,match="contact solver"):
+        load([body],solver="fast")
+
+
 def test_hidden_connection_target_still_simulates():
     anchor = box("anchor",(0,0,2),(.1,.1,.1),mode="static")
     anchor.hidden = True

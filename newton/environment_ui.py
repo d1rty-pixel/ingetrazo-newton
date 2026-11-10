@@ -1,7 +1,7 @@
 """Per-body environment overrides; global defaults live in Preferences."""
 from PySide6.QtCore import QSettings
 from PySide6.QtGui import QPalette
-from PySide6.QtWidgets import QApplication,QWidget,QVBoxLayout,QHBoxLayout,QFormLayout,QCheckBox,QDoubleSpinBox,QLabel,QToolButton
+from PySide6.QtWidgets import QApplication,QWidget,QVBoxLayout,QHBoxLayout,QFormLayout,QCheckBox,QDoubleSpinBox,QLabel,QToolButton,QSizePolicy
 from .model import KEY,settings
 from .i18n import tr
 from .toolbar import physical_label,pictogram_check
@@ -18,6 +18,9 @@ def global_damping():
 def number(low,high,value=0):
     widget = QDoubleSpinBox();widget.setRange(low,high);widget.setDecimals(3)
     widget.setKeyboardTracking(False);widget.setValue(value)
+    # A spin box never shrinks below the width of its widest value by default; attraction (up to 1e12)
+    # then pushed the sidebar into sideways scrolling as soon as its vertical scroll bar showed.
+    widget.setSizePolicy(QSizePolicy.Preferred,widget.sizePolicy().verticalPolicy())
     return scroll_safe(widget)
 
 

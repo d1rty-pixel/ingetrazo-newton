@@ -43,6 +43,18 @@ def hidden_mode():
     return mode if mode in HIDDEN_MODES else "needed"
 
 
+SOLVERS = ("automatic","pgs")
+
+
+def contact_solver(document=None):
+    """The contact solver of the model (its document data), else the default from the preferences."""
+    own = document.get("solver") if isinstance(document,dict) else None
+    if own in SOLVERS:return own
+    from PySide6.QtCore import QSettings
+    value = QSettings().value("newton/contact_solver","automatic")
+    return value if value in SOLVERS else "automatic"
+
+
 def is_hidden(group,scene):
     return group.hidden or any(l.name==group.layer and not l.visible for l in scene.layers)
 

@@ -105,6 +105,10 @@ class NewtonPreferences(QWidget):
         for label,key in (("Quick","quick"),("Balanced","balanced"),("Precise","precise")):self.quality.addItem(tr(label),key)
         self.quality.setCurrentIndex(max(0,self.quality.findData(QSettings().value("newton/quality","balanced"))))
         page.setting("quality",tr("Quality"),self.quality,tr(help.QUALITY))
+        self.solver = scroll_safe(QComboBox())
+        for label,key in ((tr("Standard"),"automatic"),(tr("PGS (gears, contact drives)"),"pgs")):self.solver.addItem(label,key)
+        self.solver.setCurrentIndex(max(0,self.solver.findData(QSettings().value("newton/contact_solver","automatic"))))
+        page.setting("contact_solver",tr("Contact solver"),self.solver,tr(help.CONTACT_SOLVER))
         page.category(tr("Hidden geometry"))
         from .model import hidden_mode
         self.hidden = scroll_safe(QComboBox())
@@ -174,6 +178,7 @@ class NewtonPreferences(QWidget):
         st.setValue("newton/floor",self.floor.isChecked())
         st.setValue("newton/warn_ground_contact",self.warn_ground.isChecked())
         st.setValue("newton/quality",self.quality.currentData())
+        st.setValue("newton/contact_solver",self.solver.currentData())
         st.setValue("newton/hidden_geometry",self.hidden.currentData())
         st.setValue("newton/linear_damping",self.linear.value())
         st.setValue("newton/angular_damping",self.angular.value())

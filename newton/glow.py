@@ -61,22 +61,29 @@ def hull(xy):
     return half(xy)+half(reversed(xy))
 
 
-def rim(vp,painter,scene,group,colour,dashed=False,overlay=False):
+def rim(vp,painter,scene,group,colour,dashed=False,filled=False):
     world = points(scene,group)
     if not world:return
     xs,ys,front = vp.world_to_pixels(world)
     outline = hull([(round(float(xs[i]),1),round(float(ys[i]),1)) for i in range(len(world)) if front[i]])
     if len(outline)<3:return
     polygon = QPolygonF([QPointF(x,y) for x,y in outline])
-    halo = QColor(colour);halo.setAlpha(70)
-    fill = QColor(colour);fill.setAlpha(30)
     painter.setBrush(Qt.NoBrush)
-    if not overlay:
+    if filled:
+        halo = QColor(colour);halo.setAlpha(70)
+        fill = QColor(colour);fill.setAlpha(30)
         painter.setPen(QPen(halo,9,Qt.SolidLine,Qt.RoundCap,Qt.RoundJoin));painter.drawPolygon(polygon)
-    painter.setBrush(Qt.NoBrush if overlay else fill)
+        painter.setBrush(fill)
     pen = QPen(colour,3 if dashed else 2,Qt.SolidLine,Qt.RoundCap,Qt.RoundJoin)
     if dashed:pen.setStyle(Qt.DashLine);pen.setCapStyle(Qt.FlatCap)
     painter.setPen(pen);painter.drawPolygon(polygon)
+
+
+def exemptions_shown(panel,vp):
+    """Exemptions often pair every moving part with every other, so their rims would mark nearly the whole model;
+    they show only while the pointer is over the exemption block or an "Exempt body…" pick runs."""
+    box,pairs = getattr(panel,"collision_box",None),getattr(panel,"collision_pairs",None)
+    return bool(box is not None and box.hovered) or (pairs is not None and pairs.picker is not None and vp.active_tool is pairs.picker)
 
 
 def draw(panel,vp,painter):
@@ -89,17 +96,20 @@ def draw(panel,vp,painter):
     if candidate not in scene.groups:candidate = None
     # The linked rims are guides like the axes and hide with their layer; a pick always shows its candidate.
     selection = panel.selected()
-    others = {kind:[g for g in linked(scene,selection,kind) if g is not candidate] for kind in KINDS} if axes_visible(scene) else {}
+    kinds = [kind for kind in KINDS if kind!="exemption" or exemptions_shown(panel,vp)] if axes_visible(scene) else []
+    others = {kind:[g for g in linked(scene,selection,kind) if g is not candidate] for kind in kinds}
     if not any(others.values()) and candidate is None:return
     painter.save();painter.setRenderHint(QPainter.Antialiasing,True)
     drawn = set()
-    for kind in KINDS:
-        for group in others.get(kind,[]):
+    for kind in kinds:
+        for group in others[kind]:
             # A connection wins over a reference; an exemption stays visible as a dashed rim over either.
             if kind=="exemption" or group.uid not in drawn:
-                rim(vp,painter,scene,group,QColor(*COLOURS[KINDS[kind]]),dashed=kind=="exemption",overlay=group.uid in drawn)
+                rim(vp,painter,scene,group,QColor(*COLOURS[KINDS[kind]]),dashed=kind=="exemption")
                 drawn.add(group.uid)
-    if candidate is not None:rim(vp,painter,scene,candidate,accent_color())
+    # Only the body a click would take gets a fill and a halo: linked rims are plain lines, so a large
+    # reference body such as a frame does not wash over the bodies in front of it.
+    if candidate is not None:rim(vp,painter,scene,candidate,accent_color(),filled=True)
     painter.restore()
 
 

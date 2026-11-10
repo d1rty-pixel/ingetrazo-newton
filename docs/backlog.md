@@ -36,6 +36,14 @@ Open questions to settle before any work:
 - Whether playback must be deterministic and reproducible (fixed time step) so a sequence gives the same result every run.
 - How much of this the IngeTrazo host offers for UI (timeline widget, extension API) and what Newton has to build itself; see `docs/host-proposals.md`.
 
+## Idea: contact switch per body instead of exemption pairs
+
+Status: idea, not agreed or scoped. Collision exemptions are pairs: to say "this part touches nothing but the ground" a model needs an exemption to every other body, n−1 pairs per body and n(n−1)/2 for a group of parts. The first version of `models/gear-train-carousel.igz` exempted 8 parts from each other (28 pairs) although only 6 pairs overlap; such cliques bloat the data and the sidebar list, and before the rims were limited to the exemption block they lit up the whole model on every selection.
+
+- A body setting such as *Contacts: all bodies / ground only / none* that the worker maps to MuJoCo's `contype`/`conaffinity` bits (today every body uses `contype="2"` and `conaffinity` 2 or 3, see `worker.py`), with exemption pairs kept for single exceptions.
+- Open: whether a third choice "only within its group" (contact groups by bit) is worth it, how it shows in profiles, and how it combines with the automatic exemption of a body and its reference body.
+- `scripts/lab/needed_exemptions.py` already reports which exemptions of a model are needed along its motion; a sidebar action "remove exemptions that are never used" could build on it, but would need a simulation run.
+
 ## Idea: hide and unhide controls in the control panel
 
 Status: idea, not agreed or scoped.
@@ -70,6 +78,8 @@ Possible directions: choose the cone or solver by model size or contact count, o
 - How much the pyramidal cone changes sliding, rolling and grip results (impratio, gripper tests); CG and PGS hit the iteration limit, so their accuracy needs checking too.
 - Which threshold (degrees of freedom, contacts) and whether the switch may happen during a run.
 - Whether such clusters matter outside synthetic attraction tests (bulk material, many loose parts).
+
+A second reason, found on 10 November 2026: gears that drive each other through tooth contacts (`models/gear-train-carousel.igz`) blow up with the Newton solver and run cleanly with PGS, at about 130× real time. Since then *Contact solver* (*Standard* or *PGS*) can be chosen in the preferences as a default and per model. Still open here: an automatic choice by model size or contact count, and whether CG or the pyramidal cone belong in the list.
 
 ## Idea: display rate setting for the simulation
 

@@ -1,5 +1,43 @@
 # Test and measurement runs
 
+## Gear train carousel with tooth contacts (Linux, 10 November 2026)
+
+`scripts/models/gear_train_contact.py` (MuJoCo 3.3.7, PGS, quality Balanced, 12 s, values from 3 s on). Each meshing pair's phase comes from a kinematic search (follower turned at the exact ratio over one driver tooth pitch, 48 phases); smallest clearance: spur 40 → pinion 16 0.48 mm, pinion → ring gear 48 0.03 mm (internal tooth tips shortened to 0.8 module; 0.04 mm interference without), bevel 20 → bevel 20 0.36 mm (36 → 11: 0.24 mm), worm wheel → worm 0.08 mm. The ratios found (−2.5, +1/3, +1, +30) are those of the original couplings.
+
+| Variant | Crank | Pinion | Ring gear | Carousel | Worm | Penetration | Real time |
+| --- | --- | --- | --- | --- | --- | ---: | ---: |
+| Worm in contact, friction 0.3 | −0.003 ± 0.04 | 0.004 | 0.002 | 0.002 | −0.06 | 0.25 mm | 23× |
+| Worm in contact, friction 0.05 | −1.39 ± 0.27 | 3.44 ± 0.62 | 1.15 ± 0.21 | 1.15 ± 0.23 | −41.5 ± 6.7 | 1.49 mm | 18× |
+| Motor on the worm (−75 rad/s), friction 0.1 | −2.24 ± 0.57 | 5.67 ± 1.38 | 1.90 ± 0.47 | 1.92 ± 0.57 | −69.4 ± 15.6 | 3.48 mm | 16× |
+| Motor on the worm (−15 rad/s), friction 0.1 | −0.496 ± 0.085 | 1.24 ± 0.17 | 0.416 ± 0.059 | 0.416 ± 0.077 | −15.0 ± 1.9 | 0.46 mm | 19× |
+| Worm coupled, no worm contact, crank −2.5 rad/s | −2.500 ± 0.006 | 6.251 ± 0.045 | 2.083 ± 0.006 | 2.084 ± 0.014 | −75.0 | 0.20 mm | 46× |
+| Worm coupled, crank −15 °/s, bevel 20:20 | −0.262 ± 0.001 | 0.655 ± 0.009 | 0.218 ± 0.002 | 0.219 ± 0.003 | −7.86 | 0.02 mm | 51× |
+| **The model: as above, bevel 36:11** | **−0.262 ± 0.001** | **0.655 ± 0.009** | **0.218 ± 0.003** | **0.714 ± 0.013** | −7.86 | 0.02 mm | 49× |
+
+The worm with an 11.3° lead angle locks when driven backwards at friction 0.3 (tan λ = 0.2), as a real worm would. With lower friction or with its own motor it turns, but its thread (slices of 30°) passes nearly a slice per step at 75 rad/s and runs rough even at 15 rad/s. A first worm wheel with plain helical teeth interfered by 6–8 mm off its middle plane; the teeth are now cut by the worm's thread section in six planes (hobbing). In the model the hand stays within 0.11 mm of the handle over 20 s.
+
+## Gear contact prototype: solver comparison (Linux, 10 November 2026)
+
+A prototype script (since replaced by `scripts/models/gear_train_contact.py`) and patched copies of the loaded MuJoCo model (MuJoCo 3.3.7, time step 1/240 s, only the prototype simulated). Two spur gears, 40 and 16 teeth, module 20 mm, driven only by tooth contacts; expected speed ratio −2.5. Values after the motor's run-up (from 2.5 s).
+
+| Variant | Ratio | Max. penetration | Peak pinion speed | Real time |
+| --- | --- | ---: | ---: | ---: |
+| Newton solver (current worker) | −0.05 ± 9.2 | 26.6 mm | 458,564 rad/s | 14× |
+| Newton, contact time constant 8.4 ms, impedance 0.95–0.99 | −2.0 ± 2.8 | 29.0 mm | 4,557 rad/s | 6× |
+| Newton, 4 substeps | 2.6 ± 42 | 24.7 mm | 1,955 rad/s | 17× |
+| Newton, quality *Precise* | 0.25 ± 7.7 | 26.7 mm | 147,782 rad/s | 11× |
+| CG | −2.498 ± 0.121 | 1.4 mm | 9,445,133 rad/s (one kick) | 134× |
+| PGS | −2.500 ± 0.016 | 0.16 mm | 6.3 rad/s | 133× |
+| PGS, 30 s | −2.500 ± 0.016 | 0.16 mm | 6.3 rad/s | 129× |
+| PGS, load ×10 / ×50 | −2.499 ± 0.042 / −2.504 ± 0.171 | 0.34 / 1.61 mm | 6.4 / 6.8 rad/s | 122× / 118× |
+| PGS, drive −6 rad/s | −2.500 ± 0.015 | 0.39 mm | 15.2 rad/s | 121× |
+
+With exact kinematics the teeth never overlap, so the geometry is sound. The carousel itself (no contacts) gives the same result under Newton and PGS over 20 s: crank −2.500, carousel +2.083 rad/s.
+
+## Needed exemptions of the gear train carousel (Linux, 10 November 2026)
+
+`scripts/lab/needed_exemptions.py models/gear-train-carousel.igz --seconds=12 --margin=0.01`: the model runs with its exemptions while a copy without exemptions takes every pose. With the original 28 pairs (8 parts, each exempt from every other) only 6 pairs ever touched, all by overlap of convex hulls of meshing gears or of the man and the crank shaft (39–188 mm deep); no other pair came within 1 cm. After reducing the model to these 6 pairs the motion is identical (same joint positions after 12 s) and there are no active contacts.
+
 ## Release 0.15.0 full suite (Linux, 6 November 2026)
 
 Canonical full suite on branch `release/0.15.0` before the release commit, host pinned at `e61132a`:

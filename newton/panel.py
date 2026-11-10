@@ -239,11 +239,11 @@ class NewtonPanel(QWidget):
         self.show_collider.toggled.connect(self.show_body_collider)
         self.collision_view.changed.connect(self.refresh_collider_check)
         form.addRow(self.show_collider)
-        self.collision_box = QWidget()
+        from .collision_ui import CollisionPairs,ExemptionBox
+        self.collision_box = ExemptionBox(self)
         box_layout = QVBoxLayout(self.collision_box);box_layout.setContentsMargins(0,8,0,0)
         heading = QLabel(tr("Collision exemptions"));heading.setStyleSheet("font-weight: bold")
         explanation = QLabel(tr(help.COLLISIONS));explanation.setWordWrap(True);explanation.setTextFormat(Qt.PlainText)
-        from .collision_ui import CollisionPairs
         self.collision_pairs = CollisionPairs(self)
         for widget in (heading,explanation,self.collision_pairs):box_layout.addWidget(widget)
         self.collisions_section.body.layout().addWidget(self.collision_box)
@@ -260,15 +260,24 @@ class NewtonPanel(QWidget):
         self.environment_section,form,_ = settings_section(tr("Simulation overrides"),"overrides",tr(help.OVERRIDES),auto=True)
         self.environment = EnvironmentOverrides(self)
         form.addRow(self.environment)
+        # Settings for the whole model: the last section, the only one shown with nothing selected.
+        self.model_section,form,_ = settings_section(tr("Model"),"model",tr(help.MODEL_SETTINGS))
+        self.model_form = form
+        self.model_solver = compact(QComboBox())
+        for label,key in ((tr("As in preferences"),""),(tr("Standard"),"automatic"),(tr("PGS (gears, contact drives)"),"pgs")):
+            self.model_solver.addItem(label,key)
+        self.model_solver.activated.connect(self.set_model_solver)
+        form.addRow(tr("Contact solver"),self.model_solver)
         from . import tooltips
         tooltips.apply(self)
         self.sections = (self.editor,self.profile_box,self.flexible_section,self.body_section,self.collisions_section,
-            self.joint_box,self.connection_section,self.coupling_section,self.environment_section)
+            self.joint_box,self.connection_section,self.coupling_section,self.environment_section,self.model_section)
         for fold in self.sections:layout.addWidget(fold)
         # Only the closing stretch takes spare height: folded sections report vertical growth through their layout.
         layout.addStretch(1)
         self._auto_state = {}
-        self.selection_widgets = (intro,scroll)
+        # Body sections without their own visibility rule; the rest hide themselves without a single body.
+        self.selection_widgets = (self.editor,self.profile_box,self.body_section,self.collisions_section)
         self.controls = Controls(self)
         from .key_slots import KeySlots
         self.key_slots = KeySlots(self)
@@ -442,6 +451,17 @@ class NewtonPanel(QWidget):
         parent = reference_id(group)
         props.append((tr("Reference body"),self.reference_names.get(parent,tr("World"))))
         return dict(type=tr("Newton")+" · "+kind,props=props)
+
+    def set_model_solver(self,*_):
+        """Store the model's own contact solver in the document as one undo step; "As in preferences" removes it."""
+        if self.session.workspace:return
+        data = self.app.document_data()
+        data = dict(data) if isinstance(data,dict) else {}
+        wanted = self.model_solver.currentData() or None
+        if data.get("solver")==wanted:return
+        if wanted:data["solver"] = wanted
+        else:data.pop("solver",None)
+        self.app.set_document_data(data or None)
 
     def default_python(self):
         from . import runtime_setup
@@ -650,6 +670,10 @@ class NewtonPanel(QWidget):
             else:
                 self.controls.message(tr("The simulation was reset and the original model is restored."))
         self.was_active = active
+        from .model import SOLVERS
+        data = self.app.document_data()
+        own = data.get("solver") if isinstance(data,dict) else None
+        self.model_solver.setCurrentIndex(max(0,self.model_solver.findData(own if own in SOLVERS else "")))
         groups = self.selected()
         if active:
             groups = getattr(self,"_sidebar_groups",[])
@@ -1011,7 +1035,9 @@ class NewtonPanel(QWidget):
             from .environment_ui import global_damping
             linear,angular = global_damping()
             quality = QSettings().value("newton/quality","balanced")
-            self.session.start(python,scene,specs,movers,self.gravity.value(),self.floor.isChecked(),linear,angular,quality,controls,bindings)
+            from .model import contact_solver
+            self.session.start(python,scene,specs,movers,self.gravity.value(),self.floor.isChecked(),linear,angular,quality,controls,bindings,
+                solver=contact_solver(self.app.document_data()))
             self.controls.message(tr("Drag passive bodies with the mouse. Move actuators with the controls."))
             self.warn_ground_contact(specs,movers)
         except Exception as exc:

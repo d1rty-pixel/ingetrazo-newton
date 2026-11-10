@@ -25,10 +25,34 @@ def pair_command(a,b,enabled):
     return CompoundCommand(commands)
 
 
+class ExemptionBox(QWidget):
+    """The exemption block of the sidebar; while the pointer is over it the model shows every exempt body's rim."""
+
+    def __init__(self,panel):
+        super().__init__()
+        self.panel,self.hovered = panel,False
+
+    def hover(self,on):
+        if self.hovered!=on:
+            self.hovered = on
+            self.panel.app.viewport.update()
+
+    def enterEvent(self,event):
+        self.hover(True);super().enterEvent(event)
+
+    def leaveEvent(self,event):
+        self.hover(False);super().leaveEvent(event)
+
+    def hideEvent(self,event):
+        self.hover(False);super().hideEvent(event)
+
+
 class CollisionPairs(QWidget):
     def __init__(self,panel):
         super().__init__()
         self.panel = panel
+        # The running "Exempt body…" pick, so the model can show the bodies already exempt.
+        self.picker = None
         layout = QVBoxLayout(self);layout.setContentsMargins(0,0,0,0)
         self.table = ReferenceTable(self.restore,panel=panel)
         self.add = QPushButton(tr("Exempt body…"))
@@ -52,7 +76,8 @@ class CollisionPairs(QWidget):
             self.panel.app.viewport.history.execute(pair_command(source,other,False))
             self.panel.app.viewport.notify_scene_changed()
             QTimer.singleShot(0,cancel)
-        self.panel.app.viewport.set_active_tool(ReferencePickTool(choose,cancel))
+        self.picker = ReferencePickTool(choose,cancel)
+        self.panel.app.viewport.set_active_tool(self.picker)
         self.panel.status_message(tr("Pick the body that should pass through this body. Esc cancels."))
 
     def restore(self,uid):
