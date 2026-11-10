@@ -6,6 +6,7 @@ Notable changes to Newton, the physics extension for IngeTrazo. Versions follow 
 
 ### Added
 
+- Example model `models/gear-train-carousel.igz`: a man turns a crank that drives a carousel through spur gears, worm and worm wheel, a ring gear and bevel gears. A motor leads all shafts through axis couplings, and the man's arm is a closed linkage on the crank. See *Example models*.
 - Control panel: a click on the name or icon of a control opens the Newton tab in the sidebar; for an axis its body is selected as well (not while a simulation runs).
 
 ### Changed

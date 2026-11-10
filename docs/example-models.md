@@ -12,7 +12,20 @@ The models are in [`models/`](../models). They can be opened directly in IngeTra
 | `crank-drive-energy-chain.igz`, `crank-drive-drag-chain.igz` | Motor, crank drive, cable in a chain |
 | `drag-chain-with-cable.igz`, `rope-and-cable.igz` | Ropes and cables |
 | `sun-and-planet.igz` | Attraction and initial velocity |
+| `gear-train-carousel.igz` | A man turns a crank that drives a carousel through six gear types; motor as coupling leader, closed arm linkage |
 | `z0-contact-test.igz` | Movable bodies that scrape along the ground at Z = 0 (test model for the ground contact warning) |
+
+## Gear train with crank and carousel
+
+**gear-train-carousel.igz** stands in a small workshop: a man turns a crank, and a gear train passes the motion on to a carousel. It contains six gear types, at most two of each: spur gears (40 and 16 teeth; the 16-tooth pinion is long and also meshes inside the ring gear), worm and worm wheel (30 teeth), ring gear (48 teeth, internal), and two bevel gears (20 teeth, 90° turn). Module 20 mm, about 2.9 m high.
+
+- The crank sits on the shaft of the large spur gear and is the only drive: a motor (*Kurbel*, −2.5 rad/s, about 0.4 turns per second) that runs without end. Every other shaft follows it through an axis coupling with the product ratio of its gear stage, because couplings do not chain: worm ×30, pinion −2.5, ring gear with bevel gear −5/6, carousel −5/6. The worm is driven backwards at about 12 turns per second; the electric motor beside it is decoration.
+- The teeth do not drive each other through contacts; the gears are exempt from colliding with each other, and the couplings carry the motion. The teeth are phased so that they visibly mesh.
+- The man is fixed; his upper arm (*Schulter*) and forearm (*Ellbogen*) are passive rotation axes, and the hand hangs on the crank handle with a ball connection. Crank, forearm, upper arm and frame form a crank-rocker four-bar linkage (crank 0.20 m, shoulder 0.52 m from the crank axis, arm 0.34 + 0.42 m): the crank turns fully while the arm swings, and the arm never straightens.
+- Direction: seen from the front the crank turns anticlockwise, so the handle moves away from the man over the top and towards him at the bottom, and the carousel turns anticlockwise seen from above, with its horses facing forwards.
+- The scenery (floor, walls, workbench, crates, barrier, rug) is on the layer *Szenerie* and excluded from the simulation; the layer *Newton Axes* is hidden.
+
+Checked headless with the worker (20 s, quality Balanced): the crank holds −2.50 rad/s, the carousel turns at +2.08 rad/s, the hand stays within 0.11 mm of the handle, there are no contacts, and the worker runs at about 300× real time. The model needs the motor leader for axis couplings (see the changelog, *Unreleased*); older Newton versions refuse to start it.
 
 ## Wrecking ball and brick wall
 
